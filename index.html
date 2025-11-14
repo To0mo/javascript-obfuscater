@@ -83,21 +83,24 @@
         <div id="messageArea" class="message-area"></div>
     </div>
 
+    <!-- ★★★ 1. Base85ライブラリをHTMLに直接埋め込む ★★★ -->
+    <script>
+    !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):e.base85=t()}(this,function(){"use strict";return{encode:function(e){for(var t,n,r,o,c=new Uint8Array(e),f="",i=0;i<c.length;i+=4)t=c[i],n=c[i+1],r=c[i+2],o=c[i+3],f+=String.fromCharCode.apply(String,[(t<<24|n<<16|r<<8|o)>>>0].reduce(function(e,t){return t?e.concat(function e(t,n){var r=Math.pow(85,n);if(n>0){var o=Math.floor(t/r);return[o].concat(e(t-o*r,n-1))}}(t,4)):[0,0,0,0,0]},[]).map(function(e){return e+33}));return f.slice(0,f.length-4+c.length%4)},decode:function(e){for(var t=e.replace(/\s/g,"").split("").map(function(e){return e.charCodeAt(0)-33}),n=new Uint8Array(4*t.length/5),r=0;r<t.length;r+=5){var o=t[r]*Math.pow(85,4)+t[r+1]*Math.pow(85,3)+t[r+2]*Math.pow(85,2)+t[r+3]*85+t[r+4];n[4*r/5]=(o&4278190080)>>24,n[4*r/5+1]=(o&16711680)>>16,n[4*r/5+2]=(o&65280)>>8,n[4*r/5+3]=255&o}return n.slice(0,n.length-5+t.length%5+1).buffer}}});
+    </script>
+
+    <!-- ★★★ 2. 残りのライブラリを動的に読み込み、アプリケーションを実行する ★★★ -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             
             const obfuscateButton = document.getElementById('obfuscateButton');
             const messageArea = document.getElementById('messageArea');
 
-            // 読み込むライブラリのリストを定義
+            // 読み込むライブラリのリスト (Base85は削除)
             const scriptsToLoad = [
                 "https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js",
-                "https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js",
-                // ★★★ 動作が確認されている js-base85 のCDNリンクに修正 ★★★
-                "https://cdn.jsdelivr.net/npm/js-base85@1.0.2/index.min.js"
+                "https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"
             ];
 
-            // スクリプトを1つ読み込むための関数
             function loadScript(src) {
                 return new Promise(function (resolve, reject) {
                     const script = document.createElement('script');
@@ -108,10 +111,9 @@
                 });
             }
 
-            // すべてのライブラリの読み込み完了を待つ
             Promise.all(scriptsToLoad.map(loadScript))
                 .then(() => {
-                    console.log("すべてのライブラリが正常に読み込まれました。");
+                    console.log("TerserとJavaScript-Obfuscatorが正常に読み込まれました。");
                     initializeApp();
                 })
                 .catch(error => {
@@ -120,7 +122,6 @@
                     obfuscateButton.textContent = 'ライブラリ読み込み失敗';
                 });
 
-            // すべての準備が完了した後に実行される初期化関数
             function initializeApp() {
                 const inputCodeElement = document.getElementById('inputCode');
                 const outputCodeElement = document.getElementById('outputCode');
@@ -130,10 +131,8 @@
 
                 obfuscateButton.addEventListener('click', async function () {
                     const inputCode = inputCodeElement.value;
-
                     outputCodeElement.value = '';
                     messageArea.textContent = '';
-
                     if (!inputCode.trim()) {
                         messageArea.textContent = '入力コードが空です。';
                         return;
@@ -145,21 +144,17 @@
                         const minifiedCode = terserResult.code;
 
                         const obfuscatedResult = JavaScriptObfuscator.obfuscate(minifiedCode, {
-                            compact: true,
-                            controlFlowFlattening: true,
-                            deadCodeInjection: true,
-                            stringArray: true,
-                            stringArrayEncoding: ['base64']
+                            compact: true, controlFlowFlattening: true, deadCodeInjection: true,
+                            stringArray: true, stringArrayEncoding: ['base64']
                         });
                         const obfuscatedCode = obfuscatedResult.getObfuscatedCode();
 
                         const encodedCode = base85.encode(obfuscatedCode);
 
                         const finalCode = `/*
- * この難読化コードを実行するには、事前にjs-base85ライブラリが必要です。
- * 例: <script src="https://cdn.jsdelivr.net/npm/js-base85@1.0.2/index.min.js"><\/script>
+ * このコードを実行するために、外部ライブラリは不要です。
  */
-eval(base85.decode('${encodedCode}'));`;
+eval((function(){var e={decode:function(e){for(var t=e.replace(/\\s/g,"").split("").map(function(e){return e.charCodeAt(0)-33}),r=new Uint8Array(4*t.length/5),n=0;n<t.length;n+=5){var o=t[n]*Math.pow(85,4)+t[n+1]*Math.pow(85,3)+t[n+2]*Math.pow(85,2)+t[n+3]*85+t[n+4];r[4*n/5]=(o&4278190080)>>24,r[4*n/5+1]=(o&16711680)>>16,r[4*n/5+2]=(o&65280)>>8,r[4*n/5+3]=255&o}return(new TextDecoder).decode(r.slice(0,r.length-5+t.length%5+1))}};return e.decode('${encodedCode}');})());`;
                         
                         outputCodeElement.value = finalCode;
 
