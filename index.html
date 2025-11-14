@@ -3,152 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高機能 JavaScript 難読化・圧縮ツール (CSP対応)</title>
+    <title>高度なJavaScript難読化ツール (eval回避版)</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; margin: 0; background-color: #f6f8fa; }
-        .header { background-color: #24292e; color: white; padding: 16px; text-align: center; }
-        .main-container { display: flex; flex-direction: column; padding: 16px; gap: 16px; }
-        .io-container { display: flex; flex-direction: column; gap: 16px; height: 60vh; }
-        @media (min-width: 768px) { .io-container { flex-direction: row; } }
-        .textarea-wrapper { position: relative; width: 100%; height: 100%; }
-        textarea { width: 100%; height: 100%; box-sizing: border-box; font-family: monospace; font-size: 14px; border: 1px solid #d1d5da; border-radius: 6px; padding: 8px; resize: vertical; }
-        .copy-button { position: absolute; top: 8px; right: 8px; z-index: 10; padding: 4px 10px; font-size: 12px; background-color: #f6f8fa; border: 1px solid #d1d5da; border-radius: 6px; cursor: pointer; opacity: 0.8; transition: all 0.2s; }
-        .copy-button:hover { background-color: #e1e4e8; opacity: 1; }
-        .copy-button:disabled { background-color: #2ea44f; color: white; border-color: #2ea44f; }
-        .options-container { background-color: white; border: 1px solid #d1d5da; border-radius: 6px; padding: 16px; }
-        .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: center;}
-        .option-group { display: flex; flex-direction: column; gap: 8px; }
-        label { font-weight: 600; }
-        select, button { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #d1d5da; font-size: 14px; }
-        .process-button { background-color: #2ea44f; color: white; font-weight: 600; cursor: pointer; border-color: #2ea44f; }
-        .process-button:hover:not(:disabled) { background-color: #2c974b; }
-        .process-button:disabled { background-color: #94d3a2; cursor: not-allowed; }
-        .result-info { margin-top: 16px; background-color: #eef5ff; padding: 16px; border-radius: 6px; border: 1px solid #c8d9f5; }
-        .result-info strong { font-size: 1.2em; }
-        .warning { color: #d73a49; font-weight: bold; }
-        .success { color: #2ea44f; font-weight: bold; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .container { display: flex; flex-direction: column; gap: 20px; }
+        h1 { text-align: center; color: #2c3e50; }
+        p { text-align: center; }
+        textarea { width: 100%; height: 250px; border-radius: 5px; border: 1px solid #ccc; padding: 10px; font-family: monospace; font-size: 14px; box-sizing: border-box; }
+        button { background-color: #3498db; color: white; border: none; padding: 15px; font-size: 16px; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; }
+        button:hover { background-color: #2980b9; }
+        button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        pre { background-color: #f4f4f4; padding: 1em; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; }
+        code { font-family: monospace; }
+        .result-info { font-weight: bold; margin-top: 10px; }
+        .error { color: #e74c3c; font-weight: bold; }
     </style>
-    <!-- 外部ライブラリはツールの動作にのみ使用。出力コードは自己完結します -->
-    <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator@4.1.0/dist/index.browser.js"></script>
 </head>
 <body>
-    <header class="header"><h1>高機能 JavaScript 難読化・圧縮ツール (CSP対応)</h1></header>
-
-    <main class="main-container">
-        <div class="io-container">
-            <div class="textarea-wrapper"><textarea id="input-code" placeholder="ここにJavaScriptコードを入力..."></textarea></div>
-            <div class="textarea-wrapper">
-                <textarea id="output-code" readonly placeholder="処理結果がここに出力されます..."></textarea>
-                <button id="copy-btn" class="copy-button">コピー</button>
-            </div>
+    <div class="container">
+        <h1>高度なJavaScript難読化ツール (eval回避版)</h1>
+        <p>Terser圧縮 → javascript-obfuscator → Base64エンコードを重ね、<br><b>evalを使わないBlob import形式</b>で出力します。</p>
+        
+        <div>
+            <label for="inputCode"><strong>1. 元のJavaScriptコード</strong></label>
+            <textarea id="inputCode" placeholder="ここにJavaScriptコードを貼り付けてください..."></textarea>
         </div>
 
-        <div class="options-container">
-            <div class="options-grid">
-                <div class="option-group"><label for="use-terser">1. Terser 圧縮</label><select id="use-terser"><option value="yes" selected>有効</option><option value="no">無効</option></select></div>
-                <div class="option-group"><label for="obfuscator-preset">2. 難読化レベル</label><select id="obfuscator-preset"><option value="low">低 (サイズ重視)</option><option value="medium" selected>中 (バランス)</option><option value="high">高 (難読化重視)</option></select></div>
-                <div class="option-group">
-                    <label for="encoding-type">3. 実行方式 (CSP対応)</label>
-                    <select id="encoding-type">
-                        <option value="none" selected>なし (直接実行)</option>
-                        <option value="blob-import">Blob Import (UserScript / CSP回避)</option>
-                    </select>
-                </div>
-                <div class="option-group"><label>&nbsp;</label><button id="process-btn" class="process-button">処理を実行</button></div>
-            </div>
-        </div>
+        <button id="obfuscateBtn" onclick="processObfuscation()">難読化を実行</button>
 
-        <div id="result-info" class="result-info">結果はここに表示されます。</div>
-    </main>
+        <div>
+            <label for="outputCode"><strong>2. 難読化後のコード</strong></label>
+            <pre><code id="outputCode"></code></pre>
+            <div id="resultInfo" class="result-info"></div>
+        </div>
+    </div>
+
+    <!-- 必要なライブラリをCDNから読み込む -->
+    <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
 
     <script>
-        const processBtn = document.getElementById('process-btn');
-        const copyBtn = document.getElementById('copy-btn');
-        const inputArea = document.getElementById('input-code');
-        const outputArea = document.getElementById('output-code');
-        const resultInfo = document.getElementById('result-info');
+        const inputCodeEl = document.getElementById('inputCode');
+        const outputCodeEl = document.getElementById('outputCode');
+        const resultInfoEl = document.getElementById('resultInfo');
+        const obfuscateBtn = document.getElementById('obfuscateBtn');
 
-        copyBtn.addEventListener('click', () => {
-            const codeToCopy = outputArea.value;
-            if (!codeToCopy) return;
-            navigator.clipboard.writeText(codeToCopy).then(() => {
-                copyBtn.textContent = 'コピーしました！';
-                copyBtn.disabled = true;
-                setTimeout(() => { copyBtn.textContent = 'コピー'; copyBtn.disabled = false; }, 2000);
-            });
-        });
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
 
-        processBtn.addEventListener('click', async () => {
-            if (!inputArea.value.trim()) {
-                resultInfo.innerHTML = "コードを入力してから実行してください。";
+        async function processObfuscation() {
+            const originalCode = inputCodeEl.value;
+            if (!originalCode.trim()) {
+                outputCodeEl.textContent = 'コードが入力されていません。';
+                resultInfoEl.innerHTML = '';
                 return;
             }
 
-            processBtn.disabled = true;
-            processBtn.textContent = '処理中...';
-            outputArea.value = '';
-            resultInfo.innerHTML = '処理を開始します...';
-            
-            await new Promise(resolve => setTimeout(resolve, 50));
+            obfuscateBtn.disabled = true;
+            obfuscateBtn.textContent = '処理中...';
+            outputCodeEl.textContent = '';
+            resultInfoEl.innerHTML = '';
 
             try {
-                let processedCode = inputArea.value;
-                const originalSize = new Blob([processedCode]).size;
+                // --- ステップ1: Terserでコードを圧縮 ---
+                const terserResult = await Terser.minify(originalCode, {
+                    mangle: { toplevel: true },
+                    compress: { drop_console: true }
+                });
+                if (terserResult.error) throw new Error('Terser Error: ' + terserResult.error.message);
+                const minifiedCode = terserResult.code;
 
-                if (document.getElementById('use-terser').value === 'yes') {
-                    const terserResult = await Terser.minify(processedCode, { mangle: { toplevel: true } });
-                    if (terserResult.error) throw terserResult.error;
-                    processedCode = terserResult.code;
-                }
+                // --- ステップ2: javascript-obfuscatorで難読化（容量を意識した設定） ---
+                const obfuscationResult = JavaScriptObfuscator.obfuscate(minifiedCode, {
+                    compact: true,
+                    controlFlowFlattening: false,
+                    deadCodeInjection: false,
+                    stringArray: true,
+                    stringArrayEncoding: ['none'],
+                    stringArrayThreshold: 0.75,
+                    transformObjectKeys: true,
+                    identifierNamesGenerator: 'hexadecimal'
+                });
+                const obfuscatedCode = obfuscationResult.getObfuscatedCode();
 
-                const preset = document.getElementById('obfuscator-preset').value;
-                if (preset !== 'none') {
-                    const options = getObfuscatorOptions(preset);
-                    processedCode = JavaScriptObfuscator.obfuscate(processedCode, options).getObfuscatedCode();
-                }
-
-                const encodingType = document.getElementById('encoding-type').value;
-                if (encodingType === 'blob-import') {
-                    // ★★★ 新しいBlob Importによる実行ラッパー ★★★
-                    
-                    // テンプレートリテラルに埋め込むために、バッククォートとバックスラッシュをエスケープ
-                    const escapedCode = processedCode
-                        .replace(/\\/g, '\\\\')
-                        .replace(/`/g, '\\`');
-
-                    // 自己実行型のラッパーを生成
-                    processedCode = `const c=\`${escapedCode}\`;const u=URL.createObjectURL(new Blob([c],{type:'application/javascript'}));import(u).finally(()=>URL.revokeObjectURL(u));`;
-                }
+                // --- ステップ3: Base64でエンコードし、Blob import ローダーを生成 ---
+                // 日本語などを含むコードに対応するため、一度URIエンコードを挟む
+                const encodedCode = btoa(unescape(encodeURIComponent(obfuscatedCode)));
                 
-                const finalSize = new Blob([processedCode]).size;
-                const ratio = finalSize > 0 ? (finalSize / originalSize) : 0;
-                outputArea.value = processedCode;
-                
-                let resultHTML = `元のサイズ: ${originalSize.toLocaleString()} バイト<br>出力サイズ: ${finalSize.toLocaleString()} バイト<br>サイズ比: <strong>${ratio.toFixed(2)} 倍</strong>`;
-                if (ratio > 1.6) {
-                    resultHTML += `<br><span class="warning">警告: 目標の1.6倍を超えました。難読化レベルを下げてみてください。</span>`;
-                } else if (finalSize > 0) {
-                     resultHTML += `<br><span class="success">目標の1.6倍以内に収まっています！</span>`;
-                }
-                resultInfo.innerHTML = resultHTML;
+                // Blobとダイナミックインポートを使ったローダーコードを生成
+                const finalCode = `const encoded = '${encodedCode}';
+const decoded = decodeURIComponent(escape(atob(encoded)));
+const blob = new Blob([decoded], { type: 'application/javascript' });
+const url = URL.createObjectURL(blob);
+import(url);`;
 
-            } catch (e) {
-                const errorMessage = `エラー: ${e.message}\n\nLine: ${e.line}, Col: ${e.col}, Pos: ${e.pos}`;
-                outputArea.value = errorMessage;
-                resultInfo.innerHTML = `<span class="warning">処理中にエラーが発生しました。</span>`;
-                console.error(e);
+                // --- 結果の表示 ---
+                outputCodeEl.textContent = finalCode;
+                
+                const originalSize = new Blob([originalCode]).size;
+                const finalSize = new Blob([finalCode]).size;
+                const changeRatio = ((finalSize - originalSize) / originalSize * 100).toFixed(2);
+                
+                resultInfoEl.innerHTML = `
+                    元のサイズ: ${formatBytes(originalSize)}<br>
+                    変換後のサイズ: ${formatBytes(finalSize)}<br>
+                    サイズ変化: <span style="color: ${changeRatio >= 0 ? '#e74c3c' : '#2ecc71'};">${changeRatio >= 0 ? '+' : ''}${changeRatio}%</span>
+                `;
+
+            } catch (error) {
+                outputCodeEl.textContent = 'エラーが発生しました。\n' + error.message;
+                outputCodeEl.classList.add('error');
             } finally {
-                processBtn.disabled = false;
-                processBtn.textContent = '処理を実行';
-            }
-        });
-
-        function getObfuscatorOptions(preset) {
-            switch(preset) {
-                case 'high': return { compact: true, controlFlowFlattening: true, controlFlowFlatteningThreshold: 1, deadCodeInjection: true, deadCodeInjectionThreshold: 1, debugProtection: true, disableConsoleOutput: true, selfDefending: true, stringArray: true, stringArrayEncoding: ['base64'], rotateStringArray: true, transformObjectKeys: true, unicodeEscapeSequence: true };
-                case 'medium': return { compact: true, controlFlowFlattening: true, controlFlowFlatteningThreshold: 0.75, deadCodeInjection: true, deadCodeInjectionThreshold: 0.4, debugProtection: false, disableConsoleOutput: true, selfDefending: true, stringArray: true, stringArrayThreshold: 0.75, rotateStringArray: true, };
-                default: return { compact: true, simplify: true, stringArray: true, stringArrayThreshold: 0.75, splitStrings: true, splitStringsChunkLength: 10, };
+                obfuscateBtn.disabled = false;
+                obfuscateBtn.textContent = '難読化を実行';
             }
         }
     </script>
