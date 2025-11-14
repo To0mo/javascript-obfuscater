@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>究極のJavaScript難読化ツール (Base85版)</title>
+    <title>究極のJavaScript難読化ツール (自己完結・Base85版)</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
         .container { display: flex; flex-direction: column; gap: 20px; }
         h1 { text-align: center; color: #2c3e50; }
         p { text-align: center; }
-        textarea { width: 100%; height: 250px; border-radius: 5px; border: 1px solid #ccc; padding: 10px; font-family: monospace; font-size: 14px; box-sizing: border-box; }
+        textarea { width: 100%; height: 250px; border-radius: 5px; border: 1.px solid #ccc; padding: 10px; font-family: monospace; font-size: 14px; box-sizing: border-box; }
         button { background-color: #3498db; color: white; border: none; padding: 15px; font-size: 16px; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; }
         button:hover { background-color: #2980b9; }
         button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
@@ -42,7 +42,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>究極のJavaScript難読化ツール (Base85版)</h1>
+        <h1>究極のJavaScript難読化ツール (自己完結・Base85版)</h1>
         <p>Terser圧縮 → javascript-obfuscator → <b>Base85エンコード</b>を重ね、<br><b>デコーダーを含む実行ローダー自体も難読化</b>します。</p>
         
         <div>
@@ -65,10 +65,28 @@
     <!-- 必要なライブラリをCDNから読み込む -->
     <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
-    <!-- Base85 (Ascii85) ライブラリ -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-ascii85/0.1.0/ascii85.min.js"></script>
 
     <script>
+        // --- Ascii85ライブラリを直接埋め込む ---
+        const ascii85 = (function(){
+            const T = {
+                encode: function(E) {
+                    for (var t, o, n, r, c, i, a = "", f = 0; f < E.length;) {
+                        for (t = E.charCodeAt(f++), o = E.charCodeAt(f++), n = E.charCodeAt(f++), r = E.charCodeAt(f++), c = t << 24 | o << 16 | n << 8 | r, i = [], l = 0; l < 5; l++) i[l] = c % 85 + 33, c = Math.floor(c / 85);
+                        a += String.fromCharCode.apply(String, i.reverse())
+                    }
+                    return "<~" + a.slice(0, a.length - 4 + E.length % 4) + "~>"
+                },
+                decode: function(E) {
+                    for (var t, o, n, r, c, i, a = E.slice(2, -2).replace(/\s/g, ""), f = [], d = 0; d < a.length; d += 5) {
+                        for (t = a.charCodeAt(d) - 33, o = a.charCodeAt(d + 1) - 33, n = a.charCodeAt(d + 2) - 33, r = a.charCodeAt(d + 3) - 33, c = a.charCodeAt(d + 4) - 33, i = t * Math.pow(85, 4) + o * Math.pow(85, 3) + n * Math.pow(85, 2) + r * 85 + c, l = 0; l < 4; l++) f.push(i >> 8 * (3 - l) & 255);
+                    }
+                    return String.fromCharCode.apply(String, f).slice(0, f.length - (a.length % 5 || 5) + 1)
+                }
+            };
+            return T;
+        })();
+
         const inputCodeEl = document.getElementById('inputCode');
         const outputCodeEl = document.getElementById('outputCode');
         const resultInfoEl = document.getElementById('resultInfo');
@@ -125,14 +143,11 @@
                 const obfuscatedCode = obfuscationResult.getObfuscatedCode();
 
                 // --- ステップ3: Base85エンコードと、自己完結型ローダーの生成 ---
-                // マルチバイト文字に対応
                 const preparedCode = unescape(encodeURIComponent(obfuscatedCode));
                 const encodedCode = ascii85.encode(preparedCode);
 
-                // Base85デコード関数を文字列として取得し、ローダーに埋め込む
-                const decoderFuncStr = ascii85.decode.toString();
-                
-                // デコーダーとBlob実行ロジックを含む中間ローダーを生成
+                const decoderFuncStr = ascii85.decode.toString().replace('slice(0, f.length - (a.length % 5 || 5) + 1)', 'slice(0, f.length - (5 - a.length % 5) % 5)');
+
                 const intermediateLoader = `
                     const p = ${JSON.stringify(encodedCode)};
                     const d = (${decoderFuncStr})(p);
