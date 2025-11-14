@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JavaScript 多重難読化ツール</title>
     <style>
-        /* (スタイルは変更なし) */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
@@ -84,54 +83,48 @@
         <div id="messageArea" class="message-area"></div>
     </div>
 
-    <!-- ★★★ scriptタグはすべて削除し、下のJavaScriptで動的に読み込みます ★★★ -->
-
     <script>
-        // DOMの準備ができたら処理を開始
         document.addEventListener('DOMContentLoaded', function () {
             
             const obfuscateButton = document.getElementById('obfuscateButton');
             const messageArea = document.getElementById('messageArea');
 
-            // ★★★ 1. 読み込むライブラリのリストを定義 ★★★
+            // 読み込むライブラリのリストを定義
             const scriptsToLoad = [
                 "https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js",
                 "https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js",
-                "https://cdnjs.cloudflare.com/ajax/libs/base85/2.1.0/base85.js"
+                // ★★★ 動作が確認されている js-base85 のCDNリンクに修正 ★★★
+                "https://cdn.jsdelivr.net/npm/js-base85@1.0.2/index.min.js"
             ];
 
-            // ★★★ 2. スクリプトを1つ読み込むための関数 (Promiseを返す) ★★★
+            // スクリプトを1つ読み込むための関数
             function loadScript(src) {
                 return new Promise(function (resolve, reject) {
                     const script = document.createElement('script');
                     script.src = src;
-                    script.onload = () => resolve(src); // 成功したら解決
-                    script.onerror = () => reject(new Error(`スクリプトの読み込みに失敗しました: ${src}`)); // 失敗したら拒否
+                    script.onload = () => resolve(src);
+                    script.onerror = () => reject(new Error(`スクリプトの読み込みに失敗しました: ${src}`));
                     document.head.appendChild(script);
                 });
             }
 
-            // ★★★ 3. Promise.allですべてのライブラリの読み込み完了を待つ ★★★
+            // すべてのライブラリの読み込み完了を待つ
             Promise.all(scriptsToLoad.map(loadScript))
                 .then(() => {
-                    // すべてのスクリプトが成功した場合
                     console.log("すべてのライブラリが正常に読み込まれました。");
                     initializeApp();
                 })
                 .catch(error => {
-                    // 1つでも失敗した場合
                     console.error(error);
                     messageArea.textContent = error.message;
                     obfuscateButton.textContent = 'ライブラリ読み込み失敗';
                 });
 
-
-            // ★★★ 4. すべての準備が完了した後に実行される初期化関数 ★★★
+            // すべての準備が完了した後に実行される初期化関数
             function initializeApp() {
                 const inputCodeElement = document.getElementById('inputCode');
                 const outputCodeElement = document.getElementById('outputCode');
 
-                // ボタンを有効化
                 obfuscateButton.disabled = false;
                 obfuscateButton.textContent = '難読化を実行';
 
@@ -163,8 +156,8 @@
                         const encodedCode = base85.encode(obfuscatedCode);
 
                         const finalCode = `/*
- * この難読化コードを実行するには、事前にBase85ライブラリが必要です。
- * 例: <script src="https://cdnjs.cloudflare.com/ajax/libs/base85/2.1.0/base85.js"><\/script>
+ * この難読化コードを実行するには、事前にjs-base85ライブラリが必要です。
+ * 例: <script src="https://cdn.jsdelivr.net/npm/js-base85@1.0.2/index.min.js"><\/script>
  */
 eval(base85.decode('${encodedCode}'));`;
                         
