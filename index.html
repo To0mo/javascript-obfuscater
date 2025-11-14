@@ -3,227 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS 難読化ツール (シングルファイル版)</title>
-    
+    <title>高機能 JavaScript 難読化ツール</title>
     <style>
-        body {
-            font-family: sans-serif;
-            margin: 20px;
-            background-color: #f4f7f6;
-            color: #333;
-        }
-
-        h1 {
-            color: #007bff;
-            border-bottom: 3px solid #007bff;
-            padding-bottom: 10px;
-        }
-
-        h3 {
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 5px;
-            margin-top: 25px;
-        }
-
-        textarea {
-            width: 90%;
-            max-width: 800px;
-            display: block;
-            margin-bottom: 10px;
-            font-family: monospace;
-            padding: 10px;
-            border: 1px solid #ccc;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        button {
-            padding: 10px 15px;
-            font-size: 16px;
-            cursor: pointer;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            transition: background 0.3s;
-            margin-right: 10px;
-            margin-bottom: 10px;
-        }
-
-        button:hover {
-            background: #0056b3;
-        }
-
-        #copyButton {
-            background: #28a745;
-        }
-
-        #copyButton:hover {
-            background: #1e7e34;
-        }
-
-        .options {
-            margin: 15px 0;
-            padding: 10px;
-            border: 1px solid #eee;
-            border-radius: 5px;
-            background-color: #fff;
-        }
-
-        .options label {
-            margin-right: 20px;
-            font-weight: normal;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; margin: 0; background-color: #f6f8fa; }
+        .header { background-color: #24292e; color: white; padding: 16px; text-align: center; }
+        .main-container { display: flex; flex-direction: column; padding: 16px; gap: 16px; }
+        .io-container { display: flex; gap: 16px; height: 55vh; }
+        textarea { width: 100%; height: 100%; font-family: monospace; font-size: 14px; border: 1px solid #d1d5da; border-radius: 6px; padding: 8px; resize: vertical; }
+        .options-container { background-color: white; border: 1px solid #d1d5da; border-radius: 6px; padding: 16px; }
+        .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: center;}
+        .option-group { display: flex; flex-direction: column; gap: 8px; }
+        label { font-weight: 600; }
+        select, button { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #d1d5da; font-size: 14px; }
+        .process-button { background-color: #2ea44f; color: white; font-weight: 600; cursor: pointer; border-color: #2ea44f; }
+        .process-button:hover { background-color: #2c974b; }
+        .result-info { margin-top: 16px; background-color: #eef5ff; padding: 16px; border-radius: 6px; border: 1px solid #c8d9f5; }
+        .result-info strong { font-size: 1.2em; }
+        .warning { color: #d73a49; font-weight: bold; }
     </style>
+    <!-- 必要なライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator@4.1.0/dist/index.browser.js"></script>
 </head>
 <body>
 
-    <h1>JS 難読化ツール (重ねがけ)</h1>
-    <p>Terser (最小化) → javascript-obfuscator (容量制約版) → エンコード の順で処理します。</p>
+    <header class="header">
+        <h1>高機能 JavaScript 難読化ツール</h1>
+    </header>
 
-    <h3>入力コード:</h3>
-    <textarea id="inputCode" rows="15" placeholder="ここに難読化したい JavaScript コードを入力..."></textarea>
+    <main class="main-container">
+        <div class="io-container">
+            <textarea id="input-code" placeholder="ここにJavaScriptコードを入力..."></textarea>
+            <textarea id="output-code" readonly placeholder="処理結果がここに出力されます..."></textarea>
+        </div>
 
-    <div class="options">
-        <strong>最終エンコード方式:</strong>
-        <label><input type="radio" name="encoding" value="base64" checked> Base64 (標準デコーダ atob)</label>
-        <label><input type="radio" name="encoding" value="base91"> Base91 (別途デコーダ要)</label>
-    </div>
+        <div class="options-container">
+            <div class="options-grid">
+                <div class="option-group">
+                    <label for="use-terser">1. Terser 圧縮</label>
+                    <select id="use-terser">
+                        <option value="yes" selected>有効</option>
+                        <option value="no">無効</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label for="obfuscator-preset">2. 難読化レベル</label>
+                    <select id="obfuscator-preset">
+                        <option value="low">低 (サイズ重視)</option>
+                        <option value="medium" selected>中 (バランス)</option>
+                        <option value="high">高 (難読化重視)</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label for="encoding-type">3. 追加エンコード</label>
+                    <select id="encoding-type">
+                        <option value="none" selected>なし</option>
+                        <option value="base64">Base64 (実行ラッパー付)</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label>&nbsp;</label>
+                    <button id="process-btn" class="process-button">処理を実行</button>
+                </div>
+            </div>
+        </div>
 
-    <button id="obfuscateButton">重ねがけ実行</button>
-
-    <h3>出力コード (Function() 実行形式):</h3>
-    
-    <button id="copyButton">📋 コピーする</button>
-    
-    <textarea id="outputCode" rows="15" placeholder="難読化されたコードがここに表示されます" readonly></textarea>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/javascript-obfuscator/4.1.0/index.browser.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/base91-js@1.1.0/lib/base91.min.js"></script>
+        <div id="result-info" class="result-info">
+            結果はここに表示されます。
+        </div>
+    </main>
 
     <script>
-        // ===================================
-        // ▼ 難読化実行ロジック ▼
-        // ===================================
-
-        document.getElementById('obfuscateButton').addEventListener('click', async function() {
-            const inputCode = document.getElementById('inputCode').value;
-            const outputCodeElement = document.getElementById('outputCode');
-            const selectedEncoding = document.querySelector('input[name="encoding"]:checked').value;
+        document.getElementById('process-btn').addEventListener('click', async () => {
+            const inputCode = document.getElementById('input-code').value;
+            const outputArea = document.getElementById('output-code');
+            const resultInfo = document.getElementById('result-info');
 
             if (!inputCode.trim()) {
-                outputCodeElement.value = "コードが入力されていません。";
+                outputArea.value = "エラー: コードが入力されていません。";
+                resultInfo.innerHTML = "コードを入力してから実行してください。";
                 return;
             }
 
-            outputCodeElement.value = `処理中... (Terser → Obfuscator → ${selectedEncoding})`;
+            // ボタンを一時的に無効化
+            const processBtn = document.getElementById('process-btn');
+            processBtn.disabled = true;
+            processBtn.textContent = '処理中...';
+            outputArea.value = '';
+            resultInfo.innerHTML = '処理を開始します...';
 
             try {
-                // --- 1. Terser (最小化・圧縮) ---
-                const terserResult = await Terser.minify(inputCode, {
-                    mangle: true,
-                    compress: true
-                });
+                let processedCode = inputCode;
+                const originalSize = new Blob([inputCode]).size;
 
-                if (terserResult.error) {
-                    throw new Error('Terser Minify Error: ' + terserResult.error.message);
-                }
-                const minifiedCode = terserResult.code;
-
-                // --- 2. javascript-obfuscator (難読化: 容量制約版) ---
-                // 容量を1.5倍までに抑えるための設定
-                const obfuscationResult = JavaScriptObfuscator.obfuscate(minifiedCode, {
-                    compact: true,
-                    controlFlowFlattening: false,
-                    deadCodeInjection: false,
-                    selfDefending: true,
-                    stringArray: true,
-                    stringArrayThreshold: 0.7,
-                    identifierNamesGenerator: 'hexadecimal', 
-                    unicodeEscapeSequence: true
-                });
-                
-                const obfuscatedAsciiCode = obfuscationResult.getObfuscatedCode();
-
-                // --- 3. 最終エンコード & Function() 形式で出力コード生成 ---
-                
-                let finalEncodedString = '';
-                let outputExecCode = '';
-                const base91DecoderURL = 'https://cdn.jsdelivr.net/npm/base91-js@1.1.0/lib/base91.min.js';
-
-                if (selectedEncoding === 'base64') {
-                    finalEncodedString = btoa(obfuscatedAsciiCode);
-                    
-                    outputExecCode = `// 実行用コード (Function() コンストラクタを使用)\n` +
-                                     `const b64 = "${finalEncodedString}";\n` +
-                                     `const code = atob(b64);\n\n` +
-                                     `// eval()やBlobより確実性が高く、コードも短い方法\n` +
-                                     `const executor = new Function(code);\n` +
-                                     `executor();`;
-
-                } else if (selectedEncoding === 'base91') {
-                    finalEncodedString = base91.encode(obfuscatedAsciiCode);
-                    
-                    outputExecCode = `// 実行用コード (別途 base91.min.js が必要)\n` +
-                                     `// <script src="${base91DecoderURL}"></script> を読み込む必要があります。\n\n` +
-                                     `const b91 = "${finalEncodedString}";\n` +
-                                     `const code = base91.decode(b91);\n\n` +
-                                     `// Function() コンストラクタを使用\n` +
-                                     `const executor = new Function(code);\n` +
-                                     `executor();`;
+                // --- Step 1: Terser Minify ---
+                if (document.getElementById('use-terser').value === 'yes') {
+                    const terserResult = await Terser.minify(processedCode, { mangle: { toplevel: true } });
+                    if (terserResult.error) throw terserResult.error;
+                    processedCode = terserResult.code;
                 }
 
-                outputCodeElement.value = outputExecCode;
+                // --- Step 2: JavaScript Obfuscator ---
+                const preset = document.getElementById('obfuscator-preset').value;
+                if (preset !== 'none') {
+                    const options = getObfuscatorOptions(preset);
+                    const obfuscationResult = JavaScriptObfuscator.obfuscate(processedCode, options);
+                    processedCode = obfuscationResult.getObfuscatedCode();
+                }
+
+                // --- Step 3: Encoding ---
+                const encodingType = document.getElementById('encoding-type').value;
+                if (encodingType === 'base64') {
+                    const base64Code = btoa(unescape(encodeURIComponent(processedCode)));
+                    processedCode = `eval(decodeURIComponent(escape(atob('${base64Code}'))));`;
+                }
+                
+                // --- Finalize and Display ---
+                const finalSize = new Blob([processedCode]).size;
+                const ratio = finalSize > 0 ? (finalSize / originalSize) : 0;
+
+                outputArea.value = processedCode;
+                
+                let resultHTML = `
+                    元のサイズ: ${originalSize.toLocaleString()} バイト<br>
+                    出力サイズ: ${finalSize.toLocaleString()} バイト<br>
+                    サイズ比: <strong>${ratio.toFixed(2)} 倍</strong>
+                `;
+                
+                if (ratio > 1.6) {
+                    resultHTML += `<br><span class="warning">警告: 目標の1.6倍を超えました。難読化レベルを下げることを検討してください。</span>`;
+                } else if (finalSize > 0) {
+                     resultHTML += `<br><span style="color: #2ea44f;">目標の1.6倍以内に収まっています。</span>`;
+                }
+                resultInfo.innerHTML = resultHTML;
 
             } catch (e) {
+                const errorMessage = `エラー: ${e.message}\n\nLine: ${e.line}, Col: ${e.col}, Pos: ${e.pos}`;
+                outputArea.value = errorMessage;
+                resultInfo.innerHTML = `<span class="warning">処理中にエラーが発生しました。</span>`;
                 console.error(e);
-                outputCodeElement.value = 'エラーが発生しました:\n' + e.message;
+            } finally {
+                // ボタンを有効に戻す
+                processBtn.disabled = false;
+                processBtn.textContent = '処理を実行';
             }
         });
 
-
-        // ===================================
-        // ▼ 📋 ワンクリックコピー機能 ▼
-        // ===================================
-        document.getElementById('copyButton').addEventListener('click', function() {
-            const outputCodeElement = document.getElementById('outputCode');
-            const copyButton = document.getElementById('copyButton');
-            
-            if (!outputCodeElement.value) {
-                copyButton.textContent = '❌ コピー対象なし';
-                setTimeout(() => {
-                    copyButton.textContent = '📋 コピーする';
-                }, 1500);
-                return;
+        function getObfuscatorOptions(preset) {
+            switch(preset) {
+                case 'high': // 高難読化・サイズは大きくなる
+                    return {
+                        compact: true,
+                        controlFlowFlattening: true,
+                        controlFlowFlatteningThreshold: 1,
+                        deadCodeInjection: true,
+                        deadCodeInjectionThreshold: 1,
+                        debugProtection: true,
+                        disableConsoleOutput: true,
+                        selfDefending: true,
+                        stringArray: true,
+                        stringArrayEncoding: ['base64'],
+                        rotateStringArray: true,
+                        transformObjectKeys: true,
+                        unicodeEscapeSequence: true
+                    };
+                case 'medium': // バランス型
+                    return {
+                        compact: true,
+                        controlFlowFlattening: true,
+                        controlFlowFlatteningThreshold: 0.75,
+                        deadCodeInjection: true,
+                        deadCodeInjectionThreshold: 0.4,
+                        debugProtection: false,
+                        disableConsoleOutput: true,
+                        selfDefending: true,
+                        stringArray: true,
+                        stringArrayThreshold: 0.75,
+                        rotateStringArray: true,
+                    };
+                case 'low': // サイズ重視
+                default:
+                    return {
+                        compact: true,
+                        simplify: true,
+                        stringArray: true,
+                        stringArrayThreshold: 0.75,
+                        splitStrings: true,
+                        splitStringsChunkLength: 10,
+                    };
             }
-            
-            // クリップボードAPIを使用してコピーを実行
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(outputCodeElement.value)
-                    .then(() => {
-                        copyButton.textContent = '✅ コピーしました！';
-                        setTimeout(() => {
-                            copyButton.textContent = '📋 コピーする';
-                        }, 2000);
-                    })
-                    .catch(err => {
-                        console.error('Copy failed using clipboard API:', err);
-                        copyButton.textContent = '❌ コピー失敗 (手動で選択してください)';
-                        setTimeout(() => {
-                            copyButton.textContent = '📋 コピーする';
-                        }, 2000);
-                    });
-            } else {
-                // 古いブラウザ向けのフォールバック（execCommand）
-                outputCodeElement.select(); 
-                document.execCommand('copy');
-                copyButton.textContent = '✅ コピーしました！(Legacy)';
-                setTimeout(() => {
-                    copyButton.textContent = '📋 コピーする';
-                }, 2000);
-            }
-        });
+        }
     </script>
-
 </body>
 </html>
