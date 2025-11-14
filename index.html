@@ -56,14 +56,11 @@
             font-size: 16px;
             transition: background-color 0.2s;
         }
-        button:hover {
-            background-color: #0056b3;
-        }
         button:disabled {
             background-color: #a0a0a0;
             cursor: not-allowed;
         }
-        .error-message {
+        .message-area {
             color: #d93025;
             margin-top: 10px;
             font-weight: bold;
@@ -79,30 +76,38 @@
         <h3>入力コード</h3>
         <textarea id="inputCode" rows="12" placeholder="ここにJavaScriptコードを入力してください。例: console.log('Hello, World!');"></textarea>
 
-        <!-- ★onclick属性を削除し、IDを付与★ -->
-        <button id="obfuscateButton">ライブラリを読み込み中...</button>
+        <button id="obfuscateButton" disabled>ライブラリを読み込み中...</button>
 
         <h3>出力結果</h3>
         <textarea id="outputCode" rows="12" readonly placeholder="ここに難読化されたコードが出力されます"></textarea>
-        <div id="errorMessage" class="error-message"></div>
+        <div id="messageArea" class="message-area"></div>
     </div>
 
     <!-- 外部ライブラリの読み込み -->
     <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/js-base85@1.0.2/index.min.js"></script>
+    <!-- ★★★ より安定した別のBase85ライブラリに変更 ★★★ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/base85/2.1.0/base85.js"></script>
 
-    <!-- ★★★ 実行タイミングを制御するスクリプト ★★★ -->
+    <!-- 実行タイミングを制御するスクリプト -->
     <script>
-        // window.onloadを使い、すべてのリソースが読み込まれてから処理を開始する
+        // すべてのリソースが読み込まれてから処理を開始する
         window.addEventListener('load', function () {
             
             const obfuscateButton = document.getElementById('obfuscateButton');
             const inputCodeElement = document.getElementById('inputCode');
             const outputCodeElement = document.getElementById('outputCode');
-            const errorMessageElement = document.getElementById('errorMessage');
+            const messageArea = document.getElementById('messageArea');
 
-            // ボタンを有効化し、テキストを変更
+            // ★★★ ライブラリが正しく読み込まれたかチェックする機能を追加 ★★★
+            if (typeof Terser === 'undefined' || typeof JavaScriptObfuscator === 'undefined' || typeof Base85 === 'undefined') {
+                messageArea.textContent = 'エラー: 必須ライブラリの読み込みに失敗しました。ページを再読み込み(Ctrl+Shift+R)するか、ネットワーク接続を確認してください。';
+                obfuscateButton.textContent = 'ライブラリ読み込み失敗';
+                console.error('Terser:', typeof Terser, 'JavaScriptObfuscator:', typeof JavaScriptObfuscator, 'Base85:', typeof Base85);
+                return; // 処理を中断
+            }
+
+            // ライブラリの準備ができたらボタンを有効化
             obfuscateButton.disabled = false;
             obfuscateButton.textContent = '難読化を実行';
 
@@ -110,21 +115,18 @@
             obfuscateButton.addEventListener('click', async function () {
                 const inputCode = inputCodeElement.value;
 
-                // 実行前に結果とエラーメッセージをクリア
                 outputCodeElement.value = '';
-                errorMessageElement.textContent = '';
+                messageArea.textContent = '';
 
                 if (!inputCode.trim()) {
-                    errorMessageElement.textContent = '入力コードが空です。';
+                    messageArea.textContent = '入力コードが空です。';
                     return;
                 }
 
                 try {
                     // 1. Terserによるミニファイ化
                     const terserResult = await Terser.minify(inputCode);
-                    if (terserResult.error) {
-                        throw terserResult.error;
-                    }
+                    if (terserResult.error) throw terserResult.error;
                     const minifiedCode = terserResult.code;
 
                     // 2. JavaScript-Obfuscatorによる難読化
@@ -137,21 +139,21 @@
                     });
                     const obfuscatedCode = obfuscatedResult.getObfuscatedCode();
 
-                    // 3. Base85によるエンコード
-                    const encodedCode = base85.encode(obfuscatedCode);
+                    // 3. Base85によるエンコード (★ライブラリの仕様に合わせて`Base85`を使用★)
+                    const encodedCode = Base85.encode(obfuscatedCode);
 
                     // 最終的にデコードして実行するためのコードを生成
                     const finalCode = `/*
- * この難読化コードを実行するには、事前にjs-base85ライブラリが必要です。
- * 例: <script src="https://cdn.jsdelivr.net/npm/js-base85@1.0.2/index.min.js"><\/script>
+ * この難読化コードを実行するには、事前にBase85ライブラリが必要です。
+ * 例: <script src="https://cdnjs.cloudflare.com/ajax/libs/base85/2.1.0/base85.js"><\/script>
  */
-eval(base85.decode('${encodedCode}'));`;
+eval(Base85.decode('${encodedCode}'));`;
                     
                     outputCodeElement.value = finalCode;
 
                 } catch (error) {
                     const errorMessage = "エラーが発生しました:\n" + (error.message || error);
-                    errorMessageElement.textContent = errorMessage;
+                    messageArea.textContent = errorMessage;
                     console.error(error);
                 }
             });
