@@ -13,10 +13,31 @@
         button { background-color: #3498db; color: white; border: none; padding: 15px; font-size: 16px; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; }
         button:hover { background-color: #2980b9; }
         button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        .output-container { position: relative; }
         pre { background-color: #f4f4f4; padding: 1em; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; }
         code { font-family: monospace; }
         .result-info { font-weight: bold; margin-top: 10px; }
         .error { color: #e74c3c; font-weight: bold; }
+        #copyBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            font-size: 12px;
+            background-color: #7f8c8d;
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        #copyBtn.visible {
+            opacity: 0.8;
+            visibility: visible;
+        }
+        #copyBtn:hover {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -33,7 +54,10 @@
 
         <div>
             <label for="outputCode"><strong>2. 難読化後のコード</strong></label>
-            <pre><code id="outputCode"></code></pre>
+            <div class="output-container">
+                <pre><code id="outputCode"></code></pre>
+                <button id="copyBtn">コピー</button>
+            </div>
             <div id="resultInfo" class="result-info"></div>
         </div>
     </div>
@@ -47,6 +71,26 @@
         const outputCodeEl = document.getElementById('outputCode');
         const resultInfoEl = document.getElementById('resultInfo');
         const obfuscateBtn = document.getElementById('obfuscateBtn');
+        const copyBtn = document.getElementById('copyBtn');
+
+        // --- コピーボタンの処理 ---
+        copyBtn.addEventListener('click', () => {
+            const codeToCopy = outputCodeEl.textContent;
+            if (!codeToCopy) return;
+
+            navigator.clipboard.writeText(codeToCopy).then(() => {
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'コピーしました！';
+                copyBtn.disabled = true;
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                    copyBtn.disabled = false;
+                }, 2000);
+            }).catch(err => {
+                console.error('コピーに失敗しました', err);
+                alert('コピーに失敗しました。');
+            });
+        });
 
         function formatBytes(bytes) {
             if (bytes === 0) return '0 Bytes';
@@ -61,6 +105,7 @@
             if (!originalCode.trim()) {
                 outputCodeEl.textContent = 'コードが入力されていません。';
                 resultInfoEl.innerHTML = '';
+                copyBtn.classList.remove('visible');
                 return;
             }
 
@@ -68,6 +113,7 @@
             obfuscateBtn.textContent = '処理中...';
             outputCodeEl.textContent = '';
             resultInfoEl.innerHTML = '';
+            copyBtn.classList.remove('visible');
 
             try {
                 // --- ステップ1: Terserでコードを圧縮 ---
@@ -80,25 +126,19 @@
 
                 // --- ステップ2: javascript-obfuscatorで難読化 ---
                 const obfuscationResult = JavaScriptObfuscator.obfuscate(minifiedCode, {
-                    compact: true,
-                    controlFlowFlattening: false,
-                    deadCodeInjection: false,
-                    stringArray: true,
-                    stringArrayEncoding: ['none'],
-                    stringArrayThreshold: 0.75,
-                    transformObjectKeys: true,
-                    identifierNamesGenerator: 'hexadecimal'
+                    compact: true, controlFlowFlattening: false, deadCodeInjection: false,
+                    stringArray: true, stringArrayEncoding: ['none'], stringArrayThreshold: 0.75,
+                    transformObjectKeys: true, identifierNamesGenerator: 'hexadecimal'
                 });
                 const obfuscatedCode = obfuscationResult.getObfuscatedCode();
 
                 // --- ステップ3: Base64エンコードと、難読化されたローダーの生成 ---
                 const encodedCode = btoa(unescape(encodeURIComponent(obfuscatedCode)));
-                
-                // Blobとダイナミックインポートを使ったローダーコード自体を難読化する
                 const finalCode = `(()=>{const a='${encodedCode}',b=window,c='atob',d='decodeURIComponent',e='escape',f='Blob',g='URL',h='createObjectURL',i='revokeObjectURL',j='application/javascript';const k=b[d](b[e](b[c](a))),l=new b[f]([k],{type:j}),m=b[g][h](l);import(m).then(()=>b[g][i](m))})();`;
 
                 // --- 結果の表示 ---
                 outputCodeEl.textContent = finalCode;
+                copyBtn.classList.add('visible'); // コピーボタンを表示
                 
                 const originalSize = new Blob([originalCode]).size;
                 const finalSize = new Blob([finalCode]).size;
