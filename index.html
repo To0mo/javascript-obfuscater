@@ -3,354 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JavaScript 難読化ツール (完全最終形態)</title>
+    <title>JS 難読化ツール (シングルファイル版)</title>
     
     <style>
-        :root {
-            --primary-color: #007bff;
-            --secondary-color: #6c757d;
-            --light-gray: #f8f9fa;
-            --border-color: #dee2e6;
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f4f7f6;
+            color: #333;
         }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            margin: 0; padding: 0 1em 2em 1em; background-color: var(--light-gray); color: #333; line-height: 1.6;
+
+        h1 {
+            color: #007bff;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
         }
-        .container { 
-            max-width: 1200px; margin: 2em auto; background: white; padding: 2em; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); 
+
+        h3 {
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-top: 25px;
         }
-        h1, h2, h3 { 
-            color: #1a1a1a; border-bottom: 2px solid var(--primary-color); padding-bottom: 0.3em; margin-top: 1.5em;
+
+        textarea {
+            width: 90%;
+            max-width: 800px;
+            display: block;
+            margin-bottom: 10px;
+            font-family: monospace;
+            padding: 10px;
+            border: 1px solid #ccc;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
         }
-        .editor-wrapper {
-            display: flex; border: 1px solid var(--border-color); border-radius: 6px; height: 300px; margin-bottom: 1em; overflow: hidden;
+
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
         }
-        .editor-wrapper textarea {
-            flex-grow: 1; height: 100%; padding: 10px; border: none; resize: none; font-family: "SF Mono", "Fira Code", "Consolas", monospace; font-size: 14px; line-height: 1.5; background-color: #fff; color: #333;
+
+        button:hover {
+            background: #0056b3;
         }
-        .editor-wrapper textarea:focus { outline: none; }
-        .minimap-container {
-            flex-shrink: 0; width: 100px; height: 100%; background-color: #f7f7f7; position: relative; cursor: pointer; border-left: 1px solid var(--border-color);
+
+        #copyButton {
+            background: #28a745;
         }
-        .minimap-canvas { display: block; width: 100%; height: 100%; }
-        .minimap-viewport {
-            position: absolute; top: 0; left: 0; width: 100%; background-color: rgba(0, 123, 255, 0.3); border: 1px solid rgba(0, 123, 255, 0.5); box-sizing: border-box; border-radius: 2px;
+
+        #copyButton:hover {
+            background: #1e7e34;
         }
-        .presets label, .options-grid label { cursor: pointer; display: block; margin-bottom: 0.7em; }
-        .controls { display: flex; flex-wrap: wrap; gap: 1em; align-items: center; margin-top: 1.5em; }
-        button { 
-            background-color: var(--primary-color); color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 500; transition: all 0.2s;
+
+        .options {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: #fff;
         }
-        button:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,123,255,0.2); }
-        button:disabled { background-color: var(--secondary-color); cursor: not-allowed; opacity: 0.7; transform: none; box-shadow: none; }
-        button.secondary { background-color: var(--secondary-color); }
-        button.secondary:hover:not(:disabled) { background-color: #5a6268; box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
-        .status-area { font-style: italic; color: #555; display: flex; align-items: center; gap: 1em; }
-        .size-info { font-weight: 500; }
-        .options-container { border: 1px solid var(--border-color); padding: 1.5em; margin-top: 1em; border-radius: 8px; background: var(--light-gray); }
-        .options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1em; }
-        .options-grid div { display: flex; align-items: center; }
-        .options-grid input[type="checkbox"] { margin-right: 10px; width: 18px; height: 18px; }
-        .options-grid select { padding: 5px; border-radius: 4px; border: 1px solid #ccc; margin-left: 10px; }
+
+        .options label {
+            margin-right: 20px;
+            font-weight: normal;
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>JavaScript 難読化ツール</h1>
+    <h1>JS 難読化ツール (重ねがけ)</h1>
+    <p>Terser (最小化) → javascript-obfuscator (容量制約版) → エンコード の順で処理します。</p>
 
-        <h2>1. コードを入力</h2>
-        <div class="editor-wrapper">
-            <textarea id="input-textarea" spellcheck="false"></textarea>
-            <div id="input-minimap" class="minimap-container">
-                <canvas class="minimap-canvas"></canvas>
-                <div class="minimap-viewport"></div>
-            </div>
-        </div>
+    <h3>入力コード:</h3>
+    <textarea id="inputCode" rows="15" placeholder="ここに難読化したい JavaScript コードを入力..."></textarea>
 
-        <h2>2. プリセットとオプション</h2>
-        <div class="presets">
-            <label><input type="radio" name="preset" value="1" checked> プリセット1: 圧縮 (Terser)</label>
-            <label><input type="radio" name="preset" value="2"> プリセット2: 強力な難読化 (Obfuscator)</label>
-            <label><input type="radio" name="preset" value="3"> プリセット3: 超難読化 (最終形態)</label>
-        </div>
-        <details class="options-container">
-            <summary>詳細オプション (javascript-obfuscator)</summary>
-            <div class="options-grid" style="margin-top: 1em;">
-                <div><label><input type="checkbox" id="opt-controlFlowFlattening"> 制御フローの平坦化</label></div>
-                <div><label><input type="checkbox" id="opt-deadCodeInjection"> ダミーコードの挿入</label></div>
-                <div><label><input type="checkbox" id="opt-stringArray"> 文字列を配列に変換</label></div>
-                <div><label><input type="checkbox" id="opt-selfDefending"> 自己防衛</label></div>
-                <div><label><input type="checkbox" id="opt-disableConsoleOutput"> コンソール出力を無効化</label></div>
-                <div><label><input type="checkbox" id="opt-transformObjectKeys"> オブジェクトキーを変換</label></div>
-                <div><label><input type="checkbox" id="opt-unicodeEscapeSequence"> Unicodeエスケープシーケンス</label></div>
-                <div>
-                    <label for="opt-stringArrayEncoding">文字列配列のエンコード:</label>
-                    <select id="opt-stringArrayEncoding">
-                        <option value="none">なし</option>
-                        <option value="base64">Base64</option>
-                        <option value="rc4">RC4</option>
-                    </select>
-                </div>
-            </div>
-        </details>
-
-        <div class="controls">
-            <button id="runButton">難読化を実行</button>
-            <button id="copyButton" class="secondary">結果をコピー</button>
-            <div class="status-area">
-                <span id="status-text">準備完了</span>
-                <span id="size-info"></span>
-            </div>
-        </div>
-
-        <h2>3. 結果</h2>
-        <div class="editor-wrapper">
-            <textarea id="output-textarea" readonly></textarea>
-            <div id="output-minimap" class="minimap-container">
-                <canvas class="minimap-canvas"></canvas>
-                <div class="minimap-viewport"></div>
-            </div>
-        </div>
+    <div class="options">
+        <strong>最終エンコード方式:</strong>
+        <label><input type="radio" name="encoding" value="base64" checked> Base64 (標準デコーダ atob)</label>
+        <label><input type="radio" name="encoding" value="base91"> Base91 (別途デコーダ要)</label>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
+    <button id="obfuscateButton">重ねがけ実行</button>
+
+    <h3>出力コード (Function() 実行形式):</h3>
     
+    <button id="copyButton">📋 コピーする</button>
+    
+    <textarea id="outputCode" rows="15" placeholder="難読化されたコードがここに表示されます" readonly></textarea>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/javascript-obfuscator/4.1.0/index.browser.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/base91-js@1.1.0/lib/base91.min.js"></script>
+
     <script>
-    document.addEventListener('DOMContentLoaded', function ( ) {
-        // --- 要素のキャッシュ ---
-        const ui = {
-            input: document.getElementById('input-textarea'),
-            output: document.getElementById('output-textarea'),
-            runButton: document.getElementById('runButton'),
-            copyButton: document.getElementById('copyButton'),
-            statusText: document.getElementById('status-text'),
-            sizeInfo: document.getElementById('size-info'),
-            presetRadios: document.querySelectorAll('input[name="preset"]'),
-            options: {
-                controlFlowFlattening: document.getElementById('opt-controlFlowFlattening'),
-                deadCodeInjection: document.getElementById('opt-deadCodeInjection'),
-                stringArray: document.getElementById('opt-stringArray'),
-                selfDefending: document.getElementById('opt-selfDefending'),
-                disableConsoleOutput: document.getElementById('opt-disableConsoleOutput'),
-                transformObjectKeys: document.getElementById('opt-transformObjectKeys'),
-                unicodeEscapeSequence: document.getElementById('opt-unicodeEscapeSequence'),
-                stringArrayEncoding: document.getElementById('opt-stringArrayEncoding')
-            }
-        };
+        // ===================================
+        // ▼ 難読化実行ロジック ▼
+        // ===================================
 
-        // --- プリセット設定 ---
-        const presetOptions = {
-            '2': { controlFlowFlattening: true, deadCodeInjection: true, stringArray: true, selfDefending: false, disableConsoleOutput: false, transformObjectKeys: false, unicodeEscapeSequence: false, stringArrayEncoding: 'base64' },
-            '3': { controlFlowFlattening: true, deadCodeInjection: true, stringArray: true, selfDefending: true, disableConsoleOutput: false, transformObjectKeys: true, unicodeEscapeSequence: false, stringArrayEncoding: 'rc4' }
-        };
+        document.getElementById('obfuscateButton').addEventListener('click', async function() {
+            const inputCode = document.getElementById('inputCode').value;
+            const outputCodeElement = document.getElementById('outputCode');
+            const selectedEncoding = document.querySelector('input[name="encoding"]:checked').value;
 
-        // --- ミニマップ機能 ---
-        function setupMinimap(textarea, minimapContainer) {
-            const canvas = minimapContainer.querySelector('.minimap-canvas');
-            const viewport = minimapContainer.querySelector('.minimap-viewport');
-            const ctx = canvas.getContext('2d');
-            const LINE_HEIGHT = 2, FONT_COLOR = '#333';
-
-            function draw() {
-                canvas.width = minimapContainer.clientWidth;
-                canvas.height = minimapContainer.clientHeight;
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                const lines = textarea.value.split('\n');
-                ctx.fillStyle = FONT_COLOR;
-                lines.forEach((line, i) => {
-                    const trimmedLine = line.trim();
-                    if (trimmedLine.length > 0) {
-                        const intensity = Math.min(1, trimmedLine.length / 80);
-                        ctx.globalAlpha = 0.3 + intensity * 0.7;
-                        ctx.fillRect(5, i * LINE_HEIGHT, canvas.width - 10, 1);
-                    }
-                });
-                ctx.globalAlpha = 1.0;
-                updateViewport();
+            if (!inputCode.trim()) {
+                outputCodeElement.value = "コードが入力されていません。";
+                return;
             }
 
-            function updateViewport() {
-                const scrollableHeight = textarea.scrollHeight - textarea.clientHeight;
-                if (scrollableHeight <= 0) { viewport.style.display = 'none'; return; }
-                viewport.style.display = 'block';
-                const viewportHeight = (textarea.clientHeight / textarea.scrollHeight) * canvas.height;
-                const viewportTop = (textarea.scrollTop / scrollableHeight) * (canvas.height - viewportHeight);
-                viewport.style.height = `${Math.max(10, viewportHeight)}px`;
-                viewport.style.top = `${viewportTop}px`;
-            }
+            outputCodeElement.value = `処理中... (Terser → Obfuscator → ${selectedEncoding})`;
 
-            function handleMinimapInteraction(e) {
-                e.preventDefault();
-                const rect = minimapContainer.getBoundingClientRect();
-                const y = (e.clientY || e.touches[0].clientY) - rect.top;
-                textarea.scrollTop = (y / canvas.height) * (textarea.scrollHeight - textarea.clientHeight);
-            }
-
-            textarea.addEventListener('input', draw);
-            textarea.addEventListener('scroll', updateViewport);
-            new ResizeObserver(draw).observe(textarea);
-            minimapContainer.addEventListener('mousedown', e => {
-                handleMinimapInteraction(e);
-                const onMouseMove = moveEvent => handleMinimapInteraction(moveEvent);
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', () => document.removeEventListener('mousemove', onMouseMove), { once: true });
-            });
-            minimapContainer.addEventListener('touchstart', handleMinimapInteraction, { passive: false });
-            minimapContainer.addEventListener('touchmove', handleMinimapInteraction, { passive: false });
-
-            return { draw };
-        }
-
-        const inputEditor = setupMinimap(ui.input, document.getElementById('input-minimap'));
-        const outputEditor = setupMinimap(ui.output, document.getElementById('output-minimap'));
-
-        // --- イベントハンドラ ---
-        function updateUIForPreset() {
-            const selectedPreset = document.querySelector('input[name="preset"]:checked').value;
-            const optionsToApply = presetOptions[selectedPreset];
-            if (optionsToApply) {
-                Object.keys(ui.options).forEach(key => {
-                    const element = ui.options[key];
-                    if (element.type === 'checkbox') element.checked = optionsToApply[key];
-                    else if (element.tagName === 'SELECT') element.value = optionsToApply[key];
-                });
-            }
-        }
-
-        async function handleRun() {
-            const originalCode = ui.input.value;
-            if (!originalCode.trim()) { alert('コードを入力してください。'); return; }
-
-            const selectedPreset = document.querySelector('input[name="preset"]:checked').value;
-            
-            setUiState(true);
             try {
-                await new Promise(resolve => setTimeout(resolve, 50));
-                let result;
-                switch (selectedPreset) {
-                    case '1': result = await obfuscation.preset1(originalCode); break;
-                    case '2': result = await obfuscation.preset2(originalCode); break;
-                    case '3': result = await obfuscation.preset3(originalCode); break;
+                // --- 1. Terser (最小化・圧縮) ---
+                const terserResult = await Terser.minify(inputCode, {
+                    mangle: true,
+                    compress: true
+                });
+
+                if (terserResult.error) {
+                    throw new Error('Terser Minify Error: ' + terserResult.error.message);
                 }
-                ui.output.value = result;
-                updateSizeInfo(originalCode.length, result.length);
-                ui.statusText.textContent = "完了しました！";
-            } catch (error) {
-                ui.output.value = `エラーが発生しました:\n${error.message}`;
-                ui.statusText.textContent = "エラーが発生しました。";
-                console.error(error);
-            } finally {
-                setUiState(false);
-                outputEditor.draw();
-            }
-        }
+                const minifiedCode = terserResult.code;
 
-        function handleCopy() {
-            if (!ui.output.value || ui.output.value.startsWith('//')) {
-                updateStatus("コピーする内容がありません。"); return;
-            }
-            navigator.clipboard.writeText(ui.output.value).then(
-                () => updateStatus("クリップボードにコピーしました！"),
-                () => updateStatus("コピーに失敗しました。")
-            );
-        }
-
-        function setUiState(isProcessing) {
-            ui.runButton.disabled = isProcessing;
-            ui.copyButton.disabled = isProcessing;
-            ui.runButton.textContent = isProcessing ? '処理中...' : '難読化を実行';
-            if (isProcessing) {
-                ui.statusText.textContent = "難読化を実行しています...";
-                ui.sizeInfo.textContent = "";
-                ui.output.value = "処理中...";
-                outputEditor.draw();
-            }
-        }
-
-        function updateStatus(message, duration = 3000) {
-            ui.statusText.textContent = message;
-            if (duration > 0) setTimeout(() => { if (ui.statusText.textContent === message) ui.statusText.textContent = ""; }, duration);
-        }
-
-        function updateSizeInfo(before, after) {
-            const ratio = after / before;
-            const change = ((ratio - 1) * 100).toFixed(1);
-            const changeText = change >= 0 ? `+${change}%` : `${change}%`;
-            ui.sizeInfo.textContent = `サイズ: ${before.toLocaleString()} → ${after.toLocaleString()} 文字 (${changeText})`;
-        }
-
-        // --- 難読化ロジック ---
-        const obfuscation = {
-            getOptions: () => {
-                const selectedEncoding = ui.options.stringArrayEncoding.value;
-                return {
+                // --- 2. javascript-obfuscator (難読化: 容量制約版) ---
+                // 容量を1.5倍までに抑えるための設定
+                const obfuscationResult = JavaScriptObfuscator.obfuscate(minifiedCode, {
                     compact: true,
-                    controlFlowFlattening: ui.options.controlFlowFlattening.checked,
-                    deadCodeInjection: ui.options.deadCodeInjection.checked,
-                    stringArray: ui.options.stringArray.checked,
-                    stringArrayEncoding: selectedEncoding === 'none' ? [] : [selectedEncoding],
-                    selfDefending: ui.options.selfDefending.checked,
-                    disableConsoleOutput: ui.options.disableConsoleOutput.checked,
-                    transformObjectKeys: ui.options.transformObjectKeys.checked,
-                    unicodeEscapeSequence: ui.options.unicodeEscapeSequence.checked
-                };
-            },
-            preset1: async (code) => {
-                const result = await Terser.minify(code, { compress: true, mangle: true });
-                if (result.error) throw result.error;
-                return result.code;
-            },
-            preset2: async (code) => {
-                const terserResult = await obfuscation.preset1(code);
-                return JavaScriptObfuscator.obfuscate(terserResult, obfuscation.getOptions()).getObfuscatedCode();
-            },
-            preset3: async (code) => {
-                const innerObfuscatedCode = await obfuscation.preset2(code);
-                const base64Payload = btoa(encodeURIComponent(innerObfuscatedCode).replace(/%([0-9A-F]{2})/g, (m, p1) => String.fromCharCode(parseInt(p1, 16))));
-                const randomVarName = '_' + Math.random().toString(36).substring(2, 10);
-                const fullCode = `
-                (function(){
-                    const ${randomVarName} = '${base64Payload}';
-                    (async () => {
-                        const decode = (s) => decodeURIComponent(escape(atob(s)));
-                        try {
-                            const code = decode(${randomVarName});
-                            const blob = new Blob([code], { type: 'text/javascript' });
-                            const url = URL.createObjectURL(blob);
-                            await import(url);
-                            URL.revokeObjectURL(url);
-                        } catch (e) {}
-                    })();
-                })();`;
+                    controlFlowFlattening: false,
+                    deadCodeInjection: false,
+                    selfDefending: true,
+                    stringArray: true,
+                    stringArrayThreshold: 0.7,
+                    identifierNamesGenerator: 'hexadecimal', 
+                    unicodeEscapeSequence: true
+                });
                 
-                const finalOptions = obfuscation.getOptions();
-                finalOptions.selfDefending = true;
-                finalOptions.transformObjectKeys = true;
-                return JavaScriptObfuscator.obfuscate(fullCode, finalOptions).getObfuscatedCode();
-            }
-        };
+                const obfuscatedAsciiCode = obfuscationResult.getObfuscatedCode();
 
-        // --- 初期化処理 ---
-        ui.input.value = [
-            '// このテキストエリアにコードを入力してください',
-            '// 右側のミニマップをクリックまたはドラッグでスクロールできます。',
-            'function greet(name) {',
-            '  const message = `こんにちは、${name}さん！ ≡`;',
-            '  console.log(message);',
-            '}',
-            'greet(\'世界\');'
-        ].join('\n');
-        ui.output.value = '// ここに難読化されたコードが表示されます...';
-        
-        inputEditor.draw();
-        outputEditor.draw();
-        updateUIForPreset();
-        ui.runButton.addEventListener('click', handleRun);
-        ui.copyButton.addEventListener('click', handleCopy);
-        ui.presetRadios.forEach(radio => radio.addEventListener('change', updateUIForPreset));
-    });
+                // --- 3. 最終エンコード & Function() 形式で出力コード生成 ---
+                
+                let finalEncodedString = '';
+                let outputExecCode = '';
+                const base91DecoderURL = 'https://cdn.jsdelivr.net/npm/base91-js@1.1.0/lib/base91.min.js';
+
+                if (selectedEncoding === 'base64') {
+                    finalEncodedString = btoa(obfuscatedAsciiCode);
+                    
+                    outputExecCode = `// 実行用コード (Function() コンストラクタを使用)\n` +
+                                     `const b64 = "${finalEncodedString}";\n` +
+                                     `const code = atob(b64);\n\n` +
+                                     `// eval()やBlobより確実性が高く、コードも短い方法\n` +
+                                     `const executor = new Function(code);\n` +
+                                     `executor();`;
+
+                } else if (selectedEncoding === 'base91') {
+                    finalEncodedString = base91.encode(obfuscatedAsciiCode);
+                    
+                    outputExecCode = `// 実行用コード (別途 base91.min.js が必要)\n` +
+                                     `// <script src="${base91DecoderURL}"></script> を読み込む必要があります。\n\n` +
+                                     `const b91 = "${finalEncodedString}";\n` +
+                                     `const code = base91.decode(b91);\n\n` +
+                                     `// Function() コンストラクタを使用\n` +
+                                     `const executor = new Function(code);\n` +
+                                     `executor();`;
+                }
+
+                outputCodeElement.value = outputExecCode;
+
+            } catch (e) {
+                console.error(e);
+                outputCodeElement.value = 'エラーが発生しました:\n' + e.message;
+            }
+        });
+
+
+        // ===================================
+        // ▼ 📋 ワンクリックコピー機能 ▼
+        // ===================================
+        document.getElementById('copyButton').addEventListener('click', function() {
+            const outputCodeElement = document.getElementById('outputCode');
+            const copyButton = document.getElementById('copyButton');
+            
+            if (!outputCodeElement.value) {
+                copyButton.textContent = '❌ コピー対象なし';
+                setTimeout(() => {
+                    copyButton.textContent = '📋 コピーする';
+                }, 1500);
+                return;
+            }
+            
+            // クリップボードAPIを使用してコピーを実行
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(outputCodeElement.value)
+                    .then(() => {
+                        copyButton.textContent = '✅ コピーしました！';
+                        setTimeout(() => {
+                            copyButton.textContent = '📋 コピーする';
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Copy failed using clipboard API:', err);
+                        copyButton.textContent = '❌ コピー失敗 (手動で選択してください)';
+                        setTimeout(() => {
+                            copyButton.textContent = '📋 コピーする';
+                        }, 2000);
+                    });
+            } else {
+                // 古いブラウザ向けのフォールバック（execCommand）
+                outputCodeElement.select(); 
+                document.execCommand('copy');
+                copyButton.textContent = '✅ コピーしました！(Legacy)';
+                setTimeout(() => {
+                    copyButton.textContent = '📋 コピーする';
+                }, 2000);
+            }
+        });
     </script>
+
 </body>
 </html>
