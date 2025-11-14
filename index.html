@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高機能 JavaScript 難読化ツール</title>
+    <title>高機能 JavaScript 難読化・圧縮ツール</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; margin: 0; background-color: #f6f8fa; }
         .header { background-color: #24292e; color: white; padding: 16px; text-align: center; }
@@ -26,12 +26,11 @@
     <!-- 必要なライブラリをCDNから読み込み -->
     <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator@4.1.0/dist/index.browser.js"></script>
+    <!-- LZ-String ライブラリを追加 -->
+    <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 </head>
 <body>
-
-    <header class="header">
-        <h1>高機能 JavaScript 難読化ツール</h1>
-    </header>
+    <header class="header"><h1>高機能 JavaScript 難読化・圧縮ツール</h1></header>
 
     <main class="main-container">
         <div class="io-container">
@@ -43,25 +42,17 @@
             <div class="options-grid">
                 <div class="option-group">
                     <label for="use-terser">1. Terser 圧縮</label>
-                    <select id="use-terser">
-                        <option value="yes" selected>有効</option>
-                        <option value="no">無効</option>
-                    </select>
+                    <select id="use-terser"><option value="yes" selected>有効</option><option value="no">無効</option></select>
                 </div>
                 <div class="option-group">
                     <label for="obfuscator-preset">2. 難読化レベル</label>
-                    <select id="obfuscator-preset">
-                        <option value="low">低 (サイズ重視)</option>
-                        <option value="medium" selected>中 (バランス)</option>
-                        <option value="high">高 (難読化重視)</option>
-                    </select>
+                    <select id="obfuscator-preset"><option value="low">低 (サイズ重視)</option><option value="medium" selected>中 (バランス)</option><option value="high">高 (難読化重視)</option></select>
                 </div>
                 <div class="option-group">
-                    <label for="encoding-type">3. 追加エンコード</label>
+                    <label for="encoding-type">3. 最終エンコード</label>
                     <select id="encoding-type">
                         <option value="none" selected>なし</option>
-                        <option value="unicode-pack">Unicode Pack (高圧縮)</option>
-                        <option value="base64">Base64 (実行ラッパー付)</option>
+                        <option value="lz-string">LZ-String + Base64 (最高圧縮)</option>
                     </select>
                 </div>
                 <div class="option-group">
@@ -71,9 +62,7 @@
             </div>
         </div>
 
-        <div id="result-info" class="result-info">
-            結果はここに表示されます。
-        </div>
+        <div id="result-info" class="result-info">結果はここに表示されます。</div>
     </main>
 
     <script>
@@ -111,36 +100,21 @@
                 const preset = document.getElementById('obfuscator-preset').value;
                 if (preset !== 'none') {
                     const options = getObfuscatorOptions(preset);
-                    const obfuscationResult = JavaScriptObfuscator.obfuscate(processedCode, options);
-                    processedCode = obfuscationResult.getObfuscatedCode();
+                    processedCode = JavaScriptObfuscator.obfuscate(processedCode, options).getObfuscatedCode();
                 }
 
-                // Step 3: Encoding
+                // Step 3: Final Encoding
                 const encodingType = document.getElementById('encoding-type').value;
-                if (encodingType === 'base64') {
-                    const base64Code = btoa(unescape(encodeURIComponent(processedCode)));
-                    processedCode = `new Function(decodeURIComponent(escape(atob('${base64Code}'))))();`;
-                } else if (encodingType === 'unicode-pack') {
-                    // 2文字を1文字に圧縮する
-                    let packed = '';
-                    for (let i = 0; i < processedCode.length; i += 2) {
-                        const char1 = processedCode.charCodeAt(i);
-                        const char2 = (i + 1 < processedCode.length) ? processedCode.charCodeAt(i + 1) : 0;
-                        packed += String.fromCharCode(char1 | (char2 << 8));
-                    }
-                    
-                    // 特殊文字を安全にエスケープして文字列リテラルにする
-                    const safePackedData = JSON.stringify(packed);
-
+                if (encodingType === 'lz-string') {
+                    // LZ-Stringで圧縮し、安全なBase64形式でエンコード
+                    const compressed = LZString.compressToBase64(processedCode);
                     // 復元用のデコーダーと実行コードを生成
-                    const decoderFunc = `(p=>{let u='';for(let i=0;i<p.length;i++){let c=p.charCodeAt(i);u+=String.fromCharCode(c&255);if(c>>8)u+=String.fromCharCode(c>>8)}return u})`;
-                    processedCode = `new Function(${decoderFunc}(${safePackedData}))();`;
+                    processedCode = `(d=>{new Function(LZString.decompressFromBase64(d))()})('${compressed}')`;
                 }
                 
                 // Finalize and Display
                 const finalSize = new Blob([processedCode]).size;
                 const ratio = finalSize > 0 ? (finalSize / originalSize) : 0;
-
                 outputArea.value = processedCode;
                 
                 let resultHTML = `
@@ -150,9 +124,9 @@
                 `;
                 
                 if (ratio > 1.6) {
-                    resultHTML += `<br><span class="warning">警告: 目標の1.6倍を超えました。難読化レベルを下げることを検討してください。</span>`;
+                    resultHTML += `<br><span class="warning">警告: 目標の1.6倍を超えました。難読化レベルを下げてみてください。</span>`;
                 } else if (finalSize > 0) {
-                     resultHTML += `<br><span class="success">目標の1.6倍以内に収まっています。</span>`;
+                     resultHTML += `<br><span class="success">目標の1.6倍以内に収まっています！</span>`;
                 }
                 resultInfo.innerHTML = resultHTML;
 
@@ -168,14 +142,11 @@
         });
 
         function getObfuscatorOptions(preset) {
+            // ... (この関数は変更ありません)
             switch(preset) {
-                case 'high':
-                    return { compact: true, controlFlowFlattening: true, controlFlowFlatteningThreshold: 1, deadCodeInjection: true, deadCodeInjectionThreshold: 1, debugProtection: true, disableConsoleOutput: true, selfDefending: true, stringArray: true, stringArrayEncoding: ['base64'], rotateStringArray: true, transformObjectKeys: true, unicodeEscapeSequence: true };
-                case 'medium':
-                    return { compact: true, controlFlowFlattening: true, controlFlowFlatteningThreshold: 0.75, deadCodeInjection: true, deadCodeInjectionThreshold: 0.4, debugProtection: false, disableConsoleOutput: true, selfDefending: true, stringArray: true, stringArrayThreshold: 0.75, rotateStringArray: true, };
-                case 'low':
-                default:
-                    return { compact: true, simplify: true, stringArray: true, stringArrayThreshold: 0.75, splitStrings: true, splitStringsChunkLength: 10, };
+                case 'high': return { compact: true, controlFlowFlattening: true, controlFlowFlatteningThreshold: 1, deadCodeInjection: true, deadCodeInjectionThreshold: 1, debugProtection: true, disableConsoleOutput: true, selfDefending: true, stringArray: true, stringArrayEncoding: ['base64'], rotateStringArray: true, transformObjectKeys: true, unicodeEscapeSequence: true };
+                case 'medium': return { compact: true, controlFlowFlattening: true, controlFlowFlatteningThreshold: 0.75, deadCodeInjection: true, deadCodeInjectionThreshold: 0.4, debugProtection: false, disableConsoleOutput: true, selfDefending: true, stringArray: true, stringArrayThreshold: 0.75, rotateStringArray: true, };
+                default: return { compact: true, simplify: true, stringArray: true, stringArrayThreshold: 0.75, splitStrings: true, splitStringsChunkLength: 10, };
             }
         }
     </script>
