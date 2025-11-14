@@ -70,7 +70,7 @@
 
     <div class="container">
         <h1>JavaScript 多重難読化ツール</h1>
-        <p>Terser、JavaScript-Obfuscator、Ascii85エンコードを順に適用してJavaScriptコードを難読化します。</p>
+        <p>Terser、JavaScript-Obfuscator、Base85エンコードを順に適用してJavaScriptコードを難読化します。</p>
 
         <h3>入力コード</h3>
         <textarea id="inputCode" rows="12" placeholder="ここにJavaScriptコードを入力してください。例: console.log('Hello, World!');"></textarea>
@@ -85,8 +85,8 @@
     <!-- 外部ライブラリの読み込み -->
     <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
-    <!-- ★エラー解決のため、Base85ライブラリをより安定したものに変更★ -->
-    <script src="https://cdn.jsdelivr.net/npm/ascii85/lib/ascii85.js"></script>
+    <!-- ★エラー解決のため、ブラウザで動作するjs-base85ライブラリに変更★ -->
+    <script src="https://cdn.jsdelivr.net/npm/js-base85@1.0.2/index.min.js"></script>
 
     <!-- 難読化処理のスクリプト -->
     <script>
@@ -122,15 +122,15 @@
                 });
                 const obfuscatedCode = obfuscatedResult.getObfuscatedCode();
 
-                // 3. Ascii85によるエンコード (★base85からascii85に変更★)
-                const encodedCode = ascii85.encode(obfuscatedCode);
+                // 3. Base85によるエンコード (★ライブラリ変更に伴い、再度base85を使用★)
+                const encodedCode = base85.encode(obfuscatedCode);
 
                 // 最終的にデコードして実行するためのコードを生成
                 const finalCode = `/*
- * この難読化コードを実行するには、事前にAscii85ライブラリが必要です。
- * 例: <script src="https://cdn.jsdelivr.net/npm/ascii85/lib/ascii85.js"><\/script>
+ * この難読化コードを実行するには、事前にjs-base85ライブラリが必要です。
+ * 例: <script src="https://cdn.jsdelivr.net/npm/js-base85@1.0.2/index.min.js"><\/script>
  */
-eval(ascii85.decode('${encodedCode}').toString());`; // ★.toString()を追加★
+eval(base85.decode('${encodedCode}'));`; // ★.toString()は不要
                 
                 outputCodeElement.value = finalCode;
 
