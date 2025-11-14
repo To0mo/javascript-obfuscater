@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高機能 JavaScript 難読化・圧縮ツール</title>
+    <title>高機能 JavaScript 難読化・圧縮ツール (Unicode対応)</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; margin: 0; background-color: #f6f8fa; }
         .header { background-color: #24292e; color: white; padding: 16px; text-align: center; }
         .main-container { display: flex; flex-direction: column; padding: 16px; gap: 16px; }
-        .io-container { display: flex; gap: 16px; height: 55vh; }
-        textarea { width: 100%; height: 100%; font-family: monospace; font-size: 14px; border: 1px solid #d1d5da; border-radius: 6px; padding: 8px; resize: vertical; }
+        .io-container { display: flex; flex-direction: column; gap: 16px; height: 60vh; }
+        @media (min-width: 768px) { .io-container { flex-direction: row; } }
+        .textarea-wrapper { position: relative; width: 100%; height: 100%; }
+        textarea { width: 100%; height: 100%; box-sizing: border-box; font-family: monospace; font-size: 14px; border: 1px solid #d1d5da; border-radius: 6px; padding: 8px; resize: vertical; }
+        .copy-button { position: absolute; top: 8px; right: 8px; z-index: 10; padding: 4px 10px; font-size: 12px; background-color: #f6f8fa; border: 1px solid #d1d5da; border-radius: 6px; cursor: pointer; opacity: 0.8; transition: all 0.2s; }
+        .copy-button:hover { background-color: #e1e4e8; opacity: 1; }
+        .copy-button:disabled { background-color: #2ea44f; color: white; border-color: #2ea44f; }
         .options-container { background-color: white; border: 1px solid #d1d5da; border-radius: 6px; padding: 16px; }
         .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: center;}
         .option-group { display: flex; flex-direction: column; gap: 8px; }
@@ -26,39 +31,32 @@
     <!-- 必要なライブラリをCDNから読み込み -->
     <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator@4.1.0/dist/index.browser.js"></script>
-    <!-- LZ-String ライブラリを追加 -->
     <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 </head>
 <body>
-    <header class="header"><h1>高機能 JavaScript 難読化・圧縮ツール</h1></header>
+    <header class="header"><h1>高機能 JavaScript 難読化・圧縮ツール (Unicode対応)</h1></header>
 
     <main class="main-container">
         <div class="io-container">
-            <textarea id="input-code" placeholder="ここにJavaScriptコードを入力..."></textarea>
-            <textarea id="output-code" readonly placeholder="処理結果がここに出力されます..."></textarea>
+            <div class="textarea-wrapper"><textarea id="input-code" placeholder="ここにJavaScriptコードを入力..."></textarea></div>
+            <div class="textarea-wrapper">
+                <textarea id="output-code" readonly placeholder="処理結果がここに出力されます..."></textarea>
+                <button id="copy-btn" class="copy-button">コピー</button>
+            </div>
         </div>
 
         <div class="options-container">
             <div class="options-grid">
-                <div class="option-group">
-                    <label for="use-terser">1. Terser 圧縮</label>
-                    <select id="use-terser"><option value="yes" selected>有効</option><option value="no">無効</option></select>
-                </div>
-                <div class="option-group">
-                    <label for="obfuscator-preset">2. 難読化レベル</label>
-                    <select id="obfuscator-preset"><option value="low">低 (サイズ重視)</option><option value="medium" selected>中 (バランス)</option><option value="high">高 (難読化重視)</option></select>
-                </div>
+                <div class="option-group"><label for="use-terser">1. Terser 圧縮</label><select id="use-terser"><option value="yes" selected>有効</option><option value="no">無効</option></select></div>
+                <div class="option-group"><label for="obfuscator-preset">2. 難読化レベル</label><select id="obfuscator-preset"><option value="low">低 (サイズ重視)</option><option value="medium" selected>中 (バランス)</option><option value="high">高 (難読化重視)</option></select></div>
                 <div class="option-group">
                     <label for="encoding-type">3. 最終エンコード</label>
                     <select id="encoding-type">
                         <option value="none" selected>なし</option>
-                        <option value="lz-string">LZ-String + Base64 (最高圧縮)</option>
+                        <option value="lz-string">LZ-String (Unicode対応) + Base64</option>
                     </select>
                 </div>
-                <div class="option-group">
-                    <label>&nbsp;</label>
-                    <button id="process-btn" class="process-button">処理を実行</button>
-                </div>
+                <div class="option-group"><label>&nbsp;</label><button id="process-btn" class="process-button">処理を実行</button></div>
             </div>
         </div>
 
@@ -66,18 +64,28 @@
     </main>
 
     <script>
-        document.getElementById('process-btn').addEventListener('click', async () => {
-            const inputCode = document.getElementById('input-code').value;
-            const outputArea = document.getElementById('output-code');
-            const resultInfo = document.getElementById('result-info');
+        const processBtn = document.getElementById('process-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const inputArea = document.getElementById('input-code');
+        const outputArea = document.getElementById('output-code');
+        const resultInfo = document.getElementById('result-info');
 
-            if (!inputCode.trim()) {
-                outputArea.value = "エラー: コードが入力されていません。";
+        copyBtn.addEventListener('click', () => {
+            const codeToCopy = outputArea.value;
+            if (!codeToCopy) return;
+            navigator.clipboard.writeText(codeToCopy).then(() => {
+                copyBtn.textContent = 'コピーしました！';
+                copyBtn.disabled = true;
+                setTimeout(() => { copyBtn.textContent = 'コピー'; copyBtn.disabled = false; }, 2000);
+            });
+        });
+
+        processBtn.addEventListener('click', async () => {
+            if (!inputArea.value.trim()) {
                 resultInfo.innerHTML = "コードを入力してから実行してください。";
                 return;
             }
 
-            const processBtn = document.getElementById('process-btn');
             processBtn.disabled = true;
             processBtn.textContent = '処理中...';
             outputArea.value = '';
@@ -86,43 +94,38 @@
             await new Promise(resolve => setTimeout(resolve, 50));
 
             try {
-                let processedCode = inputCode;
-                const originalSize = new Blob([inputCode]).size;
+                let processedCode = inputArea.value;
+                const originalSize = new Blob([processedCode]).size;
 
-                // Step 1: Terser
                 if (document.getElementById('use-terser').value === 'yes') {
                     const terserResult = await Terser.minify(processedCode, { mangle: { toplevel: true } });
                     if (terserResult.error) throw terserResult.error;
                     processedCode = terserResult.code;
                 }
 
-                // Step 2: Obfuscator
                 const preset = document.getElementById('obfuscator-preset').value;
                 if (preset !== 'none') {
                     const options = getObfuscatorOptions(preset);
                     processedCode = JavaScriptObfuscator.obfuscate(processedCode, options).getObfuscatedCode();
                 }
 
-                // Step 3: Final Encoding
                 const encodingType = document.getElementById('encoding-type').value;
                 if (encodingType === 'lz-string') {
-                    // LZ-Stringで圧縮し、安全なBase64形式でエンコード
-                    const compressed = LZString.compressToBase64(processedCode);
-                    // 復元用のデコーダーと実行コードを生成
-                    processedCode = `(d=>{new Function(LZString.decompressFromBase64(d))()})('${compressed}')`;
+                    // ★★★ Unicode文字化け対策を施した新しいエンコード処理 ★★★
+                    // 1. Unicodeセーフな圧縮を実行
+                    const compressedUTF16 = LZString.compressToUTF16(processedCode);
+                    // 2. 圧縮結果を、安全なBase64文字列にエンコード
+                    const encodedBase64 = btoa(compressedUTF16);
+                    
+                    // デコーダーは atob -> decompressFromUTF16 の順で実行
+                    processedCode = `(d=>{new (()=>{})["constructor"](LZString.decompressFromUTF16(atob(d)))()})('${encodedBase64}')`;
                 }
                 
-                // Finalize and Display
                 const finalSize = new Blob([processedCode]).size;
                 const ratio = finalSize > 0 ? (finalSize / originalSize) : 0;
                 outputArea.value = processedCode;
                 
-                let resultHTML = `
-                    元のサイズ: ${originalSize.toLocaleString()} バイト<br>
-                    出力サイズ: ${finalSize.toLocaleString()} バイト<br>
-                    サイズ比: <strong>${ratio.toFixed(2)} 倍</strong>
-                `;
-                
+                let resultHTML = `元のサイズ: ${originalSize.toLocaleString()} バイト<br>出力サイズ: ${finalSize.toLocaleString()} バイト<br>サイズ比: <strong>${ratio.toFixed(2)} 倍</strong>`;
                 if (ratio > 1.6) {
                     resultHTML += `<br><span class="warning">警告: 目標の1.6倍を超えました。難読化レベルを下げてみてください。</span>`;
                 } else if (finalSize > 0) {
@@ -142,7 +145,6 @@
         });
 
         function getObfuscatorOptions(preset) {
-            // ... (この関数は変更ありません)
             switch(preset) {
                 case 'high': return { compact: true, controlFlowFlattening: true, controlFlowFlatteningThreshold: 1, deadCodeInjection: true, deadCodeInjectionThreshold: 1, debugProtection: true, disableConsoleOutput: true, selfDefending: true, stringArray: true, stringArrayEncoding: ['base64'], rotateStringArray: true, transformObjectKeys: true, unicodeEscapeSequence: true };
                 case 'medium': return { compact: true, controlFlowFlattening: true, controlFlowFlatteningThreshold: 0.75, deadCodeInjection: true, deadCodeInjectionThreshold: 0.4, debugProtection: false, disableConsoleOutput: true, selfDefending: true, stringArray: true, stringArrayThreshold: 0.75, rotateStringArray: true, };
