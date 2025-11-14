@@ -53,7 +53,7 @@
                     <label for="encoding-type">3. 最終エンコード</label>
                     <select id="encoding-type">
                         <option value="none" selected>なし</option>
-                        <option value="lz-string">LZ-String (Unicode対応) + Base64</option>
+                        <option value="lz-string">LZ-String + Base64 (Unicode対応)</option>
                     </select>
                 </div>
                 <div class="option-group"><label>&nbsp;</label><button id="process-btn" class="process-button">処理を実行</button></div>
@@ -111,14 +111,12 @@
 
                 const encodingType = document.getElementById('encoding-type').value;
                 if (encodingType === 'lz-string') {
-                    // ★★★ Unicode文字化け対策を施した新しいエンコード処理 ★★★
-                    // 1. Unicodeセーフな圧縮を実行
-                    const compressedUTF16 = LZString.compressToUTF16(processedCode);
-                    // 2. 圧縮結果を、安全なBase64文字列にエンコード
-                    const encodedBase64 = btoa(compressedUTF16);
+                    // ★★★ エラーを修正し、最も安全で正しい方法に変更 ★★★
+                    // LZ-StringのUnicode対応Base64圧縮関数を使用する
+                    const compressed = LZString.compressToBase64(processedCode);
                     
-                    // デコーダーは atob -> decompressFromUTF16 の順で実行
-                    processedCode = `(d=>{new (()=>{})["constructor"](LZString.decompressFromUTF16(atob(d)))()})('${encodedBase64}')`;
+                    // 対応する解凍関数を使って実行ラッパーを生成
+                    processedCode = `(d=>{new (()=>{})["constructor"](LZString.decompressFromBase64(d))()})('${compressed}')`;
                 }
                 
                 const finalSize = new Blob([processedCode]).size;
