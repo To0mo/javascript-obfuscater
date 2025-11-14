@@ -84,85 +84,99 @@
         <div id="messageArea" class="message-area"></div>
     </div>
 
-    <!-- ★★★ 各scriptタグに onerror を追加 ★★★ -->
-    <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js" onerror="libraryLoadError('Terser')"></script>
-    <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js" onerror="libraryLoadError('JavaScript-Obfuscator')"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/base85/2.1.0/base85.js" onerror="libraryLoadError('Base85')"></script>
+    <!-- ★★★ scriptタグはすべて削除し、下のJavaScriptで動的に読み込みます ★★★ -->
 
     <script>
-        let libraryLoadFailed = false;
-
-        // ★★★ ライブラリ読み込み失敗時に呼び出される関数 ★★★
-        function libraryLoadError(libraryName) {
-            libraryLoadFailed = true;
-            const messageArea = document.getElementById('messageArea');
-            const obfuscateButton = document.getElementById('obfuscateButton');
-            messageArea.textContent = `エラー: ${libraryName} ライブラリの読み込みに失敗しました。ネットワーク接続を確認するか、ページを再読み込みしてください。`;
-            obfuscateButton.textContent = 'ライブラリ読み込み失敗';
-        }
-
-        // ★★★ window.loadの代わりにDOMContentLoadedを使用 ★★★
+        // DOMの準備ができたら処理を開始
         document.addEventListener('DOMContentLoaded', function () {
             
-            // 読み込みエラーが既に発生していたら、ここで処理を中断
-            if (libraryLoadFailed) return;
-
             const obfuscateButton = document.getElementById('obfuscateButton');
-            const inputCodeElement = document.getElementById('inputCode');
-            const outputCodeElement = document.getElementById('outputCode');
             const messageArea = document.getElementById('messageArea');
 
-            // ライブラリの存在を最終チェック
-            if (typeof Terser === 'undefined' || typeof JavaScriptObfuscator === 'undefined' || typeof base85 === 'undefined') {
-                libraryLoadError('必須'); // いずれかのライブラリが読み込めていない
-                return;
+            // ★★★ 1. 読み込むライブラリのリストを定義 ★★★
+            const scriptsToLoad = [
+                "https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js",
+                "https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js",
+                "https://cdnjs.cloudflare.com/ajax/libs/base85/2.1.0/base85.js"
+            ];
+
+            // ★★★ 2. スクリプトを1つ読み込むための関数 (Promiseを返す) ★★★
+            function loadScript(src) {
+                return new Promise(function (resolve, reject) {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.onload = () => resolve(src); // 成功したら解決
+                    script.onerror = () => reject(new Error(`スクリプトの読み込みに失敗しました: ${src}`)); // 失敗したら拒否
+                    document.head.appendChild(script);
+                });
             }
 
-            // 準備完了
-            obfuscateButton.disabled = false;
-            obfuscateButton.textContent = '難読化を実行';
+            // ★★★ 3. Promise.allですべてのライブラリの読み込み完了を待つ ★★★
+            Promise.all(scriptsToLoad.map(loadScript))
+                .then(() => {
+                    // すべてのスクリプトが成功した場合
+                    console.log("すべてのライブラリが正常に読み込まれました。");
+                    initializeApp();
+                })
+                .catch(error => {
+                    // 1つでも失敗した場合
+                    console.error(error);
+                    messageArea.textContent = error.message;
+                    obfuscateButton.textContent = 'ライブラリ読み込み失敗';
+                });
 
-            obfuscateButton.addEventListener('click', async function () {
-                const inputCode = inputCodeElement.value;
 
-                outputCodeElement.value = '';
-                messageArea.textContent = '';
+            // ★★★ 4. すべての準備が完了した後に実行される初期化関数 ★★★
+            function initializeApp() {
+                const inputCodeElement = document.getElementById('inputCode');
+                const outputCodeElement = document.getElementById('outputCode');
 
-                if (!inputCode.trim()) {
-                    messageArea.textContent = '入力コードが空です。';
-                    return;
-                }
+                // ボタンを有効化
+                obfuscateButton.disabled = false;
+                obfuscateButton.textContent = '難読化を実行';
 
-                try {
-                    const terserResult = await Terser.minify(inputCode);
-                    if (terserResult.error) throw terserResult.error;
-                    const minifiedCode = terserResult.code;
+                obfuscateButton.addEventListener('click', async function () {
+                    const inputCode = inputCodeElement.value;
 
-                    const obfuscatedResult = JavaScriptObfuscator.obfuscate(minifiedCode, {
-                        compact: true,
-                        controlFlowFlattening: true,
-                        deadCodeInjection: true,
-                        stringArray: true,
-                        stringArrayEncoding: ['base64']
-                    });
-                    const obfuscatedCode = obfuscatedResult.getObfuscatedCode();
+                    outputCodeElement.value = '';
+                    messageArea.textContent = '';
 
-                    const encodedCode = base85.encode(obfuscatedCode);
+                    if (!inputCode.trim()) {
+                        messageArea.textContent = '入力コードが空です。';
+                        return;
+                    }
 
-                    const finalCode = `/*
+                    try {
+                        const terserResult = await Terser.minify(inputCode);
+                        if (terserResult.error) throw terserResult.error;
+                        const minifiedCode = terserResult.code;
+
+                        const obfuscatedResult = JavaScriptObfuscator.obfuscate(minifiedCode, {
+                            compact: true,
+                            controlFlowFlattening: true,
+                            deadCodeInjection: true,
+                            stringArray: true,
+                            stringArrayEncoding: ['base64']
+                        });
+                        const obfuscatedCode = obfuscatedResult.getObfuscatedCode();
+
+                        const encodedCode = base85.encode(obfuscatedCode);
+
+                        const finalCode = `/*
  * この難読化コードを実行するには、事前にBase85ライブラリが必要です。
  * 例: <script src="https://cdnjs.cloudflare.com/ajax/libs/base85/2.1.0/base85.js"><\/script>
  */
 eval(base85.decode('${encodedCode}'));`;
-                    
-                    outputCodeElement.value = finalCode;
+                        
+                        outputCodeElement.value = finalCode;
 
-                } catch (error) {
-                    const errorMessage = "エラーが発生しました:\n" + (error.message || error);
-                    messageArea.textContent = errorMessage;
-                    console.error(error);
-                }
-            });
+                    } catch (error) {
+                        const errorMessage = "エラーが発生しました:\n" + (error.message || error);
+                        messageArea.textContent = errorMessage;
+                        console.error(error);
+                    }
+                });
+            }
         });
     </script>
 
