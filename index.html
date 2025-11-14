@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JavaScript 多重難読化ツール</title>
     <style>
+        /* (スタイルは変更なし) */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
@@ -83,30 +84,41 @@
         <div id="messageArea" class="message-area"></div>
     </div>
 
-    <!-- 外部ライブラリの読み込み -->
-    <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/base85/2.1.0/base85.js"></script>
+    <!-- ★★★ 各scriptタグに onerror を追加 ★★★ -->
+    <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js" onerror="libraryLoadError('Terser')"></script>
+    <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js" onerror="libraryLoadError('JavaScript-Obfuscator')"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/base85/2.1.0/base85.js" onerror="libraryLoadError('Base85')"></script>
 
-    <!-- 実行タイミングを制御するスクリプト -->
     <script>
-        window.addEventListener('load', function () {
+        let libraryLoadFailed = false;
+
+        // ★★★ ライブラリ読み込み失敗時に呼び出される関数 ★★★
+        function libraryLoadError(libraryName) {
+            libraryLoadFailed = true;
+            const messageArea = document.getElementById('messageArea');
+            const obfuscateButton = document.getElementById('obfuscateButton');
+            messageArea.textContent = `エラー: ${libraryName} ライブラリの読み込みに失敗しました。ネットワーク接続を確認するか、ページを再読み込みしてください。`;
+            obfuscateButton.textContent = 'ライブラリ読み込み失敗';
+        }
+
+        // ★★★ window.loadの代わりにDOMContentLoadedを使用 ★★★
+        document.addEventListener('DOMContentLoaded', function () {
             
+            // 読み込みエラーが既に発生していたら、ここで処理を中断
+            if (libraryLoadFailed) return;
+
             const obfuscateButton = document.getElementById('obfuscateButton');
             const inputCodeElement = document.getElementById('inputCode');
             const outputCodeElement = document.getElementById('outputCode');
             const messageArea = document.getElementById('messageArea');
 
-            // ★★★ 修正点1: `Base85` を小文字の `base85` に変更 ★★★
+            // ライブラリの存在を最終チェック
             if (typeof Terser === 'undefined' || typeof JavaScriptObfuscator === 'undefined' || typeof base85 === 'undefined') {
-                messageArea.textContent = 'エラー: 必須ライブラリの読み込みに失敗しました。ページを再読み込み(Ctrl+Shift+R)するか、ネットワーク接続を確認してください。';
-                obfuscateButton.textContent = 'ライブラリ読み込み失敗';
-                // どのライブラリが失敗したか、より詳細なデバッグ情報をコンソールに出力
-                console.error('Terser:', typeof Terser, '| JavaScriptObfuscator:', typeof JavaScriptObfuscator, '| base85:', typeof base85);
+                libraryLoadError('必須'); // いずれかのライブラリが読み込めていない
                 return;
             }
 
-            // ライブラリの準備ができたらボタンを有効化
+            // 準備完了
             obfuscateButton.disabled = false;
             obfuscateButton.textContent = '難読化を実行';
 
@@ -122,12 +134,10 @@
                 }
 
                 try {
-                    // 1. Terserによるミニファイ化
                     const terserResult = await Terser.minify(inputCode);
                     if (terserResult.error) throw terserResult.error;
                     const minifiedCode = terserResult.code;
 
-                    // 2. JavaScript-Obfuscatorによる難読化
                     const obfuscatedResult = JavaScriptObfuscator.obfuscate(minifiedCode, {
                         compact: true,
                         controlFlowFlattening: true,
@@ -137,15 +147,12 @@
                     });
                     const obfuscatedCode = obfuscatedResult.getObfuscatedCode();
 
-                    // ★★★ 修正点2: `Base85.encode` を小文字の `base85.encode` に変更 ★★★
                     const encodedCode = base85.encode(obfuscatedCode);
 
-                    // 最終的にデコードして実行するためのコードを生成
                     const finalCode = `/*
  * この難読化コードを実行するには、事前にBase85ライブラリが必要です。
  * 例: <script src="https://cdnjs.cloudflare.com/ajax/libs/base85/2.1.0/base85.js"><\/script>
  */
-// ★★★ 修正点3: `Base85.decode` を小文字の `base85.decode` に変更 ★★★
 eval(base85.decode('${encodedCode}'));`;
                     
                     outputCodeElement.value = finalCode;
