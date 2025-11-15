@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All-in-One JavaScript Obfuscator (v3 - Stable)</title>
+    <title>All-in-One JavaScript Obfuscator (Custom Base92)</title>
     <style>
         :root {
             --bg-color: #1e1e1e;
@@ -124,7 +124,7 @@
                 <li><strong>Terser:</strong> コードを最小化（minify）します。</li>
                 <li><strong>JavaScript-Obfuscator:</strong> 最小化されたコードを難読化します。</li>
                 <li><strong>Base64 Encode:</strong> 難読化コードを安全なASCII文字列に変換します。</li>
-                <li><strong>Base92 Encode:</strong> Base64化された文字列をさらにエンコードし、自己実行形式で出力します。</li>
+                <li><strong>Base92 Encode:</strong> Base64化された文字列をご指定の関数でさらにエンコードします。</li>
             </ol>
         </div>
 
@@ -147,140 +147,132 @@
         <div id="status"></div>
     </div>
 
-    <!-- ライブラリの読み込み (CDN) -->
+    <!-- 必要なライブラリの読み込み (Base92は内部実装のため不要) -->
     <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/base92.js@1.0.1/base92.min.js"></script>
 
     <!-- アプリケーションのロジック -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const inputCodeEl = document.getElementById('inputCode');
-            const outputCodeEl = document.getElementById('outputCode');
-            const obfuscateBtnEl = document.getElementById('obfuscateBtn');
-            const copyBtnEl = document.getElementById('copyBtn');
-            const statusEl = document.getElementById('status');
-
-            inputCodeEl.value = `function hello(name) {\n  console.log('Hello, ' + name + '!');\n}\n\nhello('World');`;
-
-            obfuscateBtnEl.addEventListener('click', async () => {
-                const sourceCode = inputCodeEl.value.trim();
-                if (!sourceCode) {
-                    showStatus('入力が空です。', 'error');
-                    return;
+      (() => {
+        // ▼▼▼ ご指定いただいたBase92実装をここに統合 ▼▼▼
+        const BASE92_CHARS = '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
+        
+        function base92_encode(str) {
+            let n = 0, b = 0, output = '';
+            for (let i = 0; i < str.length; i++) {
+                n = (n << 8) | str.charCodeAt(i);
+                b += 8;
+                if (b >= 13) {
+                    let c = n >> (b - 13);
+                    b -= 13;
+                    n &= (1 << b) - 1;
+                    output += BASE92_CHARS[Math.floor(c / 91)] + BASE92_CHARS[c % 91];
                 }
+            }
+            if (b > 0) {
+                let c = n << (13 - b);
+                output += BASE92_CHARS[Math.floor(c / 91)] + BASE92_CHARS[c % 91];
+            }
+            return output;
+        }
+        // ▲▲▲ ここまで ▲▲▲
 
-                setUiLoading(true);
-                showStatus('処理中...', 'normal');
-                outputCodeEl.value = '';
+        const inputCodeEl = document.getElementById('inputCode');
+        const outputCodeEl = document.getElementById('outputCode');
+        const obfuscateBtnEl = document.getElementById('obfuscateBtn');
+        const copyBtnEl = document.getElementById('copyBtn');
+        const statusEl = document.getElementById('status');
 
-                try {
-                    // Step 1: Terser
-                    showStatus('Step 1/4: Terserでコードを最小化中...', 'normal');
-                    const terserResult = await Terser.minify(sourceCode);
-                    if (terserResult.error) throw terserResult.error;
-                    const minifiedCode = terserResult.code;
+        inputCodeEl.value = `function hello(name) {\n  console.log('Hello, ' + name + '!');\n}\n\nhello('World');`;
 
-                    // Step 2: JavaScript-Obfuscator
-                    showStatus('Step 2/4: JavaScript-Obfuscatorで難読化中...', 'normal');
-                    const obfuscatedCode = JavaScriptObfuscator.obfuscate(minifiedCode, {
-                        compact: true,
-                        selfDefending: true,
-                        stringArray: true,
-                        stringArrayEncoding: ['rc4'],
-                        stringArrayThreshold: 1,
-                    }).getObfuscatedCode();
-
-                    // ★★★ 根本原因と解決策 ★★★
-                    // obfuscatedCodeには特殊なUnicode文字が含まれる可能性があり、
-                    // これを直接Base92に渡すとエンコードエラーになる。
-                    // 解決策として、一度Base64にエンコードして安全なASCII文字列に変換してからBase92に渡す。
-
-                    // Step 3: Base64 Encode
-                    showStatus('Step 3/4: Base64でエンコード中...', 'normal');
-                    // Unicode文字列を安全にbtoaに渡すための定型処理
-                    const base64Encoded = btoa(unescape(encodeURIComponent(obfuscatedCode)));
-
-                    // Step 4: Base92 Encode
-                    showStatus('Step 4/4: Base92でエンコード中...', 'normal');
-                    const base92Encoded = base92.encode(base64Encoded);
-
-                    const finalCode = createSelfExecutingWrapper(base92Encoded);
-                    outputCodeEl.value = finalCode;
-
-                    showStatus('難読化が完了しました！', 'success');
-
-                } catch (error) {
-                    console.error('Obfuscation Error:', error);
-                    outputCodeEl.value = `エラーが発生しました:\n\n${error.stack || error.message}`;
-                    showStatus('エラーが発生しました。詳細は出力欄を確認してください。', 'error');
-                } finally {
-                    setUiLoading(false);
-                }
-            });
-
-            copyBtnEl.addEventListener('click', () => {
-                if (!outputCodeEl.value) return;
-                navigator.clipboard.writeText(outputCodeEl.value).then(() => {
-                    const originalText = copyBtnEl.textContent;
-                    copyBtnEl.textContent = 'コピーしました!';
-                    setTimeout(() => { copyBtnEl.textContent = originalText; }, 2000);
-                }).catch(err => {
-                    alert('クリップボードへのコピーに失敗しました。');
-                });
-            });
-
-            function setUiLoading(isLoading) {
-                obfuscateBtnEl.disabled = isLoading;
-                obfuscateBtnEl.textContent = isLoading ? '処理中...' : '難読化を実行';
-                copyBtnEl.disabled = isLoading || outputCodeEl.value.trim() === '';
+        obfuscateBtnEl.addEventListener('click', async () => {
+            const sourceCode = inputCodeEl.value.trim();
+            if (!sourceCode) {
+                showStatus('入力が空です。', 'error');
+                return;
             }
 
-            function showStatus(message, type) {
-                statusEl.textContent = message;
-                statusEl.className = type === 'error' ? 'status-error' : (type === 'success' ? 'status-success' : '');
-            }
+            setUiLoading(true);
+            showStatus('処理中...', 'normal');
+            outputCodeEl.value = '';
 
-            function createSelfExecutingWrapper(encodedString) {
-                // 自己実行コードには、Base92デコーダーとBase64デコーダー(atob)の両方が含まれる
-                const decoder = `
+            try {
+                showStatus('Step 1/4: Terserでコードを最小化中...', 'normal');
+                const terserResult = await Terser.minify(sourceCode);
+                if (terserResult.error) throw terserResult.error;
+                const minifiedCode = terserResult.code;
+
+                showStatus('Step 2/4: JavaScript-Obfuscatorで難読化中...', 'normal');
+                const obfuscatedCode = JavaScriptObfuscator.obfuscate(minifiedCode, {
+                    compact: true, selfDefending: true, stringArray: true,
+                    stringArrayEncoding: ['rc4'], stringArrayThreshold: 1,
+                }).getObfuscatedCode();
+
+                showStatus('Step 3/4: Base64でエンコード中...', 'normal');
+                const base64Encoded = btoa(unescape(encodeURIComponent(obfuscatedCode)));
+
+                showStatus('Step 4/4: Base92でエンコード中...', 'normal');
+                // 統合したbase92_encode関数を使用
+                const base92Encoded = base92_encode(base64Encoded);
+
+                const finalCode = createSelfExecutingWrapper(base92Encoded);
+                outputCodeEl.value = finalCode;
+                showStatus('難読化が完了しました！', 'success');
+
+            } catch (error) {
+                console.error('Obfuscation Error:', error);
+                outputCodeEl.value = `エラーが発生しました:\n\n${error.stack || error.message}`;
+                showStatus('エラーが発生しました。詳細は出力欄を確認してください。', 'error');
+            } finally {
+                setUiLoading(false);
+            }
+        });
+        
+        copyBtnEl.addEventListener('click', () => { /* ... (変更なし) ... */ });
+        function setUiLoading(isLoading) { /* ... (変更なし) ... */ }
+        function showStatus(message, type) { /* ... (変更なし) ... */ }
+        // ... 省略した関数の中身は前回のコードと同じです ...
+        copyBtnEl.addEventListener('click', () => {if (!outputCodeEl.value) return;navigator.clipboard.writeText(outputCodeEl.value).then(() => {const originalText = copyBtnEl.textContent;copyBtnEl.textContent = 'コピーしました!';setTimeout(() => { copyBtnEl.textContent = originalText; }, 2000);}).catch(err => {alert('クリップボードへのコピーに失敗しました。');});});
+        function setUiLoading(isLoading) {obfuscateBtnEl.disabled = isLoading;obfuscateBtnEl.textContent = isLoading ? '処理中...' : '難読化を実行';copyBtnEl.disabled = isLoading || outputCodeEl.value.trim() === '';}
+        function showStatus(message, type) {statusEl.textContent = message;statusEl.className = type === 'error' ? 'status-error' : (type === 'success' ? 'status-success' : '');}
+
+
+        // ▼▼▼ 自己実行ラッパーも、指定されたデコードロジックを埋め込む形に修正 ▼▼▼
+        function createSelfExecutingWrapper(encodedString) {
+            const decoder = `
 (function(encoded) {
-    var charset = '!"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_\\\`abcdefghijklmnopqrstuvwxyz{|}~';
-    var n = "", j = 0, q = encoded.length;
-    var c, d, l, k, m;
-    if (encoded.slice(-1) == "]") {
-        encoded = encoded.slice(0, encoded.indexOf("["));
-    }
-    for (q = encoded.length; j < q;) {
-        c = charset.indexOf(encoded.charAt(j++));
-        d = charset.indexOf(encoded.charAt(j++));
-        l = (c << 13) + (d << 6);
-        k = 13;
-        if (c >= 82) {
-            l += charset.indexOf(encoded.charAt(j++));
-        } else if (d >= 82) {
-            k += 7;
+    // --- Decoder Start ---
+    const BASE92_CHARS = '!"#$%&\\\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_\\\`abcdefghijklmnopqrstuvwxyz{|}~';
+    function base92_decode(str) {
+        let n = 0, b = 0, output = '';
+        if (str.length % 2 !== 0) { str = str.slice(0, -1); } // 奇数長の場合の対策
+        for (let i = 0; i < str.length; i += 2) {
+            let c1 = BASE92_CHARS.indexOf(str[i]);
+            let c2 = BASE92_CHARS.indexOf(str[i+1]);
+            if (c1 === -1 || c2 === -1) continue;
+            let c = c1 * 91 + c2;
+            n = (n << 13) | c;
+            b += 13;
+            while (b >= 8) {
+                b -= 8;
+                output += String.fromCharCode((n >> b) & 0xFF);
+            }
         }
-        while (k >= 8) {
-            k -= 8;
-            m = l >> k;
-            n += String.fromCharCode(m);
-            l -= m << k;
-        }
+        return output;
     }
+    // --- Decoder End ---
     try {
-        // デコード後の 'n' はBase64文字列。
-        // これを atob でデコードし、安全にUTF-8文字列に戻してから実行する。
-        var originalCode = decodeURIComponent(escape(atob(n)));
+        var base64Decoded = base92_decode(encoded);
+        var originalCode = decodeURIComponent(escape(atob(base64Decoded)));
         (new Function(originalCode))();
     } catch (e) {
         console.error('Failed to decode or execute payload', e);
     }
 })('${encodedString.replace(/'/g, "\\'")}');
-                `;
-                return decoder.trim();
-            }
-        });
+            `;
+            return decoder.trim();
+        }
+      })();
     </script>
 
 </body>
