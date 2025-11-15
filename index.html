@@ -1,226 +1,158 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JavaScript 多重難読化ツール</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.6;
-            margin: 20px;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        .container {
-            max-width: 800px;
-            margin: auto;
-            background: #fff;
-            padding: 20px 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        h3 {
-            margin-top: 25px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 5px;
-        }
-        textarea {
-            width: 100%;
-            box-sizing: border-box;
-            margin-bottom: 10px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-            font-size: 14px;
-        }
-        textarea:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-        }
-        button {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.2s;
-        }
-        button:disabled {
-            background-color: #a0a0a0;
-            cursor: not-allowed;
-        }
-        .message-area {
-            color: #d93025;
-            margin-top: 10px;
-            font-weight: bold;
-        }
-        .output-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        #copyButton {
-            width: auto;
-            padding: 5px 10px;
-            font-size: 12px;
-            background-color: #28a745;
-            flex-shrink: 0;
-        }
-        #copyButton:hover {
-            background-color: #218838;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JS 難読化ツール</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f5f5f5;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      margin: 10px 0;
+      padding: 10px;
+      box-sizing: border-box;
+      font-family: monospace;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+    }
+    .output-container {
+      position: relative;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+  </style>
 </head>
 <body>
+  <h1>JavaScript 難読化ツール</h1>
+  <textarea id="input" placeholder="ここにJavaScriptコードを入力"></textarea>
+  <button onclick="obfuscate()">難読化実行</button>
 
-    <div class="container">
-        <h1>JavaScript 多重難読化ツール</h1>
-        <p>Terser、JavaScript-Obfuscator、Base85エンコードを順に適用してJavaScriptコードを難読化します。</p>
+  <div class="output-container">
+    <textarea id="output" readonly placeholder="難読化結果がここに表示されます"></textarea>
+    <button class="copy-btn" onclick="copyOutput()">出力をコピー</button>
+  </div>
 
-        <h3>入力コード</h3>
-        <textarea id="inputCode" rows="12" placeholder="ここにUserScriptのコードを入力してください (ヘッダーは不要です)"></textarea>
-
-        <button id="obfuscateButton" disabled>ライブラリを読み込み中...</button>
-
-        <div class="output-header">
-            <h3>出力結果 (UserScript)</h3>
-            <button id="copyButton">全文をコピー</button>
-        </div>
-        
-        <textarea id="outputCode" rows="12" readonly placeholder="ここに難読化されたUserScriptが出力されます"></textarea>
-        <div id="messageArea" class="message-area"></div>
-    </div>
-
-    <!-- Base85ライブラリをHTMLに直接埋め込み -->
-    <script>
-    !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):e.base85=t()}(this,function(){"use strict";return{encode:function(e){for(var t,n,r,o,c=new Uint8Array(e),f="",i=0;i<c.length;i+=4)t=c[i],n=c[i+1],r=c[i+2],o=c[i+3],f+=String.fromCharCode.apply(String,[(t<<24|n<<16|r<<8|o)>>>0].reduce(function(e,t){return t?e.concat(function e(t,n){var r=Math.pow(85,n);if(n>0){var o=Math.floor(t/r);return[o].concat(e(t-o*r,n-1))}}(t,4)):[0,0,0,0,0]},[]).map(function(e){return e+33}));return f.slice(0,f.length-4+c.length%4)},decode:function(e){for(var t=e.replace(/\s/g,"").split("").map(function(e){return e.charCodeAt(0)-33}),n=new Uint8Array(4*t.length/5),r=0;r<t.length;r+=5){var o=t[r]*Math.pow(85,4)+t[r+1]*Math.pow(85,3)+t[r+2]*Math.pow(85,2)+t[r+3]*85+t[r+4];n[4*r/5]=(o&4278190080)>>24,n[4*r/5+1]=(o&16711680)>>16,n[4*r/5+2]=(o&65280)>>8,n[4*r/5+3]=255&o}return n.slice(0,n.length-5+t.length%5+1).buffer}}});
-    </script>
-
-    <!-- アプリケーション本体のスクリプト -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            
-            const obfuscateButton = document.getElementById('obfuscateButton');
-            const messageArea = document.getElementById('messageArea');
-
-            const scriptsToLoad = [
-                "https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js",
-                "https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"
-            ];
-
-            function loadScript(src) {
-                return new Promise(function (resolve, reject) {
-                    const script = document.createElement('script');
-                    script.src = src;
-                    script.onload = () => resolve(src);
-                    script.onerror = () => reject(new Error(`スクリプトの読み込みに失敗しました: ${src}`));
-                    document.head.appendChild(script);
-                });
+  <!-- CDN でライブラリを読み込み -->
+  <script src="https://cdn.jsdelivr.net/npm/terser@5/dist/bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
+  <script>
+    // Base85 エンコード用の base-x ライブラリ（軽量）
+    const baseX = (alphabet) => {
+      const BASE_MAP = new Uint8Array(256);
+      BASE_MAP.fill(255);
+      for (let i = 0; i < alphabet.length; i++) {
+        BASE_MAP[alphabet.charCodeAt(i)] = i;
+      }
+      const BASE = alphabet.length;
+      return {
+        encode: (source) => {
+          if (source.length === 0) return '';
+          let digits = [0];
+          for (let i = 0; i < source.length; ++i) {
+            let carry = source[i];
+            for (let j = 0; j < digits.length; ++j) {
+              carry += digits[j] << 8;
+              digits[j] = carry % BASE;
+              carry = (carry / BASE) | 0;
             }
-
-            Promise.all(scriptsToLoad.map(loadScript)).then(initializeApp).catch(error => {
-                console.error(error);
-                messageArea.textContent = error.message;
-                obfuscateButton.textContent = 'ライブラリ読み込み失敗';
-            });
-
-            function initializeApp() {
-                const inputCodeElement = document.getElementById('inputCode');
-                const outputCodeElement = document.getElementById('outputCode');
-                const copyButton = document.getElementById('copyButton');
-
-                obfuscateButton.disabled = false;
-                obfuscateButton.textContent = '難読化を実行';
-
-                obfuscateButton.addEventListener('click', async function () {
-                    const inputCode = inputCodeElement.value;
-                    outputCodeElement.value = '';
-                    messageArea.textContent = '';
-                    if (!inputCode.trim()) {
-                        messageArea.textContent = '入力コードが空です。';
-                        return;
-                    }
-
-                    try {
-                        const terserResult = await Terser.minify(inputCode);
-                        if (terserResult.error) throw terserResult.error;
-                        const minifiedCode = terserResult.code;
-
-                        const obfuscatedResult = JavaScriptObfuscator.obfuscate(minifiedCode, {
-                            compact: true, controlFlowFlattening: true, deadCodeInjection: true,
-                            stringArray: true, stringArrayEncoding: ['base64']
-                        });
-                        const obfuscatedCode = obfuscatedResult.getObfuscatedCode();
-                        const obfuscatedCodeBytes = new TextEncoder().encode(obfuscatedCode);
-                        const encodedCode = base85.encode(obfuscatedCodeBytes);
-                        
-                        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-                        // ★★★ 最終修正点：UserScript専用の出力コードを生成する ★★★
-                        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-                        const finalCode = `// ==UserScript==
-// @name         My Obfuscated UserScript
-// @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  This script was generated and obfuscated.
-// @author       You
-// @match        *://*/*
-// @grant        none
-// ==/UserScript==
-
-(function() {
-    'use strict';
-
-    // Base85 Decoder
-    const b85 = {decode:function(e){for(var t=e.replace(/\\s/g,"").split("").map(function(e){return e.charCodeAt(0)-33}),n=new Uint8Array(4*t.length/5),r=0;r<t.length;r+=5){var o=t[r]*Math.pow(85,4)+t[r+1]*Math.pow(85,3)+t[r+2]*Math.pow(85,2)+t[r+3]*85+t[r+4];n[4*r/5]=(o&4278190080)>>24,n[4*r/5+1]=(o&16711680)>>16,n[4*r/5+2]=(o&65280)>>8,n[4*r/5+3]=255&o}return n.slice(0,n.length-5+t.length%5+1).buffer}};
-    
-    // Payload
-    const payload = '${encodedCode.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}';
-
-    try {
-        // Decode and execute the script safely without using eval()
-        const decodedBytes = b85.decode(payload);
-        const decodedScript = new TextDecoder().decode(decodedBytes);
-        const scriptElement = document.createElement('script');
-        scriptElement.textContent = decodedScript;
-        (document.head || document.documentElement).appendChild(scriptElement);
-        scriptElement.remove();
-    } catch (e) {
-        console.error('Failed to execute the obfuscated script payload:', e);
-    }
-})();`;
-                        
-                        outputCodeElement.value = finalCode;
-
-                    } catch (error) {
-                        const errorMessage = "エラーが発生しました:\n" + (error.message || error);
-                        messageArea.textContent = errorMessage;
-                        console.error(error);
-                    }
-                });
-                
-                copyButton.addEventListener('click', function() {
-                    if (!outputCodeElement.value) return;
-                    navigator.clipboard.writeText(outputCodeElement.value).then(() => {
-                        const originalText = copyButton.textContent;
-                        copyButton.textContent = 'コピーしました！';
-                        setTimeout(() => { copyButton.textContent = originalText; }, 2000);
-                    }).catch(err => { console.error('Copy failed:', err); });
-                });
+            while (carry > 0) {
+              digits.push(carry % BASE);
+              carry = (carry / BASE) | 0;
             }
+          }
+          let string = '';
+          for (let i = 0; i < source.length * 1.25; i++) {
+            string += alphabet[digits[i] || 0];
+          }
+          return string;
+        },
+        decode: (string) => {
+          if (string.length === 0) return new Uint8Array(0);
+          let bytes = [0];
+          for (let i = 0; i < string.length; i++) {
+            let carry = BASE_MAP[string.charCodeAt(i)];
+            if (carry === 255) throw new Error('Non-base' + BASE + ' character');
+            for (let j = 0; j < bytes.length; ++j) {
+              carry += bytes[j] * BASE;
+              bytes[j] = carry & 0xff;
+              carry >>= 8;
+            }
+            while (carry > 0) {
+              bytes.push(carry & 0xff);
+              carry >>= 8;
+            }
+          }
+          for (let i = 0; string[i] === alphabet[0]; ++i) bytes.push(0);
+          return new Uint8Array(bytes.reverse());
+        }
+      };
+    };
+
+    // Base85 文字列（RFC 1924）
+    const base85 = baseX('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~');
+
+    async function obfuscate() {
+      const inputCode = document.getElementById('input').value.trim();
+      if (!inputCode) {
+        alert('JavaScriptコードを入力してください。');
+        return;
+      }
+
+      try {
+        // 1. Terser で圧縮
+        const minified = await Terser.minify(inputCode, { compress: {}, mangle: {} });
+        let code = minified.code;
+
+        // 2. JavaScript Obfuscator で難読化
+        const obfuscationResult = JavaScriptObfuscator.obfuscate(code, {
+          compact: true,
+          controlFlowFlattening: true,
+          deadCodeInjection: true,
+          debugProtection: false,
+          disableConsoleOutput: true,
+          identifierNamesGenerator: 'hexadecimal',
+          log: false,
+          renameGlobals: false,
+          selfDefending: true,
+          stringArray: true,
+          stringArrayEncoding: 'base64',
+          stringArrayThreshold: 0.75,
+          unicodeEscapeSequence: false
         });
-    </script>
+        code = obfuscationResult.getObfuscatedCode();
 
+        // 3. Base85 でエンコード
+        const bytes = new TextEncoder().encode(code);
+        const encoded = base85.encode(bytes);
+
+        document.getElementById('output').value = encoded;
+      } catch (e) {
+        console.error(e);
+        alert('エラー: ' + e.message);
+      }
+    }
+
+    function copyOutput() {
+      const output = document.getElementById('output');
+      if (!output.value) {
+        alert('コピーする内容がありません。');
+        return;
+      }
+      output.select();
+      document.execCommand('copy');
+      alert('クリップボードにコピーしました！');
+    }
+  </script>
 </body>
 </html>
