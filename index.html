@@ -65,6 +65,23 @@
             margin-top: 10px;
             font-weight: bold;
         }
+        /* ★★★ 1. コピーボタン用のスタイルを追加 ★★★ */
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        #copyButton {
+            width: auto; /* 幅を自動に */
+            padding: 5px 10px;
+            font-size: 12px;
+            background-color: #28a745; /* 緑色に変更 */
+            flex-shrink: 0; /* 縮まないように */
+        }
+        #copyButton:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 <body>
@@ -78,7 +95,12 @@
 
         <button id="obfuscateButton" disabled>ライブラリを読み込み中...</button>
 
-        <h3>出力結果</h3>
+        <!-- ★★★ 2. 見出しとコピーボタンをまとめるdivを追加 ★★★ -->
+        <div class="output-header">
+            <h3>出力結果</h3>
+            <button id="copyButton">全文をコピー</button>
+        </div>
+        
         <textarea id="outputCode" rows="12" readonly placeholder="ここに難読化されたコードが出力されます"></textarea>
         <div id="messageArea" class="message-area"></div>
     </div>
@@ -112,7 +134,6 @@
 
             Promise.all(scriptsToLoad.map(loadScript))
                 .then(() => {
-                    console.log("TerserとJavaScript-Obfuscatorが正常に読み込まれました。");
                     initializeApp();
                 })
                 .catch(error => {
@@ -124,11 +145,14 @@
             function initializeApp() {
                 const inputCodeElement = document.getElementById('inputCode');
                 const outputCodeElement = document.getElementById('outputCode');
+                const copyButton = document.getElementById('copyButton'); // ★★★ 3. コピーボタンの要素を取得 ★★★
 
                 obfuscateButton.disabled = false;
                 obfuscateButton.textContent = '難読化を実行';
 
                 obfuscateButton.addEventListener('click', async function () {
+                    // (難読化処理は変更なし)
+                    // ...
                     const inputCode = inputCodeElement.value;
                     outputCodeElement.value = '';
                     messageArea.textContent = '';
@@ -151,11 +175,6 @@
                         const encodedCode = base85.encode(obfuscatedCodeBytes);
                         const escapedEncodedCode = encodedCode.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
                         
-                        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-                        // ★★★ 最終修正点：出力コードの構造を全面的に見直し ★★★
-                        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-                        
-                        // 埋め込むbase85ライブラリのコード本体を変数に格納
                         const base85LibraryCode = '!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):e.base85=t()}(this,function(){"use strict";return{encode:function(e){for(var t,n,r,o,c=new Uint8Array(e),f="",i=0;i<c.length;i+=4)t=c[i],n=c[i+1],r=c[i+2],o=c[i+3],f+=String.fromCharCode.apply(String,[(t<<24|n<<16|r<<8|o)>>>0].reduce(function(e,t){return t?e.concat(function e(t,n){var r=Math.pow(85,n);if(n>0){var o=Math.floor(t/r);return[o].concat(e(t-o*r,n-1))}}(t,4)):[0,0,0,0,0]},[]).map(function(e){return e+33}));return f.slice(0,f.length-4+c.length%4)},decode:function(e){for(var t=e.replace(/\\s/g,"").split("").map(function(e){return e.charCodeAt(0)-33}),n=new Uint8Array(4*t.length/5),r=0;r<t.length;r+=5){var o=t[r]*Math.pow(85,4)+t[r+1]*Math.pow(85,3)+t[r+2]*Math.pow(85,2)+t[r+3]*85+t[r+4];n[4*r/5]=(o&4278190080)>>24,n[4*r/5+1]=(o&16711680)>>16,n[4*r/5+2]=(o&65280)>>8,n[4*r/5+3]=255&o}return n.slice(0,n.length-5+t.length%5+1).buffer}}});';
 
                         const finalCode = `/*
@@ -172,6 +191,27 @@ eval(new TextDecoder().decode(base85.decode('${escapedEncodedCode}')));
                         messageArea.textContent = errorMessage;
                         console.error(error);
                     }
+                });
+                
+                // ★★★ 4. コピーボタンにクリックイベントを追加 ★★★
+                copyButton.addEventListener('click', function() {
+                    const textToCopy = outputCodeElement.value;
+                    if (!textToCopy) {
+                        return; // コピーする内容がなければ何もしない
+                    }
+
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        // 成功した場合
+                        const originalText = copyButton.textContent;
+                        copyButton.textContent = 'コピーしました！';
+                        setTimeout(() => {
+                            copyButton.textContent = originalText;
+                        }, 2000); // 2秒後に元のテキストに戻す
+                    }).catch(err => {
+                        // 失敗した場合
+                        console.error('クリップボードへのコピーに失敗しました:', err);
+                        alert('コピーに失敗しました。');
+                    });
                 });
             }
         });
