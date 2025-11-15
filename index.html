@@ -65,7 +65,6 @@
             margin-top: 10px;
             font-weight: bold;
         }
-        /* ★★★ 1. コピーボタン用のスタイルを追加 ★★★ */
         .output-header {
             display: flex;
             justify-content: space-between;
@@ -73,11 +72,11 @@
             margin-bottom: 8px;
         }
         #copyButton {
-            width: auto; /* 幅を自動に */
+            width: auto;
             padding: 5px 10px;
             font-size: 12px;
-            background-color: #28a745; /* 緑色に変更 */
-            flex-shrink: 0; /* 縮まないように */
+            background-color: #28a745;
+            flex-shrink: 0;
         }
         #copyButton:hover {
             background-color: #218838;
@@ -91,17 +90,16 @@
         <p>Terser、JavaScript-Obfuscator、Base85エンコードを順に適用してJavaScriptコードを難読化します。</p>
 
         <h3>入力コード</h3>
-        <textarea id="inputCode" rows="12" placeholder="ここにJavaScriptコードを入力してください。例: console.log('Hello, World!');"></textarea>
+        <textarea id="inputCode" rows="12" placeholder="ここにUserScriptのコードを入力してください (ヘッダーは不要です)"></textarea>
 
         <button id="obfuscateButton" disabled>ライブラリを読み込み中...</button>
 
-        <!-- ★★★ 2. 見出しとコピーボタンをまとめるdivを追加 ★★★ -->
         <div class="output-header">
-            <h3>出力結果</h3>
+            <h3>出力結果 (UserScript)</h3>
             <button id="copyButton">全文をコピー</button>
         </div>
         
-        <textarea id="outputCode" rows="12" readonly placeholder="ここに難読化されたコードが出力されます"></textarea>
+        <textarea id="outputCode" rows="12" readonly placeholder="ここに難読化されたUserScriptが出力されます"></textarea>
         <div id="messageArea" class="message-area"></div>
     </div>
 
@@ -132,27 +130,21 @@
                 });
             }
 
-            Promise.all(scriptsToLoad.map(loadScript))
-                .then(() => {
-                    initializeApp();
-                })
-                .catch(error => {
-                    console.error(error);
-                    messageArea.textContent = error.message;
-                    obfuscateButton.textContent = 'ライブラリ読み込み失敗';
-                });
+            Promise.all(scriptsToLoad.map(loadScript)).then(initializeApp).catch(error => {
+                console.error(error);
+                messageArea.textContent = error.message;
+                obfuscateButton.textContent = 'ライブラリ読み込み失敗';
+            });
 
             function initializeApp() {
                 const inputCodeElement = document.getElementById('inputCode');
                 const outputCodeElement = document.getElementById('outputCode');
-                const copyButton = document.getElementById('copyButton'); // ★★★ 3. コピーボタンの要素を取得 ★★★
+                const copyButton = document.getElementById('copyButton');
 
                 obfuscateButton.disabled = false;
                 obfuscateButton.textContent = '難読化を実行';
 
                 obfuscateButton.addEventListener('click', async function () {
-                    // (難読化処理は変更なし)
-                    // ...
                     const inputCode = inputCodeElement.value;
                     outputCodeElement.value = '';
                     messageArea.textContent = '';
@@ -173,16 +165,41 @@
                         const obfuscatedCode = obfuscatedResult.getObfuscatedCode();
                         const obfuscatedCodeBytes = new TextEncoder().encode(obfuscatedCode);
                         const encodedCode = base85.encode(obfuscatedCodeBytes);
-                        const escapedEncodedCode = encodedCode.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
                         
-                        const base85LibraryCode = '!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):e.base85=t()}(this,function(){"use strict";return{encode:function(e){for(var t,n,r,o,c=new Uint8Array(e),f="",i=0;i<c.length;i+=4)t=c[i],n=c[i+1],r=c[i+2],o=c[i+3],f+=String.fromCharCode.apply(String,[(t<<24|n<<16|r<<8|o)>>>0].reduce(function(e,t){return t?e.concat(function e(t,n){var r=Math.pow(85,n);if(n>0){var o=Math.floor(t/r);return[o].concat(e(t-o*r,n-1))}}(t,4)):[0,0,0,0,0]},[]).map(function(e){return e+33}));return f.slice(0,f.length-4+c.length%4)},decode:function(e){for(var t=e.replace(/\\s/g,"").split("").map(function(e){return e.charCodeAt(0)-33}),n=new Uint8Array(4*t.length/5),r=0;r<t.length;r+=5){var o=t[r]*Math.pow(85,4)+t[r+1]*Math.pow(85,3)+t[r+2]*Math.pow(85,2)+t[r+3]*85+t[r+4];n[4*r/5]=(o&4278190080)>>24,n[4*r/5+1]=(o&16711680)>>16,n[4*r/5+2]=(o&65280)>>8,n[4*r/5+3]=255&o}return n.slice(0,n.length-5+t.length%5+1).buffer}}});';
+                        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+                        // ★★★ 最終修正点：UserScript専用の出力コードを生成する ★★★
+                        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+                        const finalCode = `// ==UserScript==
+// @name         My Obfuscated UserScript
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  This script was generated and obfuscated.
+// @author       You
+// @match        *://*/*
+// @grant        none
+// ==/UserScript==
 
-                        const finalCode = `/*
- * このコードは自己完結しており、外部ライブラリは不要です。
- */
-${base85LibraryCode}
-eval(new TextDecoder().decode(base85.decode('${escapedEncodedCode}')));
-`;
+(function() {
+    'use strict';
+
+    // Base85 Decoder
+    const b85 = {decode:function(e){for(var t=e.replace(/\\s/g,"").split("").map(function(e){return e.charCodeAt(0)-33}),n=new Uint8Array(4*t.length/5),r=0;r<t.length;r+=5){var o=t[r]*Math.pow(85,4)+t[r+1]*Math.pow(85,3)+t[r+2]*Math.pow(85,2)+t[r+3]*85+t[r+4];n[4*r/5]=(o&4278190080)>>24,n[4*r/5+1]=(o&16711680)>>16,n[4*r/5+2]=(o&65280)>>8,n[4*r/5+3]=255&o}return n.slice(0,n.length-5+t.length%5+1).buffer}};
+    
+    // Payload
+    const payload = '${encodedCode.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}';
+
+    try {
+        // Decode and execute the script safely without using eval()
+        const decodedBytes = b85.decode(payload);
+        const decodedScript = new TextDecoder().decode(decodedBytes);
+        const scriptElement = document.createElement('script');
+        scriptElement.textContent = decodedScript;
+        (document.head || document.documentElement).appendChild(scriptElement);
+        scriptElement.remove();
+    } catch (e) {
+        console.error('Failed to execute the obfuscated script payload:', e);
+    }
+})();`;
                         
                         outputCodeElement.value = finalCode;
 
@@ -193,25 +210,13 @@ eval(new TextDecoder().decode(base85.decode('${escapedEncodedCode}')));
                     }
                 });
                 
-                // ★★★ 4. コピーボタンにクリックイベントを追加 ★★★
                 copyButton.addEventListener('click', function() {
-                    const textToCopy = outputCodeElement.value;
-                    if (!textToCopy) {
-                        return; // コピーする内容がなければ何もしない
-                    }
-
-                    navigator.clipboard.writeText(textToCopy).then(() => {
-                        // 成功した場合
+                    if (!outputCodeElement.value) return;
+                    navigator.clipboard.writeText(outputCodeElement.value).then(() => {
                         const originalText = copyButton.textContent;
                         copyButton.textContent = 'コピーしました！';
-                        setTimeout(() => {
-                            copyButton.textContent = originalText;
-                        }, 2000); // 2秒後に元のテキストに戻す
-                    }).catch(err => {
-                        // 失敗した場合
-                        console.error('クリップボードへのコピーに失敗しました:', err);
-                        alert('コピーに失敗しました。');
-                    });
+                        setTimeout(() => { copyButton.textContent = originalText; }, 2000);
+                    }).catch(err => { console.error('Copy failed:', err); });
                 });
             }
         });
