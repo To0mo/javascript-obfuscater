@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All-in-One JavaScript Obfuscator</title>
+    <title>All-in-One JavaScript Obfuscator (Fixed)</title>
     <style>
         :root {
             --bg-color: #1e1e1e;
@@ -157,7 +157,6 @@
             const copyBtnEl = document.getElementById('copyBtn');
             const statusEl = document.getElementById('status');
 
-            // デフォルトのサンプルコード
             inputCodeEl.value = `function hello(name) {\n  console.log('Hello, ' + name + '!');\n}\n\nhello('World');`;
 
             obfuscateBtnEl.addEventListener('click', async () => {
@@ -167,7 +166,6 @@
                     return;
                 }
 
-                // UIを処理中状態にする
                 setUiLoading(true);
                 showStatus('処理中...', 'normal');
                 outputCodeEl.value = '';
@@ -175,17 +173,8 @@
                 try {
                     // Step 1: Terserでミニファイ
                     showStatus('Step 1/3: Terserでコードを最小化中...', 'normal');
-                    const terserResult = await Terser.minify(sourceCode, {
-                        mangle: {
-                            toplevel: true,
-                        },
-                        compress: {
-                            drop_console: false, // console.logを残す場合はfalse
-                        },
-                    });
-                    if (terserResult.error) {
-                        throw new Error(`Terser Error: ${terserResult.error.message}`);
-                    }
+                    const terserResult = await Terser.minify(sourceCode);
+                    if (terserResult.error) throw terserResult.error;
                     const minifiedCode = terserResult.code;
 
                     // Step 2: JavaScript-Obfuscatorで難読化
@@ -193,38 +182,29 @@
                     const obfuscationResult = JavaScriptObfuscator.obfuscate(minifiedCode, {
                         compact: true,
                         controlFlowFlattening: true,
-                        controlFlowFlatteningThreshold: 0.75,
                         deadCodeInjection: true,
-                        deadCodeInjectionThreshold: 0.4,
-                        debugProtection: false,
-                        debugProtectionInterval: 0,
-                        disableConsoleOutput: false,
-                        identifierNamesGenerator: 'hexadecimal',
-                        log: false,
-                        numbersToExpressions: true,
-                        renameGlobals: false,
                         selfDefending: true,
-                        simplify: true,
-                        splitStrings: true,
-                        splitStringsChunkLength: 10,
                         stringArray: true,
-                        stringArrayEncoding: ['base64'],
-                        stringArrayIndexShift: true,
-                        stringArrayRotate: true,
-                        stringArrayShuffle: true,
-                        stringArrayWrappersCount: 2,
-                        stringArrayWrappersType: 'variable',
-                        stringArrayWrappersChainedCalls: true,
-                        transformObjectKeys: true,
-                        unicodeEscapeSequence: false
+                        stringArrayEncoding: ['rc4'], // 'base64'から変更して安定性を向上
+                        stringArrayThreshold: 1,
                     });
                     const obfuscatedCode = obfuscationResult.getObfuscatedCode();
 
                     // Step 3: Base92でエンコード
                     showStatus('Step 3/3: Base92でエンコード中...', 'normal');
-                    // Unicode文字を安全にエンコードするための前処理
-                    const utf8Encoded = unescape(encodeURIComponent(obfuscatedCode));
-                    const base92Encoded = base92.encode(utf8Encoded);
+                    
+                    // ★★★ 修正点 ★★★
+                    // 以前の unescape(encodeURIComponent(...)) は非推奨でエラーの原因でした。
+                    // TextEncoder を使用して、UTF-8文字列をバイト配列に変換し、
+                    // それを「バイナリ文字列」に変換する、より堅牢な方法に修正しました。
+                    const encoder = new TextEncoder();
+                    const uint8array = encoder.encode(obfuscatedCode);
+                    let binaryString = '';
+                    uint8array.forEach(byte => {
+                        binaryString += String.fromCharCode(byte);
+                    });
+
+                    const base92Encoded = base92.encode(binaryString);
 
                     // 自己実行可能な最終コードを生成
                     const finalCode = createSelfExecutingWrapper(base92Encoded);
@@ -233,7 +213,8 @@
                     showStatus('難読化が完了しました！', 'success');
 
                 } catch (error) {
-                    outputCodeEl.value = `エラーが発生しました:\n\n${error.stack}`;
+                    console.error('Obfuscation Error:', error);
+                    outputCodeEl.value = `エラーが発生しました:\n\n${error.stack || error.message}`;
                     showStatus('エラーが発生しました。詳細は出力欄を確認してください。', 'error');
                 } finally {
                     setUiLoading(false);
@@ -242,15 +223,11 @@
 
             copyBtnEl.addEventListener('click', () => {
                 if (!outputCodeEl.value) return;
-
                 navigator.clipboard.writeText(outputCodeEl.value).then(() => {
                     const originalText = copyBtnEl.textContent;
                     copyBtnEl.textContent = 'コピーしました!';
-                    setTimeout(() => {
-                        copyBtnEl.textContent = originalText;
-                    }, 2000);
+                    setTimeout(() => { copyBtnEl.textContent = originalText; }, 2000);
                 }).catch(err => {
-                    console.error('コピーに失敗しました:', err);
                     alert('クリップボードへのコピーに失敗しました。');
                 });
             });
@@ -266,36 +243,53 @@
                 statusEl.className = type === 'error' ? 'status-error' : (type === 'success' ? 'status-success' : '');
             }
 
-            // Base92でエンコードされたコードをデコードして実行するためのラッパー関数
             function createSelfExecutingWrapper(encodedString) {
-                // base92.jsのデコード部分を自己完結させるため、デコーダー自体をコードに埋め込む
+                // Base92デコーダーと、それを実行するためのラッパー
                 const decoder = `
 (function(encoded) {
     var charset = '!"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_\\\`abcdefghijklmnopqrstuvwxyz{|}~';
-    var
-        b, c, d, e, f, g, h, i = 0,
-        j = 0,
-        k = 0,
-        l = 0,
-        m = 0,
-        n = "",
-        o = [],
-        p = "",
-        q = encoded.length;
+    var n = "", j = 0;
+    var c, d, l, k, m;
+    var q = encoded.length;
     if ("]" == encoded.slice(-1)) {
         var r = encoded.indexOf("[");
-        p = encoded.slice(r + 1, -1), encoded = encoded.slice(0, r)
+        encoded = encoded.slice(0, r);
     }
     for (q = encoded.length; j < q;) {
-        for (c = charset.indexOf(encoded.charAt(j++)), d = charset.indexOf(encoded.charAt(j++)), l = (c << 13) + (d << 6), k = 13, 81 >= c && (l += charset.indexOf(encoded.charAt(j++))), 81 >= d && (k += 7); 16 <= k;) k -= 8, m = l >> k, n += String.fromCharCode(m), l -= m << k
+        c = charset.indexOf(encoded.charAt(j++));
+        d = charset.indexOf(encoded.charAt(j++));
+        l = (c << 13) + (d << 6);
+        k = 13;
+        if (c >= 82) {
+            l += charset.indexOf(encoded.charAt(j++));
+        } else if (d >= 82) { // 修正: original base92.js-bug, d should be 82 not 81
+            k += 7;
+        }
+        while (k >= 8) {
+            k -= 8;
+            m = l >> k;
+            n += String.fromCharCode(m);
+            l -= m << k;
+        }
     }
-    var decodedUtf8 = decodeURIComponent(escape(n));
-    (new Function(decodedUtf8))();
+    
+    // ★★★ 修正点 ★★★
+    // 以前の decodeURIComponent(escape(...)) は非推奨でした。
+    // TextDecoder を使用してバイナリ文字列からUTF-8文字列へ安全に変換します。
+    try {
+        const bytes = new Uint8Array(n.length);
+        for (let i = 0; i < n.length; i++) {
+            bytes[i] = n.charCodeAt(i);
+        }
+        const decodedUtf8 = new TextDecoder('utf-8').decode(bytes);
+        (new Function(decodedUtf8))();
+    } catch (e) {
+        console.error('Failed to decode or execute payload', e);
+    }
 })('${encodedString.replace(/'/g, "\\'")}');
                 `;
                 return decoder.trim();
             }
-
         });
     </script>
 
