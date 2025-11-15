@@ -2,82 +2,35 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Base92 Encoder/Decoder</title>
+<title>Base92 JS Encoder/Decoder</title>
 <style>
-  body {
-    font-family: 'Segoe UI', sans-serif;
-    background: #f4f6f8;
-    color: #333;
-    margin: 0;
-    padding: 0;
-  }
-  .container {
-    max-width: 700px;
-    margin: 40px auto;
-    background: #fff;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
-  }
-  h1 {
-    text-align: center;
-    margin-bottom: 25px;
-  }
-  label {
-    display: block;
-    margin-top: 15px;
-    font-weight: bold;
-  }
-  textarea {
-    width: 100%;
-    min-height: 100px;
-    padding: 10px;
-    font-family: monospace;
-    font-size: 14px;
-    margin-top: 5px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    resize: vertical;
-  }
-  button {
-    margin: 10px 5px 0 0;
-    padding: 8px 15px;
-    font-size: 14px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    color: #fff;
-  }
-  button.encode { background: #4caf50; }
-  button.decode { background: #2196f3; }
-  button.copy { background: #ff9800; }
-  pre {
-    background: #272822;
-    color: #f8f8f2;
-    padding: 15px;
-    border-radius: 5px;
-    min-height: 80px;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    font-family: monospace;
-  }
-  .buttons {
-    margin-top: 10px;
-  }
+body { font-family: 'Segoe UI', sans-serif; background: #f4f6f8; color: #333; margin: 0; padding: 0; }
+.container { max-width: 700px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
+h1 { text-align: center; margin-bottom: 25px; }
+label { display: block; margin-top: 15px; font-weight: bold; }
+textarea { width: 100%; min-height: 100px; padding: 10px; font-family: monospace; font-size: 14px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; resize: vertical; }
+button { margin: 10px 5px 0 0; padding: 8px 15px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer; color: #fff; }
+button.encode { background: #4caf50; }
+button.decode { background: #2196f3; }
+button.copy { background: #ff9800; }
+button.run { background: #9c27b0; }
+pre { background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; min-height: 80px; white-space: pre-wrap; word-wrap: break-word; font-family: monospace; }
+.buttons { margin-top: 10px; }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>Base92 Encoder / Decoder</h1>
+  <h1>Base92 JS Encoder / Decoder</h1>
 
-  <label for="inputText">入力テキスト:</label>
-  <textarea id="inputText" placeholder="ここにテキストを入力"></textarea>
+  <label for="inputText">入力 JS コード:</label>
+  <textarea id="inputText" placeholder="console.log('hello world');"></textarea>
 
   <div class="buttons">
     <button class="encode" onclick="encodeText()">Encode</button>
     <button class="decode" onclick="decodeText()">Decode</button>
     <button class="copy" onclick="copyText()">Copy All</button>
+    <button class="run" onclick="runCode()">Run</button>
   </div>
 
   <label>結果:</label>
@@ -85,7 +38,7 @@
 </div>
 
 <script>
-// Base92 JS Implementation
+// Base92 Implementation
 const BASE92_CHARS = (() => {
   let s = '';
   for (let i = 33; i <= 126; i++) s += String.fromCharCode(i);
@@ -127,17 +80,26 @@ function base92_decode(str) {
 // UI Handlers
 function encodeText() {
     const input = document.getElementById('inputText').value;
-    document.getElementById('outputText').textContent = base92_encode(input);
+    // evalで実行可能にするためラッパー付き
+    const encoded = base92_encode(input);
+    document.getElementById('outputText').textContent = `eval(Base92Decode("${encoded}"))`;
 }
+
 function decodeText() {
     const input = document.getElementById('inputText').value;
     document.getElementById('outputText').textContent = base92_decode(input);
 }
+
 function copyText() {
     const output = document.getElementById('outputText').textContent;
-    navigator.clipboard.writeText(output).then(() => {
-        alert('結果をコピーしました！');
-    });
+    navigator.clipboard.writeText(output).then(() => alert('結果をコピーしました！'));
+}
+
+function runCode() {
+    const code = document.getElementById('outputText').textContent;
+    // Base92Decode関数を作成してeval実行
+    function Base92Decode(str){return base92_decode(str);}
+    eval(code);
 }
 </script>
 
