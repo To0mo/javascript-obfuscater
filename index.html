@@ -114,7 +114,7 @@
         const minified = await Terser.minify(inputCode, { compress: {}, mangle: {} });
         let code = minified.code;
 
-        // 2. JavaScript Obfuscator で難読化
+        // 2. JavaScript Obfuscator で難読化（修正：stringArrayEncoding を配列に）
         const obfuscationResult = JavaScriptObfuscator.obfuscate(code, {
           compact: true,
           controlFlowFlattening: true,
@@ -126,7 +126,7 @@
           renameGlobals: false,
           selfDefending: true,
           stringArray: true,
-          stringArrayEncoding: 'base64',
+          stringArrayEncoding: ['base64'], // ← 配列形式に修正
           stringArrayThreshold: 0.75,
           unicodeEscapeSequence: false
         });
