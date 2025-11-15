@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JS 難読化ツール</title>
+  <title>JS 難読化ツール（高速版）</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -31,12 +31,17 @@
       top: 10px;
       right: 10px;
     }
+    .loading {
+      display: none;
+      color: #555;
+    }
   </style>
 </head>
 <body>
-  <h1>JavaScript 難読化ツール</h1>
+  <h1>JavaScript 難読化ツール（高速版）</h1>
   <textarea id="input" placeholder="ここにJavaScriptコードを入力"></textarea>
   <button onclick="obfuscate()">難読化実行</button>
+  <div class="loading" id="loading">処理中...</div>
 
   <div class="output-container">
     <textarea id="output" readonly placeholder="難読化結果がここに表示されます"></textarea>
@@ -109,16 +114,21 @@
         return;
       }
 
+      // 処理中表示
+      const loading = document.getElementById('loading');
+      loading.style.display = 'block';
+      document.querySelector('button[onclick="obfuscate"]').disabled = true;
+
       try {
         // 1. Terser で圧縮
         const minified = await Terser.minify(inputCode, { compress: {}, mangle: {} });
         let code = minified.code;
 
-        // 2. JavaScript Obfuscator で難読化（修正：stringArrayEncoding を配列に）
+        // 2. JavaScript Obfuscator で難読化（軽量化版オプション）
         const obfuscationResult = JavaScriptObfuscator.obfuscate(code, {
           compact: true,
-          controlFlowFlattening: true,
-          deadCodeInjection: true,
+          // controlFlowFlattening: true,    // 負荷が高いため無効
+          // deadCodeInjection: true,        // 負荷が高いため無効
           debugProtection: false,
           disableConsoleOutput: true,
           identifierNamesGenerator: 'hexadecimal',
@@ -126,7 +136,7 @@
           renameGlobals: false,
           selfDefending: true,
           stringArray: true,
-          stringArrayEncoding: ['base64'], // ← 配列形式に修正
+          stringArrayEncoding: ['base64'], // 軽い encoding
           stringArrayThreshold: 0.75,
           unicodeEscapeSequence: false
         });
@@ -140,6 +150,10 @@
       } catch (e) {
         console.error(e);
         alert('エラー: ' + e.message);
+      } finally {
+        // 処理完了後にローディング非表示
+        loading.style.display = 'none';
+        document.querySelector('button[onclick="obfuscate"]').disabled = false;
       }
     }
 
