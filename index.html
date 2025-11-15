@@ -1,107 +1,303 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>Base92 JS Encoder/Decoder</title>
-<style>
-body { font-family: 'Segoe UI', sans-serif; background: #f4f6f8; color: #333; margin: 0; padding: 0; }
-.container { max-width: 700px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
-h1 { text-align: center; margin-bottom: 25px; }
-label { display: block; margin-top: 15px; font-weight: bold; }
-textarea { width: 100%; min-height: 100px; padding: 10px; font-family: monospace; font-size: 14px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; resize: vertical; }
-button { margin: 10px 5px 0 0; padding: 8px 15px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer; color: #fff; }
-button.encode { background: #4caf50; }
-button.decode { background: #2196f3; }
-button.copy { background: #ff9800; }
-button.run { background: #9c27b0; }
-pre { background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; min-height: 80px; white-space: pre-wrap; word-wrap: break-word; font-family: monospace; }
-.buttons { margin-top: 10px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All-in-One JavaScript Obfuscator</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --text-color: #d4d4d4;
+            --primary-color: #007acc;
+            --secondary-color: #333;
+            --border-color: #444;
+            --error-color: #f44747;
+            --success-color: #4caf50;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 1.5rem;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+        .description {
+            background-color: var(--secondary-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+        .io-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .io-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 0.8rem;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 5px rgba(0, 122, 204, 0.5);
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover:not(:disabled) {
+            background-color: #005a9e;
+        }
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        #copyBtn {
+            background-color: #6c757d;
+        }
+        #copyBtn:hover:not(:disabled) {
+            background-color: #5a6268;
+        }
+        #status {
+            text-align: center;
+            min-height: 24px;
+            font-weight: bold;
+        }
+        .status-error {
+            color: var(--error-color);
+        }
+        .status-success {
+            color: var(--success-color);
+        }
+    </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>Base92 JS Encoder / Decoder</h1>
+    <div class="container">
+        <h1>All-in-One JavaScript Obfuscator</h1>
+        <p>あなたのJavaScriptコードを、Terser + JavaScript-Obfuscator + Base92 の3段階で強力に難読化します。</p>
 
-  <label for="inputText">入力 JS コード:</label>
-  <textarea id="inputText" placeholder="console.log('hello world');"></textarea>
+        <div class="description">
+            <strong>処理フロー:</strong>
+            <ol>
+                <li><strong>Terser:</strong> コードを最小化（minify）します。</li>
+                <li><strong>JavaScript-Obfuscator:</strong> 最小化されたコードを難読化します。</li>
+                <li><strong>Base92:</strong> 難読化されたコードをさらにエンコードし、自己実行可能な形式で出力します。</li>
+            </ol>
+        </div>
 
-  <div class="buttons">
-    <button class="encode" onclick="encodeText()">Encode</button>
-    <button class="decode" onclick="decodeText()">Decode</button>
-    <button class="copy" onclick="copyText()">Copy All</button>
-    <button class="run" onclick="runCode()">Run</button>
-  </div>
+        <div class="io-grid">
+            <div>
+                <h2>入力 (JavaScriptコード)</h2>
+                <textarea id="inputCode" placeholder="ここに難読化したいJavaScriptコードを貼り付けてください..."></textarea>
+            </div>
+            <div>
+                <h2>出力 (難読化されたコード)</h2>
+                <textarea id="outputCode" readonly placeholder="ここに難読化されたコードが出力されます..."></textarea>
+            </div>
+        </div>
 
-  <label>結果:</label>
-  <pre id="outputText"></pre>
-</div>
+        <div class="controls">
+            <button id="obfuscateBtn">難読化を実行</button>
+            <button id="copyBtn" disabled>結果をコピー</button>
+        </div>
 
-<script>
-// Base92 Implementation
-const BASE92_CHARS = (() => {
-  let s = '';
-  for (let i = 33; i <= 126; i++) s += String.fromCharCode(i);
-  return s;
-})();
-function base92_encode(str) {
-    let n = 0, b = 0, output = '';
-    for (let i = 0; i < str.length; i++) {
-        n = (n << 8) | str.charCodeAt(i);
-        b += 8;
-        while (b > 13) {
-            let c = n >> (b-13);
-            b -= 13;
-            n &= (1 << b) - 1;
-            output += BASE92_CHARS[Math.floor(c / 91)] + BASE92_CHARS[c % 91];
-        }
+        <div id="status"></div>
+    </div>
+
+    <!-- ライブラリの読み込み (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/base92.js@1.0.1/base92.min.js"></script>
+
+    <!-- アプリケーションのロジック -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputCodeEl = document.getElementById('inputCode');
+            const outputCodeEl = document.getElementById('outputCode');
+            const obfuscateBtnEl = document.getElementById('obfuscateBtn');
+            const copyBtnEl = document.getElementById('copyBtn');
+            const statusEl = document.getElementById('status');
+
+            // デフォルトのサンプルコード
+            inputCodeEl.value = `function hello(name) {\n  console.log('Hello, ' + name + '!');\n}\n\nhello('World');`;
+
+            obfuscateBtnEl.addEventListener('click', async () => {
+                const sourceCode = inputCodeEl.value.trim();
+                if (!sourceCode) {
+                    showStatus('入力が空です。', 'error');
+                    return;
+                }
+
+                // UIを処理中状態にする
+                setUiLoading(true);
+                showStatus('処理中...', 'normal');
+                outputCodeEl.value = '';
+
+                try {
+                    // Step 1: Terserでミニファイ
+                    showStatus('Step 1/3: Terserでコードを最小化中...', 'normal');
+                    const terserResult = await Terser.minify(sourceCode, {
+                        mangle: {
+                            toplevel: true,
+                        },
+                        compress: {
+                            drop_console: false, // console.logを残す場合はfalse
+                        },
+                    });
+                    if (terserResult.error) {
+                        throw new Error(`Terser Error: ${terserResult.error.message}`);
+                    }
+                    const minifiedCode = terserResult.code;
+
+                    // Step 2: JavaScript-Obfuscatorで難読化
+                    showStatus('Step 2/3: JavaScript-Obfuscatorで難読化中...', 'normal');
+                    const obfuscationResult = JavaScriptObfuscator.obfuscate(minifiedCode, {
+                        compact: true,
+                        controlFlowFlattening: true,
+                        controlFlowFlatteningThreshold: 0.75,
+                        deadCodeInjection: true,
+                        deadCodeInjectionThreshold: 0.4,
+                        debugProtection: false,
+                        debugProtectionInterval: 0,
+                        disableConsoleOutput: false,
+                        identifierNamesGenerator: 'hexadecimal',
+                        log: false,
+                        numbersToExpressions: true,
+                        renameGlobals: false,
+                        selfDefending: true,
+                        simplify: true,
+                        splitStrings: true,
+                        splitStringsChunkLength: 10,
+                        stringArray: true,
+                        stringArrayEncoding: ['base64'],
+                        stringArrayIndexShift: true,
+                        stringArrayRotate: true,
+                        stringArrayShuffle: true,
+                        stringArrayWrappersCount: 2,
+                        stringArrayWrappersType: 'variable',
+                        stringArrayWrappersChainedCalls: true,
+                        transformObjectKeys: true,
+                        unicodeEscapeSequence: false
+                    });
+                    const obfuscatedCode = obfuscationResult.getObfuscatedCode();
+
+                    // Step 3: Base92でエンコード
+                    showStatus('Step 3/3: Base92でエンコード中...', 'normal');
+                    // Unicode文字を安全にエンコードするための前処理
+                    const utf8Encoded = unescape(encodeURIComponent(obfuscatedCode));
+                    const base92Encoded = base92.encode(utf8Encoded);
+
+                    // 自己実行可能な最終コードを生成
+                    const finalCode = createSelfExecutingWrapper(base92Encoded);
+                    outputCodeEl.value = finalCode;
+
+                    showStatus('難読化が完了しました！', 'success');
+
+                } catch (error) {
+                    outputCodeEl.value = `エラーが発生しました:\n\n${error.stack}`;
+                    showStatus('エラーが発生しました。詳細は出力欄を確認してください。', 'error');
+                } finally {
+                    setUiLoading(false);
+                }
+            });
+
+            copyBtnEl.addEventListener('click', () => {
+                if (!outputCodeEl.value) return;
+
+                navigator.clipboard.writeText(outputCodeEl.value).then(() => {
+                    const originalText = copyBtnEl.textContent;
+                    copyBtnEl.textContent = 'コピーしました!';
+                    setTimeout(() => {
+                        copyBtnEl.textContent = originalText;
+                    }, 2000);
+                }).catch(err => {
+                    console.error('コピーに失敗しました:', err);
+                    alert('クリップボードへのコピーに失敗しました。');
+                });
+            });
+
+            function setUiLoading(isLoading) {
+                obfuscateBtnEl.disabled = isLoading;
+                obfuscateBtnEl.textContent = isLoading ? '処理中...' : '難読化を実行';
+                copyBtnEl.disabled = isLoading || outputCodeEl.value.trim() === '';
+            }
+
+            function showStatus(message, type) {
+                statusEl.textContent = message;
+                statusEl.className = type === 'error' ? 'status-error' : (type === 'success' ? 'status-success' : '');
+            }
+
+            // Base92でエンコードされたコードをデコードして実行するためのラッパー関数
+            function createSelfExecutingWrapper(encodedString) {
+                // base92.jsのデコード部分を自己完結させるため、デコーダー自体をコードに埋め込む
+                const decoder = `
+(function(encoded) {
+    var charset = '!"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_\\\`abcdefghijklmnopqrstuvwxyz{|}~';
+    var
+        b, c, d, e, f, g, h, i = 0,
+        j = 0,
+        k = 0,
+        l = 0,
+        m = 0,
+        n = "",
+        o = [],
+        p = "",
+        q = encoded.length;
+    if ("]" == encoded.slice(-1)) {
+        var r = encoded.indexOf("[");
+        p = encoded.slice(r + 1, -1), encoded = encoded.slice(0, r)
     }
-    if (b > 0) {
-        let c = n << (13-b);
-        output += BASE92_CHARS[Math.floor(c / 91)] + BASE92_CHARS[c % 91];
+    for (q = encoded.length; j < q;) {
+        for (c = charset.indexOf(encoded.charAt(j++)), d = charset.indexOf(encoded.charAt(j++)), l = (c << 13) + (d << 6), k = 13, 81 >= c && (l += charset.indexOf(encoded.charAt(j++))), 81 >= d && (k += 7); 16 <= k;) k -= 8, m = l >> k, n += String.fromCharCode(m), l -= m << k
     }
-    return output;
-}
-function base92_decode(str) {
-    let n = 0, b = 0, output = '';
-    for (let i = 0; i < str.length; i+=2) {
-        let c = BASE92_CHARS.indexOf(str[i]) * 91 + BASE92_CHARS.indexOf(str[i+1]);
-        n = (n << 13) | c;
-        b += 13;
-        while (b >= 8) {
-            b -= 8;
-            output += String.fromCharCode(n >> b);
-            n &= (1 << b) - 1;
-        }
-    }
-    return output;
-}
+    var decodedUtf8 = decodeURIComponent(escape(n));
+    (new Function(decodedUtf8))();
+})('${encodedString.replace(/'/g, "\\'")}');
+                `;
+                return decoder.trim();
+            }
 
-// UI Handlers
-function encodeText() {
-    const input = document.getElementById('inputText').value;
-    // evalで実行可能にするためラッパー付き
-    const encoded = base92_encode(input);
-    document.getElementById('outputText').textContent = `eval(Base92Decode("${encoded}"))`;
-}
-
-function decodeText() {
-    const input = document.getElementById('inputText').value;
-    document.getElementById('outputText').textContent = base92_decode(input);
-}
-
-function copyText() {
-    const output = document.getElementById('outputText').textContent;
-    navigator.clipboard.writeText(output).then(() => alert('結果をコピーしました！'));
-}
-
-function runCode() {
-    const code = document.getElementById('outputText').textContent;
-    // Base92Decode関数を作成してeval実行
-    function Base92Decode(str){return base92_decode(str);}
-    eval(code);
-}
-</script>
+        });
+    </script>
 
 </body>
 </html>
