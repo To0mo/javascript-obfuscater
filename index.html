@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All-in-One JavaScript Obfuscator (Fixed)</title>
+    <title>All-in-One JavaScript Obfuscator (v3 - Stable)</title>
     <style>
         :root {
             --bg-color: #1e1e1e;
@@ -37,6 +37,9 @@
             padding: 1rem;
             margin: 1.5rem 0;
             border-radius: 4px;
+        }
+        .description ol {
+            padding-left: 20px;
         }
         .io-grid {
             display: grid;
@@ -113,14 +116,15 @@
 
     <div class="container">
         <h1>All-in-One JavaScript Obfuscator</h1>
-        <p>あなたのJavaScriptコードを、Terser + JavaScript-Obfuscator + Base92 の3段階で強力に難読化します。</p>
+        <p>あなたのJavaScriptコードを、4段階の処理で強力かつ安定して難読化します。</p>
 
         <div class="description">
             <strong>処理フロー:</strong>
             <ol>
                 <li><strong>Terser:</strong> コードを最小化（minify）します。</li>
                 <li><strong>JavaScript-Obfuscator:</strong> 最小化されたコードを難読化します。</li>
-                <li><strong>Base92:</strong> 難読化されたコードをさらにエンコードし、自己実行可能な形式で出力します。</li>
+                <li><strong>Base64 Encode:</strong> 難読化コードを安全なASCII文字列に変換します。</li>
+                <li><strong>Base92 Encode:</strong> Base64化された文字列をさらにエンコードし、自己実行形式で出力します。</li>
             </ol>
         </div>
 
@@ -171,42 +175,36 @@
                 outputCodeEl.value = '';
 
                 try {
-                    // Step 1: Terserでミニファイ
-                    showStatus('Step 1/3: Terserでコードを最小化中...', 'normal');
+                    // Step 1: Terser
+                    showStatus('Step 1/4: Terserでコードを最小化中...', 'normal');
                     const terserResult = await Terser.minify(sourceCode);
                     if (terserResult.error) throw terserResult.error;
                     const minifiedCode = terserResult.code;
 
-                    // Step 2: JavaScript-Obfuscatorで難読化
-                    showStatus('Step 2/3: JavaScript-Obfuscatorで難読化中...', 'normal');
-                    const obfuscationResult = JavaScriptObfuscator.obfuscate(minifiedCode, {
+                    // Step 2: JavaScript-Obfuscator
+                    showStatus('Step 2/4: JavaScript-Obfuscatorで難読化中...', 'normal');
+                    const obfuscatedCode = JavaScriptObfuscator.obfuscate(minifiedCode, {
                         compact: true,
-                        controlFlowFlattening: true,
-                        deadCodeInjection: true,
                         selfDefending: true,
                         stringArray: true,
-                        stringArrayEncoding: ['rc4'], // 'base64'から変更して安定性を向上
+                        stringArrayEncoding: ['rc4'],
                         stringArrayThreshold: 1,
-                    });
-                    const obfuscatedCode = obfuscationResult.getObfuscatedCode();
+                    }).getObfuscatedCode();
 
-                    // Step 3: Base92でエンコード
-                    showStatus('Step 3/3: Base92でエンコード中...', 'normal');
-                    
-                    // ★★★ 修正点 ★★★
-                    // 以前の unescape(encodeURIComponent(...)) は非推奨でエラーの原因でした。
-                    // TextEncoder を使用して、UTF-8文字列をバイト配列に変換し、
-                    // それを「バイナリ文字列」に変換する、より堅牢な方法に修正しました。
-                    const encoder = new TextEncoder();
-                    const uint8array = encoder.encode(obfuscatedCode);
-                    let binaryString = '';
-                    uint8array.forEach(byte => {
-                        binaryString += String.fromCharCode(byte);
-                    });
+                    // ★★★ 根本原因と解決策 ★★★
+                    // obfuscatedCodeには特殊なUnicode文字が含まれる可能性があり、
+                    // これを直接Base92に渡すとエンコードエラーになる。
+                    // 解決策として、一度Base64にエンコードして安全なASCII文字列に変換してからBase92に渡す。
 
-                    const base92Encoded = base92.encode(binaryString);
+                    // Step 3: Base64 Encode
+                    showStatus('Step 3/4: Base64でエンコード中...', 'normal');
+                    // Unicode文字列を安全にbtoaに渡すための定型処理
+                    const base64Encoded = btoa(unescape(encodeURIComponent(obfuscatedCode)));
 
-                    // 自己実行可能な最終コードを生成
+                    // Step 4: Base92 Encode
+                    showStatus('Step 4/4: Base92でエンコード中...', 'normal');
+                    const base92Encoded = base92.encode(base64Encoded);
+
                     const finalCode = createSelfExecutingWrapper(base92Encoded);
                     outputCodeEl.value = finalCode;
 
@@ -244,16 +242,14 @@
             }
 
             function createSelfExecutingWrapper(encodedString) {
-                // Base92デコーダーと、それを実行するためのラッパー
+                // 自己実行コードには、Base92デコーダーとBase64デコーダー(atob)の両方が含まれる
                 const decoder = `
 (function(encoded) {
     var charset = '!"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_\\\`abcdefghijklmnopqrstuvwxyz{|}~';
-    var n = "", j = 0;
+    var n = "", j = 0, q = encoded.length;
     var c, d, l, k, m;
-    var q = encoded.length;
-    if ("]" == encoded.slice(-1)) {
-        var r = encoded.indexOf("[");
-        encoded = encoded.slice(0, r);
+    if (encoded.slice(-1) == "]") {
+        encoded = encoded.slice(0, encoded.indexOf("["));
     }
     for (q = encoded.length; j < q;) {
         c = charset.indexOf(encoded.charAt(j++));
@@ -262,7 +258,7 @@
         k = 13;
         if (c >= 82) {
             l += charset.indexOf(encoded.charAt(j++));
-        } else if (d >= 82) { // 修正: original base92.js-bug, d should be 82 not 81
+        } else if (d >= 82) {
             k += 7;
         }
         while (k >= 8) {
@@ -272,17 +268,11 @@
             l -= m << k;
         }
     }
-    
-    // ★★★ 修正点 ★★★
-    // 以前の decodeURIComponent(escape(...)) は非推奨でした。
-    // TextDecoder を使用してバイナリ文字列からUTF-8文字列へ安全に変換します。
     try {
-        const bytes = new Uint8Array(n.length);
-        for (let i = 0; i < n.length; i++) {
-            bytes[i] = n.charCodeAt(i);
-        }
-        const decodedUtf8 = new TextDecoder('utf-8').decode(bytes);
-        (new Function(decodedUtf8))();
+        // デコード後の 'n' はBase64文字列。
+        // これを atob でデコードし、安全にUTF-8文字列に戻してから実行する。
+        var originalCode = decodeURIComponent(escape(atob(n)));
+        (new Function(originalCode))();
     } catch (e) {
         console.error('Failed to decode or execute payload', e);
     }
