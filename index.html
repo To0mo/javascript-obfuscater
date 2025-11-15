@@ -1,128 +1,114 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>三重難読化ツール (ASCII Base91版)</title>
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; text-align: center; }
-    textarea { width: 95%; height: 180px; margin: 10px 0; font-size: 14px; }
-    select, button { padding: 8px 16px; font-size: 14px; margin: 5px; }
-    #sizeInfo { margin-top: 10px; font-weight: bold; }
-  </style>
+<meta charset="UTF-8">
+<title>三重難読化ツール（Terser＋Obfuscator＋Base91）</title>
+<style>
+  body { font-family: sans-serif; padding: 2rem; background: #f0f0f0; }
+  textarea { width: 100%; height: 130px; }
+  button { margin-top: 10px; padding: 10px; }
+  .output-area { margin-top: 20px; }
+ pre { white-space: pre-wrap; word-wrap: break-word; background: #fff; padding: 1rem; border: 1px solid #ccc; }
+</style>
 </head>
 <body>
-  <h1>三重難読化ツール (ASCII Base91版)</h1>
-  <textarea id="inputCode" placeholder="ここに JavaScript コードを入力"></textarea><br>
 
-  難読化レベル：
-  <select id="obfuscationLevel">
-    <option value="low">弱</option>
-    <option value="medium" selected>中</option>
-    <option value="high">強</option>
-  </select>
-  <button id="obfuscateBtn">難読化する</button>
-  <button id="copyBtn">コピー</button>
-  <textarea id="outputCode" placeholder="難読化されたコードが表示されます"></textarea>
-  <div id="sizeInfo"></div>
+<h2>三重難読化ツール</h2>
+<p>以下にJavaScriptコードを入力し、難読化してみてください（Terser→Obfuscator→Base91の順に処理されます）</p>
 
-  <!-- ライブラリ CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/javascript-obfuscator.min.js"></script>
+<textarea id="inputCode" placeholder="ここにJavaScriptコードを入力"></textarea>
 
-  <script>
-    // ASCII限定 Base91
-    const Base91 = (function(){
-      const table = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"#$%&\'()*+,-./:;<=>?@[]^_`{|}~'];
-      const dectable = {};
-      table.forEach((c,i)=>dectable[c]=i);
+<label>難読化レベル：</label>
+<select id="obfLevel">
+  <option value="low">弱</option>
+  <option value="medium">中</option>
+  <option value="high">強</option>
+</select>
 
-      function encode(str){
-        let b=0,n=0,out='';
-        for(let i=0;i<str.length;i++){
-          b|=str.charCodeAt(i)<<n;
-          n+=8;
-          while(n>13){
-            let v=b&8191;
-            if(v>88){b>>=13;n-=13}else{v=b&16383;b>>=14;n-=14;}
-            out+=table[v%91]+table[Math.floor(v/91)];
-          }
-        }
-        if(n) out+=table[b%91]+table[Math.floor(b/91)];
-        return out;
+<button id="runBtn">難読化して実行コード生成</button>
+
+<div class="output-area">
+  <h3>難読化結果</h3>
+  <pre id="output"></pre>
+  <h3>容量増加</h3>
+  <pre id="size"></pre>
+</div>
+
+<!-- 必須ライブラリ -->
+<script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator@4.1.0/dist/javascript-obfuscator.min.js"></script>
+
+<script>
+// ASCII Base91
+function base91encode(data) {
+  const table = '!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"\'';
+  const b = [];
+  let ebq = 0, en = 0;
+
+  for (let i = 0; i < data.length; i++) {
+    ebq |= (data.charCodeAt(i) & 255) << en;
+    en += 8;
+    if (en > 13) {
+      let v = ebq & 8191;
+
+      if (v > 88) {
+        ebq >>= 13;
+        en -= 13;
+      } else {
+        v = ebq & 16383;
+        ebq >>= 14;
+        en -= 14;
       }
 
-      function decode(str){
-        let b=0,n=0,out='',v=-1;
-        for(let i=0;i<str.length;i++){
-          let c=dectable[str[i]];
-          if(v<0){v=c}else{v+=c*91;b|=v<<n;n=(v&8191)>88?n+13:n+14;while(n>=8){out+=String.fromCharCode(b&255);b>>=8;n-=8;}v=-1;}
-        }
-        return out;
-      }
+      b.push(table[v % table.length]);
+      b.push(table[Math.floor(v / table.length)]);
+    }
+  }
 
-      return {encode, decode};
-    })();
-  </script>
+  if (en > 0) {
+    b.push(table[ebq % table.length]);
+    if (en > 7 || ebq > 90) {
+      b.push(table[Math.floor(ebq / table.length)]);
+    }
+  }
 
-  <script>
-    document.getElementById("obfuscateBtn").addEventListener("click", async () => {
-      let code = document.getElementById("inputCode").value.trim();
-      if(!code) return alert("コードを入力してください");
+  return b.join('');
+}
 
-      const level = document.getElementById("obfuscationLevel").value;
-      let obfuscatorOptions = {compact:true, stringArray:true, stringArrayEncoding:['base64']};
+// 実行処理
+document.getElementById('runBtn').onclick = async () => {
+  const code = document.getElementById("inputCode").value;
+  if (!code) return alert("何かコードを入力してください");
 
-      // 難読化レベル設定
-      switch(level){
-        case 'low':
-          obfuscatorOptions.controlFlowFlattening=false;
-          obfuscatorOptions.identifierNamesGenerator='hexadecimal';
-          break;
-        case 'medium':
-          obfuscatorOptions.controlFlowFlattening=true;
-          obfuscatorOptions.controlFlowFlatteningThreshold=0.3;
-          obfuscatorOptions.identifierNamesGenerator='hexadecimal';
-          break;
-        case 'high':
-          obfuscatorOptions.controlFlowFlattening=true;
-          obfuscatorOptions.controlFlowFlatteningThreshold=1;
-          obfuscatorOptions.identifierNamesGenerator='mangled';
-          break;
-      }
+  // 1. Terser圧縮（最大）
+  let compressed = await Terser.minify(code, { compress: true, mangle: true });
+  let result = compressed.code || code;
 
-      try {
-        // 1. Terser 圧縮（最大）
-        const terserResult = await Terser.minify(code, { compress:true, mangle:true });
-        if(terserResult.error) throw terserResult.error;
+  // 2. Obfuscate
+  const level = document.getElementById("obfLevel").value;
+  let options = {
+    compact: true,
+    controlFlowFlattening: level === 'high',
+    deadCodeInjection: level === 'high',
+    debugProtection: level === 'high',
+    renameGlobals: level !== 'low'
+  };
+  result = JavaScriptObfuscator.obfuscate(result, options).getObfuscatedCode();
 
-        // 2. Obfuscator
-        const obfuscated = JavaScriptObfuscator.obfuscate(terserResult.code, obfuscatorOptions).getObfuscatedCode();
+  // 3. Base91（ASCII版）
+  const encoded = base91encode(result);
+  const final = `eval(function(d){function f(b){const c='!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~"\'';let e=[],g=0,h=0;for(let i=0;i<b.length;i++){const k=c.indexOf(b[i]);if(k<0)continue;g+=k*(c.length**(h++));if(h>1){e.push(String.fromCharCode(g&255));g>>=8;h=0;}}return e.join('');}eval(f(d))})('${encoded}');`;
 
-        // 3. ASCII Base91
-        const encoded = Base91.encode(obfuscated);
+  // 結果表示
+  document.getElementById("output").textContent = final;
 
-        // 実行形式
-        const finalCode = `eval(Base91.decode('${encoded}'));`;
-        document.getElementById("outputCode").value = finalCode;
+  // 容量表示
+  const originalSize = new Blob([code]).size;
+  const finalSize = new Blob([final]).size;
+  document.getElementById("size").textContent =
+    `元のサイズ: ${originalSize} bytes\n難読化後: ${finalSize} bytes\n増加量: ${finalSize - originalSize} bytes`;
+};
+</script>
 
-        // サイズ表示
-        const originalSize = new TextEncoder().encode(code).length;
-        const finalSize = new TextEncoder().encode(finalCode).length;
-        document.getElementById("sizeInfo").innerText =
-          `元サイズ: ${originalSize} バイト → 難読化後: ${finalSize} バイト (増減: ${finalSize-originalSize} バイト)`;
-
-      } catch(e){
-        alert("エラー: " + e.message);
-      }
-    });
-
-    document.getElementById("copyBtn").addEventListener("click", () => {
-      const out = document.getElementById("outputCode");
-      if(!out.value) return alert("出力がありません");
-      out.select();
-      document.execCommand("copy");
-      alert("コピーしました！");
-    });
-  </script>
 </body>
 </html>
