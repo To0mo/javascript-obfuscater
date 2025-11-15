@@ -4,29 +4,88 @@
 <meta charset="UTF-8">
 <title>Base92 Encoder/Decoder</title>
 <style>
-  body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
-  textarea { width: 100%; height: 80px; margin: 10px 0; }
-  button { margin: 5px; padding: 5px 10px; }
-  pre { background: #f0f0f0; padding: 10px; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f4f6f8;
+    color: #333;
+    margin: 0;
+    padding: 0;
+  }
+  .container {
+    max-width: 700px;
+    margin: 40px auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 25px;
+  }
+  label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+  }
+  textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 14px;
+    margin-top: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    resize: vertical;
+  }
+  button {
+    margin: 10px 5px 0 0;
+    padding: 8px 15px;
+    font-size: 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: #fff;
+  }
+  button.encode { background: #4caf50; }
+  button.decode { background: #2196f3; }
+  button.copy { background: #ff9800; }
+  pre {
+    background: #272822;
+    color: #f8f8f2;
+    padding: 15px;
+    border-radius: 5px;
+    min-height: 80px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: monospace;
+  }
+  .buttons {
+    margin-top: 10px;
+  }
 </style>
 </head>
 <body>
-<h1>Base92 Encoder/Decoder</h1>
 
-<label>入力テキスト:</label>
-<textarea id="inputText"></textarea>
+<div class="container">
+  <h1>Base92 Encoder / Decoder</h1>
 
-<div>
-  <button onclick="encodeText()">Encode</button>
-  <button onclick="decodeText()">Decode</button>
+  <label for="inputText">入力テキスト:</label>
+  <textarea id="inputText" placeholder="ここにテキストを入力"></textarea>
+
+  <div class="buttons">
+    <button class="encode" onclick="encodeText()">Encode</button>
+    <button class="decode" onclick="decodeText()">Decode</button>
+    <button class="copy" onclick="copyText()">Copy All</button>
+  </div>
+
+  <label>結果:</label>
+  <pre id="outputText"></pre>
 </div>
 
-<label>結果:</label>
-<pre id="outputText"></pre>
-
 <script>
-// Base92 JS Implementation (from https://github.com/urish/base92)
-// 軽量化のため最低限の関数のみ
+// Base92 JS Implementation
 const BASE92_CHARS = (() => {
   let s = '';
   for (let i = 33; i <= 126; i++) s += String.fromCharCode(i);
@@ -73,6 +132,12 @@ function encodeText() {
 function decodeText() {
     const input = document.getElementById('inputText').value;
     document.getElementById('outputText').textContent = base92_decode(input);
+}
+function copyText() {
+    const output = document.getElementById('outputText').textContent;
+    navigator.clipboard.writeText(output).then(() => {
+        alert('結果をコピーしました！');
+    });
 }
 </script>
 
