@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All-in-One JavaScript Obfuscator (Custom Base92)</title>
+    <title>All-in-One JavaScript Obfuscator (Decoder Fixed)</title>
     <style>
         :root {
             --bg-color: #1e1e1e;
@@ -147,22 +147,22 @@
         <div id="status"></div>
     </div>
 
-    <!-- 必要なライブラリの読み込み (Base92は内部実装のため不要) -->
+    <!-- 必要なライブラリの読み込み -->
     <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
 
     <!-- アプリケーションのロジック -->
     <script>
       (() => {
-        // ▼▼▼ ご指定いただいたBase92実装をここに統合 ▼▼▼
         const BASE92_CHARS = '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
         
+        // ご提示いただいたエンコーダー
         function base92_encode(str) {
             let n = 0, b = 0, output = '';
             for (let i = 0; i < str.length; i++) {
                 n = (n << 8) | str.charCodeAt(i);
                 b += 8;
-                if (b >= 13) {
+                while (b >= 13) {
                     let c = n >> (b - 13);
                     b -= 13;
                     n &= (1 << b) - 1;
@@ -175,7 +175,6 @@
             }
             return output;
         }
-        // ▲▲▲ ここまで ▲▲▲
 
         const inputCodeEl = document.getElementById('inputCode');
         const outputCodeEl = document.getElementById('outputCode');
@@ -186,12 +185,9 @@
         inputCodeEl.value = `function hello(name) {\n  console.log('Hello, ' + name + '!');\n}\n\nhello('World');`;
 
         obfuscateBtnEl.addEventListener('click', async () => {
+            // ... (これまでの処理は変更なし) ...
             const sourceCode = inputCodeEl.value.trim();
-            if (!sourceCode) {
-                showStatus('入力が空です。', 'error');
-                return;
-            }
-
+            if (!sourceCode) { showStatus('入力が空です。', 'error'); return; }
             setUiLoading(true);
             showStatus('処理中...', 'normal');
             outputCodeEl.value = '';
@@ -212,7 +208,6 @@
                 const base64Encoded = btoa(unescape(encodeURIComponent(obfuscatedCode)));
 
                 showStatus('Step 4/4: Base92でエンコード中...', 'normal');
-                // 統合したbase92_encode関数を使用
                 const base92Encoded = base92_encode(base64Encoded);
 
                 const finalCode = createSelfExecutingWrapper(base92Encoded);
@@ -228,39 +223,35 @@
             }
         });
         
-        copyBtnEl.addEventListener('click', () => { /* ... (変更なし) ... */ });
-        function setUiLoading(isLoading) { /* ... (変更なし) ... */ }
-        function showStatus(message, type) { /* ... (変更なし) ... */ }
-        // ... 省略した関数の中身は前回のコードと同じです ...
+        // ... (UIハンドラは変更なし) ...
         copyBtnEl.addEventListener('click', () => {if (!outputCodeEl.value) return;navigator.clipboard.writeText(outputCodeEl.value).then(() => {const originalText = copyBtnEl.textContent;copyBtnEl.textContent = 'コピーしました!';setTimeout(() => { copyBtnEl.textContent = originalText; }, 2000);}).catch(err => {alert('クリップボードへのコピーに失敗しました。');});});
         function setUiLoading(isLoading) {obfuscateBtnEl.disabled = isLoading;obfuscateBtnEl.textContent = isLoading ? '処理中...' : '難読化を実行';copyBtnEl.disabled = isLoading || outputCodeEl.value.trim() === '';}
         function showStatus(message, type) {statusEl.textContent = message;statusEl.className = type === 'error' ? 'status-error' : (type === 'success' ? 'status-success' : '');}
 
-
-        // ▼▼▼ 自己実行ラッパーも、指定されたデコードロジックを埋め込む形に修正 ▼▼▼
         function createSelfExecutingWrapper(encodedString) {
             const decoder = `
 (function(encoded) {
-    // --- Decoder Start ---
+    // ▼▼▼ BUG FIX: ここにエンコーダーと完全に逆の動作をする、正しいデコーダーを実装 ▼▼▼
     const BASE92_CHARS = '!"#$%&\\\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_\\\`abcdefghijklmnopqrstuvwxyz{|}~';
     function base92_decode(str) {
         let n = 0, b = 0, output = '';
-        if (str.length % 2 !== 0) { str = str.slice(0, -1); } // 奇数長の場合の対策
-        for (let i = 0; i < str.length; i += 2) {
-            let c1 = BASE92_CHARS.indexOf(str[i]);
-            let c2 = BASE92_CHARS.indexOf(str[i+1]);
-            if (c1 === -1 || c2 === -1) continue;
-            let c = c1 * 91 + c2;
-            n = (n << 13) | c;
+        const len = str.length;
+        for (let i = 0; i < len; i += 2) {
+            const c1 = BASE92_CHARS.indexOf(str[i]);
+            const c2 = BASE92_CHARS.indexOf(str[i+1]);
+            if (c1 === -1 || c2 === -1) { continue; } // 不正な文字はスキップ
+            const val = c1 * 91 + c2;
+            n = (n << 13) | val;
             b += 13;
             while (b >= 8) {
                 b -= 8;
-                output += String.fromCharCode((n >> b) & 0xFF);
+                const charCode = (n >> b) & 0xFF;
+                output += String.fromCharCode(charCode);
             }
         }
         return output;
     }
-    // --- Decoder End ---
+    // ▲▲▲ BUG FIX END ▲▲▲
     try {
         var base64Decoded = base92_decode(encoded);
         var originalCode = decodeURIComponent(escape(atob(base64Decoded)));
