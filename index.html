@@ -1,213 +1,80 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JS 難読化ツール（高速版：Base58）</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background-color: #f5f5f5;
-    }
-    textarea {
-      width: 100%;
-      height: 200px;
-      margin: 10px 0;
-      padding: 10px;
-      box-sizing: border-box;
-      font-family: monospace;
-    }
-    button {
-      padding: 10px 20px;
-      margin: 5px;
-      font-size: 16px;
-    }
-    .output-container {
-      position: relative;
-    }
-    .copy-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-    }
-    .loading {
-      display: none;
-      color: #555;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Base92 Encoder/Decoder</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+  textarea { width: 100%; height: 80px; margin: 10px 0; }
+  button { margin: 5px; padding: 5px 10px; }
+  pre { background: #f0f0f0; padding: 10px; }
+</style>
 </head>
 <body>
-  <h1>JS 難読化ツール（高速版：Base58）</h1>
-  <textarea id="input" placeholder="ここにJavaScriptコードを入力"></textarea>
-  <button onclick="obfuscate()">難読化実行</button>
-  <div class="loading" id="loading">処理中...</div>
+<h1>Base92 Encoder/Decoder</h1>
 
-  <div class="output-container">
-    <textarea id="output" readonly placeholder="難読化結果がここに表示されます"></textarea>
-    <button class="copy-btn" onclick="copyOutput()">出力をコピー</button>
-  </div>
+<label>入力テキスト:</label>
+<textarea id="inputText"></textarea>
 
-  <!-- CDN で Terser を読み込み -->
-  <script src="https://cdn.jsdelivr.net/npm/terser@5/dist/bundle.min.js"></script>
-  <script>
-    // Base58 エンコード（軽量版）
-    const base58 = (() => {
-      const alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-      const base = alphabet.length;
+<div>
+  <button onclick="encodeText()">Encode</button>
+  <button onclick="decodeText()">Decode</button>
+</div>
 
-      return {
-        encode: (source) => {
-          if (source.length === 0) return '';
+<label>結果:</label>
+<pre id="outputText"></pre>
 
-          let digits = [0];
-          for (let i = 0; i < source.length; i++) {
-            let carry = source[i];
-            for (let j = 0; j < digits.length; j++) {
-              carry += digits[j] << 8;
-              digits[j] = carry % base;
-              carry = Math.floor(carry / base);
-            }
-            while (carry > 0) {
-              digits.push(carry % base);
-              carry = Math.floor(carry / base);
-            }
-          }
-
-          let result = '';
-          for (let i = 0; source[i] === 0 && i < source.length - 1; i++) {
-            result += alphabet[0];
-          }
-          for (let i = digits.length - 1; i >= 0; i--) {
-            result += alphabet[digits[i]];
-          }
-          return result;
-        },
-        decode: (str) => {
-          if (str.length === 0) return new Uint8Array(0);
-
-          let bytes = [0];
-          for (let i = 0; i < str.length; i++) {
-            let carry = alphabet.indexOf(str[i]);
-            if (carry < 0) throw new Error('Invalid character in Base58 string');
-
-            for (let j = 0; j < bytes.length; j++) {
-              carry += bytes[j] * base;
-              bytes[j] = carry & 0xff;
-              carry = Math.floor(carry / 0x100);
-            }
-            while (carry > 0) {
-              bytes.push(carry & 0xff);
-              carry = Math.floor(carry / 0x100);
-            }
-          }
-
-          for (let i = 0; str[i] === alphabet[0]; i++) {
-            bytes.push(0);
-          }
-          return new Uint8Array(bytes.reverse());
+<script>
+// Base92 JS Implementation (from https://github.com/urish/base92)
+// 軽量化のため最低限の関数のみ
+const BASE92_CHARS = (() => {
+  let s = '';
+  for (let i = 33; i <= 126; i++) s += String.fromCharCode(i);
+  return s;
+})();
+function base92_encode(str) {
+    let n = 0, b = 0, output = '';
+    for (let i = 0; i < str.length; i++) {
+        n = (n << 8) | str.charCodeAt(i);
+        b += 8;
+        while (b > 13) {
+            let c = n >> (b-13);
+            b -= 13;
+            n &= (1 << b) - 1;
+            output += BASE92_CHARS[Math.floor(c / 91)] + BASE92_CHARS[c % 91];
         }
-      };
-    })();
-
-    // 数値を式に変換する（例: 5 → 2+3）
-    const obfuscateNumber = (num) => {
-      if (num === 0) return '(![])';
-      if (num === 1) return '(!![])';
-      if (num === 2) return '(!![]+!![])';
-      if (num === 3) return '(!![]+!![]+!![])';
-      if (num === 4) return '(!![]+!![]+!![]+!![])';
-      let expr = '';
-      for (let i = 0; i < num; i++) {
-        expr += (i > 0 ? '+' : '') + '(!![])';
-      }
-      return expr;
-    };
-
-    // 文字列を配列で表現（例: "abc" → ["a","b","c"].join("")）
-    const obfuscateString = (str) => {
-      const chars = str.split('');
-      const arr = chars.map(c => `"${c}"`).join(',');
-      return `[${arr}].join("")`;
-    };
-
-    // 高度な自作難読化ツール
-    function advancedObfuscate(code) {
-      const varMap = new Map();
-      let varCounter = 0;
-      const getNewVarName = () => 'arguments[' + obfuscateNumber(varCounter++) + ']';
-
-      // 変数名を置換（arguments に置換）
-      code = code.replace(/\b([a-zA-Z_$][a-zA-Z0-9_$]*)\b/g, (match) => {
-        if (['var', 'let', 'const', 'function', 'return', 'if', 'else', 'for', 'while', 'console', 'window', 'document', 'atob', 'btoa'].includes(match)) {
-          return match;
+    }
+    if (b > 0) {
+        let c = n << (13-b);
+        output += BASE92_CHARS[Math.floor(c / 91)] + BASE92_CHARS[c % 91];
+    }
+    return output;
+}
+function base92_decode(str) {
+    let n = 0, b = 0, output = '';
+    for (let i = 0; i < str.length; i+=2) {
+        let c = BASE92_CHARS.indexOf(str[i]) * 91 + BASE92_CHARS.indexOf(str[i+1]);
+        n = (n << 13) | c;
+        b += 13;
+        while (b >= 8) {
+            b -= 8;
+            output += String.fromCharCode(n >> b);
+            n &= (1 << b) - 1;
         }
-        if (!varMap.has(match)) {
-          varMap.set(match, getNewVarName());
-        }
-        return varMap.get(match);
-      });
-
-      // 数値を式に変換
-      code = code.replace(/\b(\d+)\b/g, (match) => {
-        const num = parseInt(match);
-        if (isNaN(num)) return match;
-        return obfuscateNumber(num);
-      });
-
-      // 文字列リテラルを配列で表現
-      code = code.replace(/(["'])((?:(?!\1)[^\\]|\\.)*)(\1)/g, (match, quote, str) => {
-        return obfuscateString(str);
-      });
-
-      return code;
     }
+    return output;
+}
 
-    async function obfuscate() {
-      const inputCode = document.getElementById('input').value.trim();
-      if (!inputCode) {
-        alert('JavaScriptコードを入力してください。');
-        return;
-      }
+// UI Handlers
+function encodeText() {
+    const input = document.getElementById('inputText').value;
+    document.getElementById('outputText').textContent = base92_encode(input);
+}
+function decodeText() {
+    const input = document.getElementById('inputText').value;
+    document.getElementById('outputText').textContent = base92_decode(input);
+}
+</script>
 
-      // 処理中表示
-      const loading = document.getElementById('loading');
-      loading.style.display = 'block';
-      document.querySelector('button[onclick="obfuscate"]').disabled = true;
-
-      try {
-        // 1. Terser で圧縮
-        const minified = await Terser.minify(inputCode, { compress: {}, mangle: {} });
-        let code = minified.code;
-
-        // 2. 高度な自作難読化ツールで難読化
-        code = advancedObfuscate(code);
-
-        // 3. Base58 でエンコード（高速かつ短め）
-        const bytes = new TextEncoder().encode(code);
-        const encoded = base58.encode(bytes);
-
-        document.getElementById('output').value = encoded;
-      } catch (e) {
-        console.error(e);
-        alert('エラー: ' + e.message);
-      } finally {
-        // 処理完了後にローディング非表示
-        loading.style.display = 'none';
-        document.querySelector('button[onclick="obfuscate"]').disabled = false;
-      }
-    }
-
-    function copyOutput() {
-      const output = document.getElementById('output');
-      if (!output.value) {
-        alert('コピーする内容がありません。');
-        return;
-      }
-      output.select();
-      document.execCommand('copy');
-      alert('クリップボードにコピーしました！');
-    }
-  </script>
 </body>
 </html>
