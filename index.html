@@ -1,231 +1,163 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>最強JS難読化ツール (コピー機能付き)</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      line-height: 1.6;
-      background-color: #f4f4f4;
-      color: #333;
-      padding: 20px;
-      max-width: 900px;
-      margin: 0 auto;
-    }
-    h1 {
-      text-align: center;
-      color: #2c3e50;
-    }
-    textarea {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-sizing: border-box;
-      font-family: Consolas, "Courier New", monospace;
-      font-size: 14px;
-    }
-    .container {
-      background-color: #fff;
-      padding: 25px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .options {
-      margin: 20px 0;
-      padding: 15px;
-      background-color: #ecf0f1;
-      border-radius: 5px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 20px;
-    }
-    label {
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    input[type="checkbox"], input[type="number"] {
-        transform: scale(1.2);
-    }
-    input[type="number"] {
-        width: 60px;
-        padding: 5px;
-    }
-    .main-button {
-      display: block;
-      width: 100%;
-      padding: 15px;
-      background-color: #3498db;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      font-size: 18px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    .main-button:hover {
-      background-color: #2980b9;
-    }
-    .code-area {
-        margin-top: 20px;
-    }
-    .area-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-    h2 {
-        margin: 0;
-        border-bottom: 2px solid #3498db;
-        padding-bottom: 5px;
-    }
-    .copy-button {
-        padding: 8px 15px;
-        background-color: #2ecc71;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: background-color 0.3s;
-    }
-    .copy-button:hover {
-        background-color: #27ae60;
-    }
-    .copy-button:disabled {
-        background-color: #95a5a6;
-        cursor: not-allowed;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>究極のJavaScript難読化ツール</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .container { display: flex; flex-direction: column; gap: 20px; }
+        h1 { text-align: center; color: #2c3e50; }
+        p { text-align: center; }
+        textarea { width: 100%; height: 250px; border-radius: 5px; border: 1px solid #ccc; padding: 10px; font-family: monospace; font-size: 14px; box-sizing: border-box; }
+        button { background-color: #3498db; color: white; border: none; padding: 15px; font-size: 16px; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; }
+        button:hover { background-color: #2980b9; }
+        button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        .output-container { position: relative; }
+        pre { background-color: #f4f4f4; padding: 1em; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; }
+        code { font-family: monospace; }
+        .result-info { font-weight: bold; margin-top: 10px; }
+        .error { color: #e74c3c; font-weight: bold; }
+        #copyBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            font-size: 12px;
+            background-color: #7f8c8d;
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        #copyBtn.visible {
+            opacity: 0.8;
+            visibility: visible;
+        }
+        #copyBtn:hover {
+            opacity: 1;
+        }
+    </style>
 </head>
 <body>
-
-  <div class="container">
-    <h1>最強JS難読化ツール</h1>
-    
-    <div class="code-area">
-        <div class="area-header">
-            <h2>1. コード入力</h2>
+    <div class="container">
+        <h1>究極のJavaScript難読化ツール</h1>
+        <p>Terser圧縮 → javascript-obfuscator → Base64エンコードを重ね、<br><b>実行ローダー自体も難読化</b>することで静的解析をさらに困難にします。</p>
+        
+        <div>
+            <label for="inputCode"><strong>1. 元のJavaScriptコード</strong></label>
+            <textarea id="inputCode" placeholder="ここにJavaScriptコードを貼り付けてください..."></textarea>
         </div>
-        <textarea id="input" rows="15" placeholder="ここに難読化したいJavaScriptコードを入力してください"></textarea>
-    </div>
 
-    <div class="options">
-      <label><input type="checkbox" id="option-compact" checked> 圧縮</label>
-      <label><input type="checkbox" id="option-base64"> Base64エンコード</label>
-      <label>難読化レイヤー: <input type="number" id="option-layers" value="2" min="1" max="5"></label>
-    </div>
+        <button id="obfuscateBtn" onclick="processObfuscation()">難読化を実行</button>
 
-    <button id="obfuscate" class="main-button">難読化を実行</button>
-
-    <div class="code-area">
-        <div class="area-header">
-            <h2>2. 結果出力</h2>
-            <button id="copy-button" class="copy-button">コピーする</button>
+        <div>
+            <label for="outputCode"><strong>2. 難読化後のコード</strong></label>
+            <div class="output-container">
+                <pre><code id="outputCode"></code></pre>
+                <button id="copyBtn">コピー</button>
+            </div>
+            <div id="resultInfo" class="result-info"></div>
         </div>
-        <textarea id="output" rows="15" readonly placeholder="ここに難読化されたコードが出力されます"></textarea>
     </div>
-  </div>
 
-  <!-- javascript-obfuscatorライブラリをCDNから読み込む -->
-  <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
+    <!-- 必要なライブラリをCDNから読み込む -->
+    <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
 
-  <!-- サイトのロジック -->
-  <script>
-    const obfuscateButton = document.getElementById('obfuscate');
-    const copyButton = document.getElementById('copy-button');
-    const inputArea = document.getElementById('input');
-    const outputArea = document.getElementById('output');
+    <script>
+        const inputCodeEl = document.getElementById('inputCode');
+        const outputCodeEl = document.getElementById('outputCode');
+        const resultInfoEl = document.getElementById('resultInfo');
+        const obfuscateBtn = document.getElementById('obfuscateBtn');
+        const copyBtn = document.getElementById('copyBtn');
 
-    // ■ 難読化処理
-    obfuscateButton.addEventListener('click', function() {
-      let inputCode = inputArea.value;
+        // --- コピーボタンの処理 ---
+        copyBtn.addEventListener('click', () => {
+            const codeToCopy = outputCodeEl.textContent;
+            if (!codeToCopy) return;
 
-      if (!inputCode.trim()) {
-        alert('コードを入力してください。');
-        return;
-      }
+            navigator.clipboard.writeText(codeToCopy).then(() => {
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'コピーしました！';
+                copyBtn.disabled = true;
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                    copyBtn.disabled = false;
+                }, 2000);
+            }).catch(err => {
+                console.error('コピーに失敗しました', err);
+                alert('コピーに失敗しました。');
+            });
+        });
 
-      // UIからオプションを取得
-      const useCompact = document.getElementById('option-compact').checked;
-      const useBase64 = document.getElementById('option-base64').checked;
-      const layers = parseInt(document.getElementById('option-layers').value, 10);
-
-      const obfuscationOptions = {
-        compact: useCompact,
-        controlFlowFlattening: true,
-        controlFlowFlatteningThreshold: 1,
-        deadCodeInjection: true,
-        deadCodeInjectionThreshold: 1,
-        debugProtection: true,
-        debugProtectionInterval: 4000,
-        disableConsoleOutput: true,
-        identifierNamesGenerator: 'hexadecimal',
-        log: false,
-        renameGlobals: true,
-        rotateStringArray: true,
-        selfDefending: true,
-        stringArray: true,
-        stringArrayEncoding: ['rc4'],
-        stringArrayThreshold: 1,
-        transformObjectKeys: true,
-        unicodeEscapeSequence: false
-      };
-
-      try {
-        let obfuscatedCode = inputCode;
-        // 1. 多層難読化
-        for (let i = 0; i < layers; i++) {
-          obfuscatedCode = JavaScriptObfuscator.obfuscate(obfuscatedCode, obfuscationOptions).getObfuscatedCode();
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
-        // 2. Base64エンコードとキーワードの隠蔽
-        if (useBase64) {
-          const utf8Bytes = new TextEncoder().encode(obfuscatedCode);
-          const base64String = btoa(String.fromCharCode.apply(null, utf8Bytes));
-          const evalHex = '\\x65\\x76\\x61\\x6c'; // "eval"
-          const atobHex = '\\x61\\x74\\x6f\\x62';   // "atob"
-          obfuscatedCode = `self['${evalHex}'](self['${atobHex}']('${base64String}'))`;
+
+        async function processObfuscation() {
+            const originalCode = inputCodeEl.value;
+            if (!originalCode.trim()) {
+                outputCodeEl.textContent = 'コードが入力されていません。';
+                resultInfoEl.innerHTML = '';
+                copyBtn.classList.remove('visible');
+                return;
+            }
+
+            obfuscateBtn.disabled = true;
+            obfuscateBtn.textContent = '処理中...';
+            outputCodeEl.textContent = '';
+            resultInfoEl.innerHTML = '';
+            copyBtn.classList.remove('visible');
+
+            try {
+                // --- ステップ1: Terserでコードを圧縮 ---
+                const terserResult = await Terser.minify(originalCode, {
+                    mangle: { toplevel: true },
+                    compress: { drop_console: true }
+                });
+                if (terserResult.error) throw new Error('Terser Error: ' + terserResult.error.message);
+                const minifiedCode = terserResult.code;
+
+                // --- ステップ2: javascript-obfuscatorで難読化 ---
+                const obfuscationResult = JavaScriptObfuscator.obfuscate(minifiedCode, {
+                    compact: true, controlFlowFlattening: false, deadCodeInjection: false,
+                    stringArray: true, stringArrayEncoding: ['none'], stringArrayThreshold: 0.75,
+                    transformObjectKeys: true, identifierNamesGenerator: 'hexadecimal'
+                });
+                const obfuscatedCode = obfuscationResult.getObfuscatedCode();
+
+                // --- ステップ3: Base64エンコードと、難読化されたローダーの生成 ---
+                const encodedCode = btoa(unescape(encodeURIComponent(obfuscatedCode)));
+                const finalCode = `(()=>{const a='${encodedCode}',b=window,c='atob',d='decodeURIComponent',e='escape',f='Blob',g='URL',h='createObjectURL',i='revokeObjectURL',j='application/javascript';const k=b[d](b[e](b[c](a))),l=new b[f]([k],{type:j}),m=b[g][h](l);import(m).then(()=>b[g][i](m))})();`;
+
+                // --- 結果の表示 ---
+                outputCodeEl.textContent = finalCode;
+                copyBtn.classList.add('visible'); // コピーボタンを表示
+                
+                const originalSize = new Blob([originalCode]).size;
+                const finalSize = new Blob([finalCode]).size;
+                const changeRatio = ((finalSize - originalSize) / originalSize * 100).toFixed(2);
+                
+                resultInfoEl.innerHTML = `
+                    元のサイズ: ${formatBytes(originalSize)}<br>
+                    変換後のサイズ: ${formatBytes(finalSize)}<br>
+                    サイズ変化: <span style="color: ${changeRatio >= 0 ? '#e74c3c' : '#2ecc71'};">${changeRatio >= 0 ? '+' : ''}${changeRatio}%</span>
+                `;
+
+            } catch (error) {
+                outputCodeEl.textContent = 'エラーが発生しました。\n' + error.message;
+                outputCodeEl.classList.add('error');
+            } finally {
+                obfuscateBtn.disabled = false;
+                obfuscateBtn.textContent = '難読化を実行';
+            }
         }
-        outputArea.value = obfuscatedCode;
-        console.log('最強の難読化が完了しました。');
-      } catch (e) {
-        alert('エラーが発生しました: ' + e.message);
-        console.error(e);
-      }
-    });
-
-    // ■ コピー処理
-    copyButton.addEventListener('click', function() {
-      const codeToCopy = outputArea.value;
-      if (!codeToCopy) {
-        // テキストエリアが空の場合は何もしない
-        return;
-      }
-
-      navigator.clipboard.writeText(codeToCopy).then(() => {
-        // コピー成功時のフィードバック
-        const originalText = copyButton.textContent;
-        copyButton.textContent = 'コピーしました！';
-        copyButton.disabled = true;
-
-        setTimeout(() => {
-          copyButton.textContent = originalText;
-          copyButton.disabled = false;
-        }, 2000); // 2秒後に元に戻す
-      }).catch(err => {
-        // コピー失敗時
-        console.error('クリップボードへのコピーに失敗しました: ', err);
-        alert('コピーに失敗しました。');
-      });
-    });
-  </script>
-
+    </script>
 </body>
 </html>
