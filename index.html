@@ -1,170 +1,176 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>究極のJavaScript難読化ツール</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .container { display: flex; flex-direction: column; gap: 20px; }
-        h1 { text-align: center; color: #2c3e50; }
-        p { text-align: center; }
-        textarea { width: 100%; height: 250px; border-radius: 5px; border: 1px solid #ccc; padding: 10px; font-family: monospace; font-size: 14px; box-sizing: border-box; }
-        button { background-color: #3498db; color: white; border: none; padding: 15px; font-size: 16px; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; }
-        button:hover { background-color: #2980b9; }
-        button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
-        .output-container { position: relative; }
-        pre { background-color: #f4f4f4; padding: 1em; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; }
-        code { font-family: monospace; }
-        .result-info { font-weight: bold; margin-top: 10px; }
-        .error { color: #e74c3c; font-weight: bold; }
-        #copyBtn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 5px 10px;
-            font-size: 12px;
-            background-color: #7f8c8d;
-            border-radius: 4px;
-            cursor: pointer;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s, visibility 0.3s;
-        }
-        #copyBtn.visible {
-            opacity: 0.8;
-            visibility: visible;
-        }
-        #copyBtn:hover {
-            opacity: 1;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌀 俺の多層地獄JS難読化ツール [最終形態] 🌀</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #000; color: #0f0; padding: 20px; }
+    .container { max-width: 1100px; margin: auto; background: #111; padding: 30px; border-radius: 15px; border: 2px solid #0f0; box-shadow: 0 0 30px #0f0; }
+    h1 { text-align: center; color: #0f0; text-shadow: 0 0 10px #0f0; }
+    textarea { width: 100%; height: 200px; background: #000; color: #0f0; border: 1px solid #0f0; border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; }
+    .options { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin: 20px 0; background: #0a0a0a; padding: 15px; border-radius: 10px; }
+    label { display: flex; align-items: center; gap: 8px; cursor: pointer; color: #0f0; }
+    button { padding: 14px 28px; font-size: 18px; background: #003300; color: #0f0; border: 2px solid #0f0; border-radius: 8px; cursor: pointer; }
+    button:hover { background: #006600; box-shadow: 0 0 20px #0f0; }
+    #output { background: #000; padding: 15px; border: 1px solid #0f0; border-radius: 8px; margin-top: 20px; white-space: pre-wrap; word-break: break-all; min-height: 200px; color: #0f0; }
+    .layer-control { text-align: center; margin: 20px 0; }
+    .layer-control input { width: 300px; }
+    .stats { color: #00ff00; font-weight: bold; text-align: center; font-size: 18px; margin: 15px 0; text-shadow: 0 0 10px #0f0; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>究極のJavaScript難読化ツール</h1>
-        <p>Terser圧縮 → javascript-obfuscator → Base64エンコードを重ね、<br><b>実行ローダー自体も難読化</b>することで静的解析をさらに困難にします。</p>
-code
-Code
+  <div class="container">
+    <h1>🌀 俺の多層地獄JavaScript難読化ツール [最終形態] 🌀</h1>
+    <p style="text-align:center;color:#0f0;">最大10層まで重ねがけ可能 → 人間の理解を超える</p>
 
-download
+    <textarea id="input" placeholder="// ここに犠牲になるJSコードを貼り付け..."></textarea>
 
-content_copy
-
-expand_less
-<div>
-        <label for="inputCode"><strong>1. 元のJavaScriptコード</strong></label>
-        <textarea id="inputCode" placeholder="ここにJavaScriptコードを貼り付けてください..."></textarea>
+    <div class="layer-control">
+      <h3 style="color:#0f0;">重ねがけ層数: <span id="layerVal">1</span> 層</h3>
+      <input type="range" id="layers" min="1" max="10" value="3" step="1">
+      <br><br>
+      <button onclick="obfuscateMulti()">🌪️ 地獄の多層難読化 開始 🌪️</button>
+      <button onclick="copy()" style="background:#660000;">📋 コピー（覚悟しろ）</button>
     </div>
 
-    <button id="obfuscateBtn" onclick="processObfuscation()">難読化を実行</button>
-
-    <div>
-        <label for="outputCode"><strong>2. 難読化後のコード</strong></label>
-        <div class="output-container">
-            <pre><code id="outputCode"></code></pre>
-            <button id="copyBtn">コピー</button>
-        </div>
-        <div id="resultInfo" class="result-info"></div>
+    <div class="options">
+      <label><input type="checkbox" id="renameVars" checked> 変数名16進ゴミ化</label>
+      <label><input type="checkbox" id="hexEncode" checked> \x 爆撃</label>
+      <label><input type="checkbox" id="unicodeEscape" checked> \u 爆撃</label>
+      <label><input type="checkbox" id="deadCode" checked> デッドコード注入 (<span id="deadVal">6</span> <input type="range" id="deadAmount" min="1" max="10" value="6">)</label>
+      <label><input type="checkbox" id="numberObf" checked> 数値ゴミ式化</label>
+      <label><input type="checkbox" id="controlFlow" checked> 制御フロー破壊</label>
+      <label><input type="checkbox" id="wrapEval" checked> evalで包む（毎層）</label>
+      <label><input type="checkbox" id="antiDebug" checked> アンチデバッグ</label>
+      <label><input type="checkbox" id="selfDefend" checked> 自己防御（改行禁止）</label>
+      <label><input type="checkbox" id="randomJunk" checked> ランダムゴミ文字列追加</label>
     </div>
-</div>
 
-<!-- 必要なライブラリをCDNから読み込む -->
-<script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
+    <div class="stats">
+      処理前: <span id="sizeBefore">0</span> 文字 → 
+      処理後: <span id="sizeAfter">0</span> 文字 
+      （<span id="ratio">0</span>倍 / <span id="layerDisplay">0</span>層）
+    </div>
+
+    <h3 style="color:#0f0;text-align:center;">結果（もう人類には読めない）：</h3>
+    <pre id="output"></pre>
+  </div>
 
 <script>
-    const inputCodeEl = document.getElementById('inputCode');
-    const outputCodeEl = document.getElementById('outputCode');
-    const resultInfoEl = document.getElementById('resultInfo');
-    const obfuscateBtn = document.getElementById('obfuscateBtn');
-    const copyBtn = document.getElementById('copyBtn');
+// ============ 地獄の多層難読化エンジン ============
+let finalCode = "";
 
-    // --- コピーボタンの処理 ---
-    copyBtn.addEventListener('click', () => {
-        const codeToCopy = outputCodeEl.textContent;
-        if (!codeToCopy) return;
+function obfuscateOnce(code) {
+  const opts = {
+    renameVars: document.getElementById('renameVars').checked,
+    hexEncode: document.getElementById('hexEncode').checked,
+    unicodeEscape: document.getElementById('unicodeEscape').checked,
+    deadCode: document.getElementById('deadCode').checked,
+    deadAmount: parseInt(document.getElementById('deadAmount').value),
+    numberObf: document.getElementById('numberObf').checked,
+    controlFlow: document.getElementById('controlFlow').checked,
+    wrapEval: document.getElementById('wrapEval').checked,
+    antiDebug: document.getElementById('antiDebug').checked,
+    selfDefend: document.getElementById('selfDefend').checked,
+    randomJunk: document.getElementById('randomJunk').checked,
+  };
 
-        navigator.clipboard.writeText(codeToCopy).then(() => {
-            const originalText = copyBtn.textContent;
-            copyBtn.textContent = 'コピーしました！';
-            copyBtn.disabled = true;
-            setTimeout(() => {
-                copyBtn.textContent = originalText;
-                copyBtn.disabled = false;
-            }, 2000);
-        }).catch(err => {
-            console.error('コピーに失敗しました', err);
-            alert('コピーに失敗しました。');
-        });
+  let result = code;
+
+  // 毎層ごとに少しずつ変える（同じ変換が重なっても読めなくなる）
+  if (opts.renameVars) {
+    const varMap = {}; let cnt = Math.floor(Math.random() * 1000);
+    result = result.replace(/\b(var|let|const)\s+([a-zA-Z_$][\w$]*)/g, (m, k, v) => {
+      if (!varMap[v]) varMap[v] = `_0x${(cnt++).toString(16)}`;
+      return `${k} ${varMap[v]}`;
     });
+    result = result.replace(/\b([a-zA-Z_$][\w$]*)\b/g, m => varMap[m] || m);
+  }
 
-    function formatBytes(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  if (opts.numberObf) {
+    result = result.replace(/\b(\d+)\b/g, () => {
+      const n = Math.floor(Math.random() * 10000);
+      return [`0x${n.toString(16)}`, `~-${-n-1}`, `${n}<<0`, `"${n}"|0`][Math.floor(Math.random()*4)];
+    });
+  }
+
+  if (opts.hexEncode || opts.unicodeEscape) {
+    result = result.replace(/"([^"]*?)"/g, (m, s) => {
+      let out = '';
+      for (let c of s) {
+        const r = Math.random();
+        if (r < 0.4 && opts.hexEncode) out += '\\x' + c.charCodeAt(0).toString(16).padStart(2,'0');
+        else if (r < 0.8 && opts.unicodeEscape) out += '\\u' + c.charCodeAt(0).toString(16).padStart(4,'0');
+        else out += c;
+      }
+      return `"${out}"`;
+    });
+  }
+
+  if (opts.deadCode) {
+    let junk = '';
+    for (let i = 0; i < 15 + opts.deadAmount * 10; i++) {
+      const v = `_d${Math.random().toString(36).substr(2,8)}`;
+      junk += `var ${v}=${Math.random()*9999|0};${v}^=${v}>>>1;`;
+      if (Math.random() < 0.4) junk += `while(${v}%11>10){${v}--}`;
     }
+    result = junk + result;
+  }
 
-    async function processObfuscation() {
-        const originalCode = inputCodeEl.value;
-        if (!originalCode.trim()) {
-            outputCodeEl.textContent = 'コードが入力されていません。';
-            resultInfoEl.innerHTML = '';
-            copyBtn.classList.remove('visible');
-            return;
-        }
+  if (opts.controlFlow) {
+    result = `(()=>{var _=${Math.random().toString(36).substr(2)};while(_--){${result}}})();`;
+  }
 
-        obfuscateBtn.disabled = true;
-        obfuscateBtn.textContent = '処理中...';
-        outputCodeEl.textContent = '';
-        resultInfoEl.innerHTML = '';
-        copyBtn.classList.remove('visible');
+  if (opts.randomJunk) {
+    const junkStr = '/*' + Math.random().toString(36).repeat(10) + '*/';
+    result = junkStr + result + junkStr;
+  }
 
-        try {
-            // --- ステップ1: Terserでコードを圧縮 ---
-            const terserResult = await Terser.minify(originalCode, {
-                mangle: { toplevel: true },
-                compress: { drop_console: true }
-            });
-            if (terserResult.error) throw new Error('Terser Error: ' + terserResult.error.message);
-            const minifiedCode = terserResult.code;
+  if (opts.antiDebug) result = `debugger;${result}`;
+  if (opts.selfDefend) result = result.replace(/\s+/g, '') + '/*改行したら爆発する*/';
 
-            // --- ステップ2: javascript-obfuscatorで難読化 ---
-            const obfuscationResult = JavaScriptObfuscator.obfuscate(minifiedCode, {
-                compact: true, controlFlowFlattening: false, deadCodeInjection: false,
-                stringArray: true, stringArrayEncoding: ['none'], stringArrayThreshold: 0.75,
-                transformObjectKeys: true, identifierNamesGenerator: 'hexadecimal'
-            });
-            const obfuscatedCode = obfuscationResult.getObfuscatedCode();
+  if (opts.wrapEval) {
+    result = 'eval("' + result.replace(/"/g, '\\"').replace(/\n/g, '\\n') + '")';
+  }
 
-            // --- ステップ3: Base64エンコードと、難読化されたローダーの生成 ---
-            const encodedCode = btoa(unescape(encodeURIComponent(obfuscatedCode)));
-            const finalCode = `(()=>{const a='${encodedCode}',b=window,c='atob',d='decodeURIComponent',e='escape',f='Blob',g='URL',h='createObjectURL',i='revokeObjectURL',j='application/javascript';const k=b[d](b[e](b[c](a))),l=new b[f]([k],{type:j}),m=b[g][h](l);import(m).then(()=>b[g][i](m))})();`;
+  return result;
+}
 
-            // --- 結果の表示 ---
-            outputCodeEl.textContent = finalCode;
-            copyBtn.classList.add('visible'); // コピーボタンを表示
-            
-            const originalSize = new Blob([originalCode]).size;
-            const finalSize = new Blob([finalCode]).size;
-            const changeRatio = ((finalSize - originalSize) / originalSize * 100).toFixed(2);
-            
-            resultInfoEl.innerHTML = `
-                元のサイズ: ${formatBytes(originalSize)}<br>
-                変換後のサイズ: ${formatBytes(finalSize)}<br>
-                サイズ変化: <span style="color: ${changeRatio >= 0 ? '#e74c3c' : '#2ecc71'};">${changeRatio >= 0 ? '+' : ''}${changeRatio}%</span>
-            `;
+// 多層地獄実行
+function obfuscateMulti() {
+  let code = document.getElementById('input').value.trim();
+  if (!code) return alert('コードがないと地獄に落とせない…');
 
-        } catch (error) {
-            outputCodeEl.textContent = 'エラーが発生しました。\n' + error.message;
-            outputCodeEl.classList.add('error');
-        } finally {
-            obfuscateBtn.disabled = false;
-            obfuscateBtn.textContent = '難読化を実行';
-        }
-    }
+  const layers = parseInt(document.getElementById('layers').value);
+  document.getElementById('layerDisplay').textContent = layers;
+  document.getElementById('sizeBefore').textContent = code.length;
+
+  for (let i = 1; i <= layers; i++) {
+    code = obfuscateOnce(code);
+    document.getElementById('output').textContent = `🔥 第${i}層 処理中... (${code.length}文字)\n${code.substring(0, 1000)}...`;
+    if (i % 2 === 0) code = code.replace(/;/g, ';/*'+Math.random()+'*/'); // さらに汚く
+  }
+
+  finalCode = code;
+  document.getElementById('output').textContent = finalCode;
+  const ratio = (finalCode.length / document.getElementById('input').value.length).toFixed(2);
+  document.getElementById('sizeAfter').textContent = finalCode.length;
+  document.getElementById('ratio').textContent = ratio;
+}
+
+// リアルタイム層数表示
+document.getElementById('layers').addEventListener('input', e => {
+  document.getElementById('layerVal').textContent = e.target.value;
+});
+document.getElementById('deadAmount').addEventListener('input', e => {
+  document.getElementById('deadVal').textContent = e.target.value;
+});
+
+function copy() {
+  navigator.clipboard.writeText(finalCode || document.getElementById('output').textContent);
+  alert('コピー完了。これで君のコードは永遠に解読不能になった…');
+}
 </script>
 </body>
 </html>
