@@ -1,199 +1,3953 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>究極のJavaScript難読化ツール (自己完結版)</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .container { display: flex; flex-direction: column; gap: 20px; }
-        h1 { text-align: center; color: #2c3e50; }
-        p { text-align: center; }
-        textarea { width: 100%; height: 250px; border-radius: 5px; border: 1px solid #ccc; padding: 10px; font-family: monospace; font-size: 14px; box-sizing: border-box; }
-        button { background-color: #3498db; color: white; border: none; padding: 15px; font-size: 16px; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; }
-        button:hover { background-color: #2980b9; }
-        button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
-        .output-container { position: relative; }
-        pre { background-color: #f4f4f4; padding: 1em; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; }
-        code { font-family: monospace; }
-        .result-info { font-weight: bold; margin-top: 10px; }
-        .error { color: #e74c3c; font-weight: bold; }
-        #copyBtn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 5px 10px;
-            font-size: 12px;
-            background-color: #7f8c8d;
-            border-radius: 4px;
-            cursor: pointer;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s, visibility 0.3s;
+(function() {
+    'use strict';
+
+    let Fuxny = {};
+    let injectedBool = false;
+    let myId = 1;
+
+    const killSoftlyModule = {
+        duration: 200
+    };
+
+    let derpIntervalId = null;
+    const derpModule = {
+        speed: 5
+    };
+
+    let fakeLagIntervalId = null;
+    const fakeLagModule = {
+        duration: 200,
+        interval: 500
+    };
+
+    const fastPlaceModule = {
+        delay: 20
+    };
+
+    var r = {
+        keys(e) {
+            var t = [],
+                o = 0;
+            for (var s in e) e != null && (t[o] = s, o++);
+            return t
+        },
+        values(e) {
+            for (var t = this.keys(e), o = [], s = 0, i = 0; s < t.length;) {
+                var l = t[s],
+                    d = e[l];
+                o[i] = d, i++, s++
+            }
+            return o
+        },
+        assign(e, ...t) {
+            let o = Object(e);
+            for (let s = 0; s < t.length; s++) {
+                let i = t[s];
+                if (i != null)
+                    for (let l in i) o[l] = i[l]
+            }
+            return o
         }
-        #copyBtn.visible {
-            opacity: 0.8;
-            visibility: visible;
+    };
+    var S = {
+        normalizeVector(t) {
+              const x = t[0], y = t[1], z = t[2];
+              const len = Math.hypot(x, y, z);
+              if (len === 0) return t;
+              const inv = 1 / len;
+              return [x * inv, y * inv, z * inv];
+        },
+        distanceBetween(t, e) {
+            let i = e[0] - t[0],
+                o = e[1] - t[1],
+                s = e[2] - t[2];
+            return i * i + o * o + s * s
+        },
+        distanceBetweenSqrt(t, e) {
+            return Math.sqrt(this.distanceBetween(t, e))
+        },
+    };
+    var C = {
+            wpRequire: null,
+            _cachedNoa: null,
+            get noa() {
+                return this?._cachedNoa || (this._cachedNoa = r.values(this.bloxdProps).find(t => t?.entities)), this._cachedNoa
+            },
+            init() {
+                let t = Object.getOwnPropertyDescriptors(window),
+                    e = Object.keys(t).find(s => t[s]?.set?.toString().includes("++")),
+                    i = window[e] = window[e],
+                    o = Math.floor(Math.random() * 9999999 + 1);
+                i.push([
+                    [o], {},
+                    s => this.wpRequire = s
+                ]), this.bloxdProps = r.values(this.findModule("nonBlocksClient:")).find(s => typeof s == "object")
+            },
+            findModule(t) {
+                let e = this.wpRequire.m;
+                for (let i in e) {
+                    let o = e[i];
+                    if (o && o.toString().includes(t)) return this.wpRequire(i)
+                }
+                return null
+            }
+        },
+        l = C;
+    var I = {
+        getPosition(t) {
+            return l.noa.entities.getState(t, "position").position
+        },
+        get getMoveState() {
+            return r.values(l.noa.entities)[36]
+        },
+        getPhysicsBody(t) {
+            return l.noa.entities.getState(t, "physics").body
+        },
+        get registry() {
+            return r.values(l.noa)[17]
+        },
+        get getBlockSolidity() {
+            return r.values(this.registry)[5]
+        },
+        get getBlockID() {
+            return l.noa.bloxd[Object.getOwnPropertyNames(l.noa.bloxd.constructor.prototype)[3]].bind(l.noa.bloxd)
+        },
+        get getHeldItem() {
+            return Object
+                .values(l.noa.entities)
+                .find(candidate => {
+                    if (typeof candidate !== 'function') return false;
+                    if (candidate.length !== 1) return false;
+
+                    const fnString = candidate.toString();
+                    return fnString.includes(').') && fnString.toString().length < 30 && !fnString.includes(').op');
+                });
+        },
+        safeGetHeldItem(t) {
+            let e;
+            try {
+                e = this.getHeldItem(t)
+            } catch {}
+            return e
+        },
+        get playerList() {
+            return r.values(l.noa.bloxd.getPlayerIds()).filter(t => t !== 1 && this.safeGetHeldItem(t)).map(t => parseInt(t))
+        },
+        get doAttack() {
+            let t = this.safeGetHeldItem(1);
+            return (t?.doAttack || t.breakingItem.doAttack).bind(t)
+        },
+        touchingWall() {
+            let t = this.getPosition(1),
+                e = .35,
+                i = [
+                    [0, 0, 0],
+                    [e, 0, 0],
+                    [-e, 0, 0],
+                    [0, 0, e],
+                    [0, 0, -e],
+                    [e, 0, e],
+                    [e, 0, -e],
+                    [-e, 0, e],
+                    [-e, 0, -e]
+                ],
+                o = [0, 1, 2];
+            for (let [s, c, d] of i)
+                for (let u of o) {
+                    let m = Math.floor(t[0] + s),
+                        h = Math.floor(t[1] + c + u),
+                        E = Math.floor(t[2] + d),
+                        M = this.getBlockID(m, h, E);
+                    if (this.getBlockSolidity(M)) return !0
+                }
+            return !1
         }
-        #copyBtn:hover {
-            opacity: 1;
+    };
+    var n = {
+        noa: I
+    };
+
+    let playerKey = null,
+        moveState = null,
+        physState = null,
+        playerEntity = null,
+        skyboxMesh = null;
+    let playerInventoryParent = null,
+        lastClosestId = null,
+        targetEntityDistance = null;
+    let bhopIntervalId = null,
+        aimbotInterval = null,
+        killauraInterval = null,
+        targetFinderId = null,
+        autoSWIntervalId = null;
+    let killshotInterval = null,
+        inventoryCleanerInterval = null;
+    let playerCoordsIntervalId = null,
+        nametagsIntervalId = null;
+    let fightBotIntervalId = null;
+    let fastPlaceIntervalId = null;
+    let minimapIntervalId = null;
+    let minimapCanvas = null;
+
+let oreMinerIntervalId = null;
+let oreMinerTarget = {
+    position: null,
+    path: [],
+    mode: 'IDLE',
+    minedElement: null,
+
+    lastStuckCheckPosition: null, 
+    stuckStartTime: 0,            
+};
+const ORE_IDS = [44, 45, 465, 50];
+
+    const fightBotModule = {
+        radius: 7,
+        desiredDistance: 4.7,
+        isWPressed: false,
+        isSPressed: false,
+        isShiftPressed: false,
+        didJumpLastTick: false,
+        isStrafing: false,
+        strafeDirection: '',
+        strafeEndTime: 0,
+        nextStrafeTime: 0
+    };
+
+    const isPC = !('ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0);
+
+    let spikeSlot = 8,
+        webSlot = 9;
+
+    let chestESPEnabled = false,
+        oreESPEnabled = false, 
+        chestOreInterval = null,
+        chunkDataField = null;
+
+    const scannedChunks = new Set();
+    let chestBoxes = {};
+
+    document.isRightMouseDown = false;
+
+    document.addEventListener("pointerdown", e => {
+        if (e.pointerType === "mouse") {
+            if (e.button === 0) document.isPointerDown = true;
+            if (e.button === 2) document.isRightMouseDown = true;
+        } else {
+            document.isPointerDown = true;
         }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>究極のJavaScript難読化ツール (自己完結版)</h1>
-        <p>Terser圧縮 → javascript-obfuscator → <b>Base91エンコード</b>を重ね、<br><b>実行ローダー自体も難読化</b>することで静的解析をさらに困難にします。</p>
-        
-        <div>
-            <label for="inputCode"><strong>1. 元のJavaScriptコード</strong></label>
-            <textarea id="inputCode" placeholder="ここにJavaScriptコードを貼り付けてください..."></textarea>
-        </div>
+    });
 
-        <button id="obfuscateBtn" onclick="processObfuscation()">難読化を実行</button>
+    document.addEventListener("pointerup", e => {
+        if (e.pointerType === "mouse") {
+            if (e.button === 0) document.isPointerDown = false;
+            if (e.button === 2) document.isRightMouseDown = false;
+        } else {
+            document.isPointerDown = false;
+        }
+    });
 
-        <div>
-            <label for="outputCode"><strong>2. 難読化後のコード</strong></label>
-            <div class="output-container">
-                <pre><code id="outputCode"></code></pre>
-                <button id="copyBtn">コピー</button>
-            </div>
-            <div id="resultInfo" class="result-info"></div>
-        </div>
-    </div>
+    document.addEventListener("contextmenu", e => {
+        if (fastPlaceIntervalId) {
+            e.preventDefault();
+        }
+    });
 
-    <!-- 必要なライブラリをCDNから読み込む -->
-    <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
-    <!-- ▼▼▼ 変更点: 外部のBase91ライブラリを削除 ▼▼▼ -->
+    let pickupReachEnabled = false;
+    let originalGetEntitiesInAABB = null;
+    let ghMethodKey = null;
+    let protoForPickupReach = null;
+    const RANGE_MULTIPLIER = 5;
 
-    <script>
-        const inputCodeEl = document.getElementById('inputCode');
-        const outputCodeEl = document.getElementById('outputCode');
-        const resultInfoEl = document.getElementById('resultInfo');
-        const obfuscateBtn = document.getElementById('obfuscateBtn');
-        const copyBtn = document.getElementById('copyBtn');
+    let colyRoom = null;
+    let sendBytesName = null;
+    let blinkState = {
+        enabled: false,
+        originalSendBytes: null,
+        queued: [],
+    };
 
-        // --- ▼▼▼ 変更点: Base91エンコード関数をツールに内蔵 ▼▼▼ ---
-        function base91Encode(data) {
-            const B91_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_{|}~";
-            let n = 0, b = 0, out = '';
-            for (let i = 0; i < data.length; ++i) {
-                b |= data[i] << n;
-                n += 8;
-                if (n > 13) {
-                    let v = b & 8191;
-                    if (v > 88) {
-                        b >>= 13;
-                        n -= 13;
-                    } else {
-                        v = b & 16383;
-                        b >>= 14;
-                        n -= 14;
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function logDebug(message, color = '#888') {
+        console.log(`%c[OreMiner Debug] ${message}`, `color: ${color}; font: weight:bold;`);
+    }
+
+    function simulateKeyDown(key, code) {
+        if (!document.body) return;
+        document.body.dispatchEvent(new KeyboardEvent('keydown', {
+            key: key,
+            code: code,
+            bubbles: true,
+            cancelable: true
+        }));
+    }
+
+    function simulateKeyUp(key, code) {
+        if (!document.body) return;
+        document.body.dispatchEvent(new KeyboardEvent('keyup', {
+            key: key,
+            code: code,
+            bubbles: true,
+            cancelable: true
+        }));
+    }
+
+    function simulateKeyPress(keyChar, keyCode) {
+        const props = {
+            key: keyChar,
+            code: `Digit${keyChar}`,
+            keyCode: keyCode,
+            which: keyCode,
+            bubbles: true,
+            cancelable: true
+        };
+        document.dispatchEvent(new KeyboardEvent('keydown', props));
+        document.dispatchEvent(new KeyboardEvent('keyup', props));
+    }
+
+    function fastPlaceTick() {
+        if (document.isRightMouseDown) {
+            try {
+                let playerEntity = r.values(Fuxny.entities[Fuxny.impKey]).find(value => value?.list?.[0]?._blockItem).list[0];
+                if (playerEntity && playerEntity._blockItem && typeof playerEntity._blockItem.placeBlock === 'function') {
+                    playerEntity._blockItem.placeBlock();
+                }
+            } catch (e) {
+                console.error("[Fast Place] Error:", e);
+                stopFastPlace();
+            }
+        }
+    }
+
+    function startFastPlace() {
+        if (fastPlaceIntervalId) return;
+        fastPlaceIntervalId = setInterval(fastPlaceTick, fastPlaceModule.delay);
+    }
+
+    function stopFastPlace() {
+        clearInterval(fastPlaceIntervalId);
+        fastPlaceIntervalId = null;
+    }
+
+function findClosestOreInChunks() {
+    if (!injectedBool || !Fuxny?.world?.[Fuxny.impKey]?.hash || !n.noa) return null;
+
+    const myPos = n.noa.getPosition(1);
+    if (!myPos) return null;
+
+    const chunkHash = Fuxny.world[Fuxny.impKey].hash;
+    let closestOrePosition = null;
+    let minDistanceSq = Infinity;
+
+    for (const chunkKey in chunkHash) {
+        const chunk = chunkHash[chunkKey];
+        if (!chunkDataField) {
+            chunkDataField = autoDetectChunkDataField(chunk);
+        }
+        if (!chunkDataField || !chunk[chunkDataField]?.data || !chunk.pos) {
+            continue;
+        }
+
+        const blockData = chunk[chunkDataField];
+        const { data, stride } = blockData;
+        const chunkOriginPos = chunk.pos;
+
+        for (let i = 0; i < data.length; i++) {
+            const blockID = data[i];
+            if (ORE_IDS.includes(blockID)) {
+                const [localX, localY, localZ] = reverseIndex(i, stride);
+                const worldPos = [
+                    chunkOriginPos[0] + localX,
+                    chunkOriginPos[1] + localY,
+                    chunkOriginPos[2] + localZ
+                ];
+
+                const deltaY = worldPos[1] - myPos[1];
+
+                const deltaX = worldPos[0] - myPos[0];
+                const deltaZ = worldPos[2] - myPos[2];
+                const horizontalDistance = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ);
+
+                if (horizontalDistance < 1) {
+
+                    if (deltaY > 5) {
+                        continue;
                     }
-                    out += B91_CHARS[v % 91] + B91_CHARS[Math.floor(v / 91)];
+
+                } else {
+
+                    const gradient = deltaY / horizontalDistance;
+
+                    if (gradient >= 0.7) {
+                        continue; 
+                    }
+                }
+
+                const distanceSq = S.distanceBetween(myPos, worldPos);
+                if (distanceSq < minDistanceSq) {
+                    minDistanceSq = distanceSq;
+                    closestOrePosition = [worldPos[0] + 0.5, worldPos[1] + 0.5, worldPos[2] + 0.5];
                 }
             }
-            if (n > 0) {
-                out += B91_CHARS[b % 91];
-                if (n > 7 || b > 90) {
-                    out += B91_CHARS[Math.floor(b / 91)];
-                }
-            }
-            return out;
         }
-        // --- ▲▲▲ 変更ここまで ▲▲▲ ---
+    }
 
-        copyBtn.addEventListener('click', () => {
-            const codeToCopy = outputCodeEl.textContent;
-            if (!codeToCopy) return;
+    return closestOrePosition;
+}
 
-            navigator.clipboard.writeText(codeToCopy).then(() => {
-                const originalText = copyBtn.textContent;
-                copyBtn.textContent = 'コピーしました！';
-                copyBtn.disabled = true;
-                setTimeout(() => {
-                    copyBtn.textContent = originalText;
-                    copyBtn.disabled = false;
-                }, 2000);
-            }).catch(err => {
-                console.error('コピーに失敗しました', err);
-                alert('コピーに失敗しました。');
-            });
+function calculateLinearTunnelPath(startPos, endPos) {
+    const path = new Map();
+    let [x, y, z] = startPos.map(Math.floor);
+    const [x2, y2, z2] = endPos.map(Math.floor);
+
+    const addPoint = (px, py, pz) => {
+        path.set(`${px},${py},${pz}`, [px, py, pz]);
+    };
+
+    addPoint(x, y, z);
+
+    while (x !== x2 || y !== y2 || z !== z2) {
+
+        const dx = Math.abs(x2 - x);
+        const dy = Math.abs(y2 - y);
+        const dz = Math.abs(z2 - z);
+
+        if (dx >= dy && dx >= dz) {
+
+            x += Math.sign(x2 - x);
+        } else if (dy >= dx && dy >= dz) {
+
+            y += Math.sign(y2 - y);
+        } else {
+
+            z += Math.sign(z2 - z);
+        }
+
+        addPoint(x, y, z);
+    }
+
+    return Array.from(path.values());
+}
+
+function oreMinerTick() {
+    const myPos = n.noa.getPosition(1);
+    if (!myPos) return;
+
+    if (oreMinerTarget.mode === 'MOVING') {
+        const currentIntegerPos = myPos.map(Math.floor);
+        if (!oreMinerTarget.lastStuckCheckPosition || currentIntegerPos[0] !== oreMinerTarget.lastStuckCheckPosition[0] || currentIntegerPos[1] !== oreMinerTarget.lastStuckCheckPosition[1] || currentIntegerPos[2] !== oreMinerTarget.lastStuckCheckPosition[2]) {
+            oreMinerTarget.lastStuckCheckPosition = currentIntegerPos;
+            oreMinerTarget.stuckStartTime = Date.now();
+        } else {
+            const stuckDuration = Date.now() - oreMinerTarget.stuckStartTime;
+            if (stuckDuration > 1500) {
+                const headBlockPos = [currentIntegerPos[0], currentIntegerPos[1] + 2, currentIntegerPos[2]];
+                const headBlockId = I.getBlockID(headBlockPos[0], headBlockPos[1], headBlockPos[2]);
+                if (headBlockId !== 0) {
+                    oreMinerTarget.path.unshift(headBlockPos);
+                    oreMinerTarget.mode = 'IDLE';
+                    oreMinerTarget.stuckStartTime = 0;
+                    oreMinerTarget.lastStuckCheckPosition = null;
+                    simulateKeyUp('w', 'KeyW');
+                    if (oreMinerTarget.minedElement) {
+                        pressMouseUp();
+                        stopMouseHold();
+                    }
+                    return;
+                }
+            }
+        }
+    } else {
+        oreMinerTarget.stuckStartTime = 0;
+        oreMinerTarget.lastStuckCheckPosition = null;
+    }
+
+    if (oreMinerTarget.path.length === 0 || oreMinerTarget.mode === 'IDLE') {
+        if (oreMinerTarget.mode === 'MINING') {
+            pressMouseUp();
+            stopMouseHold();
+        }
+        simulateKeyUp('w', 'KeyW');
+        oreMinerTarget.mode = 'IDLE';
+        while (oreMinerTarget.path.length > 0 && I.getBlockID(oreMinerTarget.path[0][0], oreMinerTarget.path[0][1], oreMinerTarget.path[0][2]) === 0) {
+            oreMinerTarget.path.shift();
+        }
+        if (oreMinerTarget.path.length === 0) {
+            const closestOre = findClosestOreInChunks();
+            if (closestOre) {
+                oreMinerTarget.position = closestOre;
+
+                const deltaX = oreMinerTarget.position[0] - myPos[0];
+                const deltaZ = oreMinerTarget.position[2] - myPos[2];
+
+                let forwardVector = [0, 0, 0];
+
+                if (Math.abs(deltaX) > Math.abs(deltaZ)) {
+
+                    forwardVector[0] = Math.sign(deltaX); 
+                } else {
+
+                    forwardVector[2] = Math.sign(deltaZ); 
+                }
+
+                const startPos = [
+                    myPos[0] + forwardVector[0],
+                    myPos[1],
+                    myPos[2] + forwardVector[2]
+                ];
+
+                const linearPath = calculateLinearTunnelPath(startPos, oreMinerTarget.position);
+
+                const tunnelPath = new Map();
+                for (const pos of linearPath) {
+                    const key1 = pos.join(',');
+                    const key2 = `${pos[0]},${pos[1] + 1},${pos[2]}`;
+                    if (!tunnelPath.has(key1)) tunnelPath.set(key1, pos);
+                    if (!tunnelPath.has(key2)) tunnelPath.set(key2, [pos[0], pos[1] + 1, pos[2]]);
+                }
+                oreMinerTarget.path = Array.from(tunnelPath.values()).filter(pos => {
+                    const blockId = I.getBlockID(pos[0], pos[1], pos[2]);
+                    const isPlayerPos = pos[0] === Math.floor(myPos[0]) && pos[1] === Math.floor(myPos[1]) && pos[2] === Math.floor(myPos[2]);
+                    const isPlayerHeadPos = pos[0] === Math.floor(myPos[0]) && pos[1] === Math.floor(myPos[1] + 1) && pos[2] === Math.floor(myPos[2]);
+                    return blockId !== 0 && !isPlayerPos && !isPlayerHeadPos;
+                });
+            } else {
+                stopOreMiner();
+                showTemporaryNotification("No ores found. Ore Miner disabled.", "#FF9800");
+                const oreMinerToggle = document.getElementById('hack-ore-miner');
+                if (oreMinerToggle) oreMinerToggle.checked = false;
+                return;
+            }
+        }
+    }
+
+    let currentTargetPos = oreMinerTarget.path[0];
+    if (!currentTargetPos) { oreMinerTarget.mode = 'IDLE'; return; }
+    if (I.getBlockID(currentTargetPos[0], currentTargetPos[1], currentTargetPos[2]) === 0) { oreMinerTarget.mode = 'IDLE'; return; }
+    const cam = Fuxny.camera;
+    if (!cam) return;
+    const targetCenter = [currentTargetPos[0] + 0.5, currentTargetPos[1] + 0.5, currentTargetPos[2] + 0.5];
+    const myEyePos = [myPos[0], myPos[1] + 1.6, myPos[2]];
+    const dist = S.distanceBetweenSqrt(myEyePos, targetCenter);
+    const dx = targetCenter[0] - myEyePos[0];
+    const dy = targetCenter[1] - myEyePos[1];
+    const dz = targetCenter[2] - myEyePos[2];
+    const targetHeading = Math.atan2(dx, dz);
+    const targetPitch = -Math.asin(dy / dist);
+    const angleDiff = (a, b) => { let d = a - b; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; };
+    const headingDiff = angleDiff(targetHeading, cam.heading);
+    const pitchDiff = angleDiff(targetPitch, cam.pitch);
+    const smoothingFactor = 0.4;
+    cam.heading += headingDiff * smoothingFactor;
+    cam.pitch += pitchDiff * smoothingFactor;
+    if (dist <= 2.2) {
+        if (oreMinerTarget.mode !== 'MINING') {
+            simulateKeyUp('w', 'KeyW');
+            oreMinerTarget.minedElement = oreMiner_pressMouseDown();
+            oreMinerTarget.mode = 'MINING';
+        }
+    } else {
+        if (oreMinerTarget.mode !== 'MOVING') {
+            if (oreMinerTarget.mode === 'MINING') {
+                oreMiner_pressMouseUp(oreMinerTarget.minedElement);
+            }
+            simulateKeyDown('w', 'KeyW');
+            oreMinerTarget.mode = 'MOVING';
+        }
+    }
+}
+
+function stopOreMiner() {
+    if (!oreMinerIntervalId) return;
+    clearInterval(oreMinerIntervalId);
+    oreMinerIntervalId = null;
+
+    if (oreMinerTarget.mode === 'MINING') {
+        oreMiner_pressMouseUp(oreMinerTarget.minedElement); 
+    }
+    simulateKeyUp('w', 'KeyW');
+
+    oreMinerTarget.position = null;
+    oreMinerTarget.path = [];
+    oreMinerTarget.mode = 'IDLE';
+    oreMinerTarget.minedElement = null;
+}
+
+function startOreMiner() {
+    if (oreMinerIntervalId) return;
+
+    oreMinerIntervalId = setInterval(oreMinerTick, 50);
+}
+
+function oreMiner_getTargetElement() {
+    try {
+        const x = window.innerWidth / 2;
+        const y = window.innerHeight / 2;
+        return document.elementFromPoint(x, y);
+    } catch (e) {
+        console.error("[OreMiner Click] Failed to get target element:", e);
+        return null;
+    }
+}
+
+function oreMiner_pressMouseDown() {
+    const targetElement = oreMiner_getTargetElement();
+    if (!targetElement) {
+        console.warn("[OreMiner Click] MouseDown failed: No target element at screen center.");
+        return null;
+    }
+
+    const x = window.innerWidth / 2;
+    const y = window.innerHeight / 2;
+    const opts = {
+        bubbles: true,
+        cancelable: true,
+        button: 0, 
+        buttons: 1, 
+        clientX: x,
+        clientY: y,
+        pointerType: 'mouse',
+        isPrimary: true,
+    };
+
+    try { targetElement.dispatchEvent(new PointerEvent('pointerdown', opts)); } catch (e) {}
+    try { targetElement.dispatchEvent(new MouseEvent('mousedown', opts)); } catch (e) {}
+
+    return targetElement;
+}
+
+function oreMiner_pressMouseUp(targetElement) {
+
+    const elementToRelease = targetElement || oreMiner_getTargetElement();
+
+    if (!elementToRelease) {
+        console.warn("[OreMiner Click] MouseUp failed: No target element to release.");
+        return;
+    }
+
+    const x = window.innerWidth / 2;
+    const y = window.innerHeight / 2;
+    const opts = {
+        bubbles: true,
+        cancelable: true,
+        button: 0,
+        buttons: 0, 
+        clientX: x,
+        clientY: y,
+        pointerType: 'mouse',
+        isPrimary: true,
+    };
+
+    try { elementToRelease.dispatchEvent(new PointerEvent('pointerup', opts)); } catch (e) {}
+    try { elementToRelease.dispatchEvent(new MouseEvent('mouseup', opts)); } catch (e) {}
+    try { elementToRelease.dispatchEvent(new MouseEvent('click', opts)); } catch (e) {}
+}
+
+const MINIMAP_SIZE = 180; 
+const MINIMAP_RANGE = 32; 
+const MINIMAP_UPDATE_INTERVAL = 100; 
+
+const blockNameCache = new Map();
+let minimapChunkDataField = null; 
+
+let minimapWorker = null; 
+let lastSurfaceData = []; 
+let isWorkerBusy = false; 
+
+const workerScriptContent = `
+
+    self.onmessage = function(e) {
+        const { chunkHash, myPos, MINIMAP_RANGE, isUnderground } = e.data;
+
+        let processedData = [];
+        const surfaceMap = new Map(); 
+
+        if (isUnderground) {
+
+            const myY = Math.floor(myPos[1]);
+            const Y_SCAN_UP = 4;   
+            const Y_SCAN_DOWN = 10; 
+
+            for (const chunkKey in chunkHash) {
+                const chunk = chunkHash[chunkKey];
+                if (!chunk.data || !chunk.stride || !chunk.pos) continue;
+                const { data, stride, pos: chunkOriginPos } = chunk;
+
+                for (let i = 0; i < data.length; i++) {
+                    const blockID = data[i];
+                    if (blockID === 0) continue; 
+
+                    const x = Math.floor(i / stride[0]);
+                    const remX = i % stride[0];
+                    const y = Math.floor(remX / stride[1]);
+                    const z = remX % stride[1];
+
+                    const worldY = chunkOriginPos[1] + y;
+
+                    if (worldY > myY + Y_SCAN_UP || worldY < myY - Y_SCAN_DOWN) {
+                        continue; 
+                    }
+
+                    const worldX = chunkOriginPos[0] + x;
+                    const worldZ = chunkOriginPos[2] + z;
+
+                    if (Math.abs(worldX - myPos[0]) > MINIMAP_RANGE || Math.abs(worldZ - myPos[2]) > MINIMAP_RANGE) {
+                        continue;
+                    }
+
+                    const mapKey = \`\${worldX}|\${worldZ}\`;
+
+                    if (!surfaceMap.has(mapKey) || worldY > surfaceMap.get(mapKey).y) {
+                         surfaceMap.set(mapKey, { y: worldY, blockId: blockID, worldX: worldX, worldZ: worldZ });
+                    }
+                }
+            }
+
+        } else {
+
+            for (const chunkKey in chunkHash) {
+                const chunk = chunkHash[chunkKey];
+                if (!chunk.data || !chunk.stride || !chunk.pos) continue;
+
+                const { data, stride, pos: chunkOriginPos } = chunk;
+
+                for (let i = 0; i < data.length; i++) {
+                    const blockID = data[i];
+                    if (blockID === 0 || blockID === 150) continue;
+
+                    const x = Math.floor(i / stride[0]);
+                    const remX = i % stride[0];
+                    const y = Math.floor(remX / stride[1]);
+                    const z = remX % stride[1];
+
+                    const worldX = chunkOriginPos[0] + x;
+                    const worldZ = chunkOriginPos[2] + z;
+
+                    if (Math.abs(worldX - myPos[0]) > MINIMAP_RANGE || Math.abs(worldZ - myPos[2]) > MINIMAP_RANGE) {
+                        continue;
+                    }
+
+                    const mapKey = \`\${worldX}|\${worldZ}\`;
+                    const worldY = chunkOriginPos[1] + y;
+
+                    if (!surfaceMap.has(mapKey) || worldY > surfaceMap.get(mapKey).y) {
+                        surfaceMap.set(mapKey, { y: worldY, blockId: blockID, worldX: worldX, worldZ: worldZ });
+                    }
+                }
+            }
+        }
+
+        const heightLookupMap = new Map(Array.from(surfaceMap.values()).map(d => [\`\${d.worldX}|\${d.worldZ}\`, d.y]));
+
+        processedData = Array.from(surfaceMap.values()).map(data => {
+            let brightnessOffset = 0;
+            const topNeighborY = heightLookupMap.get(\`\${data.worldX}|\${data.worldZ + 1}\`);
+            const bottomNeighborY = heightLookupMap.get(\`\${data.worldX}|\${data.worldZ - 1}\`);
+            const leftNeighborY = heightLookupMap.get(\`\${data.worldX - 1}|\${data.worldZ}\`);
+            const rightNeighborY = heightLookupMap.get(\`\${data.worldX + 1}|\${data.worldZ}\`);
+
+            if (topNeighborY !== undefined && data.y < topNeighborY) {
+                brightnessOffset = -0.25; 
+            } else if (bottomNeighborY !== undefined && data.y < bottomNeighborY) {
+                brightnessOffset = 0.15;
+            } else if ((leftNeighborY !== undefined && data.y < leftNeighborY) || (rightNeighborY !== undefined && data.y < rightNeighborY)) {
+                brightnessOffset = -0.10;
+            }
+
+            return {
+                blockId: data.blockId,
+                worldX: data.worldX,
+                worldZ: data.worldZ,
+                brightness: brightnessOffset * 100
+            };
         });
 
-        function formatBytes(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        self.postMessage({ surfaceData: processedData });
+    };
+`;
+
+function setupMinimapWorker() {
+    try {
+        const blob = new Blob([workerScriptContent], { type: 'application/javascript' });
+        minimapWorker = new Worker(URL.createObjectURL(blob));
+
+        minimapWorker.onmessage = function(e) {
+            lastSurfaceData = e.data.surfaceData; 
+            isWorkerBusy = false; 
+        };
+        console.log("[Minimap] Web Worker initialized successfully.");
+    } catch (e) {
+        console.error("[Minimap] Failed to initialize Web Worker.", e);
+        minimapWorker = null;
+    }
+}
+
+function getBlockName(blockId) {
+    if (!Number.isFinite(blockId)) return null;
+    if (blockNameCache.has(blockId)) {
+        return blockNameCache.get(blockId);
+    }
+
+    let name = null;
+    try {
+        const blocksClient = Fuxny?.Props?.blocksClient;
+        if (blocksClient) {
+            const entry = blocksClient[blockId] ?? blocksClient[String(blockId)];
+            if (typeof entry?.name === 'string') {
+                name = entry.name;
+            }
+        }
+    } catch (e) {
+        console.warn(`[Minimap] Error getting block name for ID ${blockId}:`, e);
+    }
+
+    blockNameCache.set(blockId, name);
+    return name;
+}
+const averageColor = {Unloaded:[244,0,255],Dirt:[142,100,78],"Messy Dirt":[133,91,70],"Grass Block":[111,174,83],Sand:[217,201,158],Clay:[161,171,181],Gravel:[106,107,109],Snow:[230,235,235],"Maple Log":[124,90,55],"Pine Log":[62,40,22],"Plum Log":[87,79,71],"Cedar Log":[53,40,22],"Aspen Log":[233,230,200],"Jungle Log":[93,73,23],"Maple Wood Planks":[175,143,85],"Aspen Wood Planks":[199,180,128],"Plum Wood Planks":[174,97,49],"Jungle Wood Planks":[165,124,86],"Pine Wood Planks":[122,91,52],"Cedar Wood Planks":[81,52,25],"Barkless Maple Log":[156,120,74],"Barkless Aspen Log":[174,150,107],"Barkless Plum Log":[146,74,37],"Barkless Jungle Log":[146,97,68],"Barkless Pine Log":[103,72,42],"Barkless Cedar Log":[61,37,18],free_placeholder2:[146,142,142],Stone:[146,142,142],"Messy Stone":[146,142,142],free_placeholder:[146,142,142],"Smooth Stone":[163,161,161],Diorite:[202,197,192],"Smooth Diorite":[246,245,240],Andesite:[128,132,137],"Smooth Andesite":[162,164,166],Granite:[159,107,88],"Smooth Granite":[189,135,108],Sandstone:[230,222,177],Yellowstone:[221,215,149],"Coal Ore":[146,142,142],"Iron Ore":[146,142,142],"Gold Ore":[146,142,142],"Lapis Lazuli Ore":[146,142,142],"Emerald Ore":[146,142,142],"Diamond Ore":[146,142,142],"Block of Coal":[19,19,19],"Block of Iron":[214,209,202],"Block of Gold":[243,170,36],"Block of Lapis Lazuli":[34,91,174],"Block of Emerald":[11,197,85],"White Wool":[250,250,250],"Orange Wool":[252,133,33],"Magenta Wool":[203,74,189],"Light Blue Wool":[59,194,230],"Yellow Wool":[255,211,64],"Lime Wool":[134,202,29],"Pink Wool":[254,155,188],"Gray Wool":[73,79,83],"Light Gray Wool":[154,154,149],"Cyan Wool":[25,153,154],"Purple Wool":[136,45,183],"Blue Wool":[58,68,166],"Brown Wool":[125,81,44],"Green Wool":[95,119,32],"Red Wool":[176,44,37],"Black Wool":[29,31,36],"Baked Clay":[150,93,67],"White Baked Clay":[210,177,161],"Orange Baked Clay":[162,83,38],"Magenta Baked Clay":[149,87,108],"Light Blue Baked Clay":[112,108,138],"Yellow Baked Clay":[186,133,36],"Lime Baked Clay":[103,117,53],"Pink Baked Clay":[162,78,79],"Gray Baked Clay":[58,42,36],"Light Gray Baked Clay":[135,107,98],"Cyan Baked Clay":[85,90,90],"Purple Baked Clay":[118,70,86],"Blue Baked Clay":[73,59,91],"Brown Baked Clay":[77,50,35],"Green Baked Clay":[75,82,40],"Red Baked Clay":[142,61,47],"Black Baked Clay":[36,21,15],"Gray Concrete":[55,58,62],"Light Gray Concrete":[125,125,115],"Black Concrete":[9,11,16],"Blue Concrete":[45,47,144],"Brown Concrete":[97,60,32],"Cyan Concrete":[21,119,135],"Light Blue Concrete":[37,138,200],"Lime Concrete":[95,170,25],"Magenta Concrete":[169,48,159],"Orange Concrete":[225,97,0],"Pink Concrete":[214,101,143],"Purple Concrete":[101,32,157],"Red Concrete":[143,33,33],"White Concrete":[208,214,215],"Green Concrete":[73,91,36],"Yellow Concrete":[242,176,21],"Pine Leaves":[22,41,12],"Aspen Leaves":[50,128,22],"Maple Leaves":[56,105,31],"Jungle Leaves":[45,151,13],Pumpkin_placeholder:[196,104,19],Watermelon:[93,141,32],Glass:[198,230,229],"Black Glass":[23,26,32],"Blue Glass":[101,134,207],"Brown Glass":[154,118,91],"Cyan Glass":[31,145,164],"Gray Glass":[86,90,93],"Light Gray Glass":[179,183,187],"Green Glass":[105,125,62],"Light Blue Glass":[135,187,242],"Lime Glass":[188,226,152],"Magenta Glass":[193,73,183],"Orange Glass":[242,151,82],"Pink Glass":[242,157,188],"Purple Glass":[126,63,177],"Red Glass":[182,56,56],"White Glass":[245,246,246],"Yellow Glass":[248,214,135],"UNUSED BLOCK TYPE":[153,153,153],"Dim Lamp On":[56,28,7],"Dim Lamp Off":[56,28,7],Bricks:[143,80,63],"Stone Bricks":[146,142,142],"Dark Red Brick":[78,40,47],"Dark Red Stone":[117,56,51],"Block of Quartz":[251,248,239],"Chiseled Block of Quartz":[237,229,217],"Engraved Stone":[113,109,109],"Mossy Stone Bricks":[146,142,142],"Cracked Stone Bricks":[146,142,142],"Smooth Sandstone":[230,222,177],"Engraved Sandstone":[230,222,177],Ice:[134,207,254],Obsidian:[19,12,32],"Hay Bale":[169,132,25],Sponge:[166,150,46],Beacon:[255,255,255],"Golden Decoration":[150,101,53],"Moonstone Explosive":[152,173,217],Bedrock:[21,21,22],"Smooth Double Stone Slab":[163,161,161],Cactus:[81,146,43],Grass:[126,177,75],Dandelion:[255,236,79],Poppy:[237,48,44],"Red Tulip":[237,48,44],"Pink Tulip":[235,197,253],"White Tulip":[247,247,247],"Orange Tulip":[241,157,37],Daisy:[247,247,247],Bluebell:[42,191,253],"Forget-me-not":[72,115,238],Allium:[160,107,215],"Azure Bluet":[252,252,252],"Lily of the Valley":[215,22,22],"Shadow Rose":[42,33,29],Furnace:[79,75,75],Workbench:[100,63,45],"Block of Diamond":[37,171,193],"Maple Door":[175,143,85],"_Maple Door Top":[175,143,85],"Maple Trapdoor":[132,97,61],"Aspen Sapling":[124,165,61],"Maple Sapling":[113,80,47],"Jungle Sapling":[57,58,14],"Plum Sapling":[126,152,33],"Pine Sapling":[61,94,61],"Cedar Sapling":[55,143,47],"Maple Log|TreeBase|Maple":[124,90,55],Chest:[183,125,45],"Pine Leaves|TreeCanopy":[22,41,12],"Aspen Leaves|TreeCanopy":[50,128,22],"Maple Leaves|TreeCanopy":[56,105,31],"Jungle Leaves|TreeCanopy":[45,151,13],Protector:[146,142,142],"Fat Cactus":[81,146,43],"Dry Fat Cactus":[124,78,31],"Maple Ladder":[156,120,74],Vines:[78,114,46],"Dirt|GrassRoots":[142,100,78],"Iron Ladder":[173,180,182],"White Planks":[250,242,227],"Orange Planks":[209,125,65],"Magenta Planks":[156,78,126],"Light Blue Planks":[85,156,173],"Yellow Planks":[219,182,81],"Lime Planks":[154,173,85],"Pink Planks":[196,122,149],"Gray Planks":[82,78,72],"Light Gray Planks":[153,147,138],"Cyan Planks":[103,171,171],"Purple Planks":[149,113,171],"Blue Planks":[85,94,173],"Brown Planks":[130,94,65],"Green Planks":[103,117,59],"Red Planks":[171,72,68],"Black Planks":[41,38,33],"Artisan Bench":[100,63,45],"White Ceramic":[254,220,86],"Wheat Seeds":[9,164,18],Wheat_stage1:[2,134,20],Wheat_stage2:[2,134,20],Wheat_stage3:[2,134,20],Wheat_stage4:[2,134,20],Wheat_stage5:[2,134,20],Wheat:[220,187,101],"Wheat|FreshlyGrown":[220,187,101],"Dandelion|Roots":[255,236,79],"Poppy|Roots":[237,48,44],"Red Tulip|Roots":[237,48,44],"Pink Tulip|Roots":[235,197,253],"White Tulip|Roots":[247,247,247],"Orange Tulip|Roots":[241,157,37],"Daisy|Roots":[247,247,247],"Bluebell|Roots":[42,191,253],"Forget-me-not|Roots":[72,115,238],"Allium|Roots":[160,107,215],"Azure Bluet|Roots":[252,252,252],"Lily of the Valley|Roots":[215,22,22],"Shadow Rose|Roots":[42,33,29],"White Bed":[205,199,199],"_White Bed Head":[205,199,199],"Orange Bed":[205,199,199],"_Orange Bed Head":[205,199,199],"Magenta Bed":[205,199,199],"_Magenta Bed Head":[205,199,199],"Light Blue Bed":[205,199,199],"_Light Blue Bed Head":[205,199,199],"Yellow Bed":[205,199,199],"_Yellow Bed Head":[205,199,199],"Lime Bed":[205,199,199],"_Lime Bed Head":[205,199,199],"Pink Bed":[205,199,199],"_Pink Bed Head":[205,199,199],"Gray Bed":[205,199,199],"_Gray Bed Head":[205,199,199],"Light Gray Bed":[205,199,199],"_Light Gray Bed Head":[205,199,199],"Cyan Bed":[205,199,199],"_Cyan Bed Head":[205,199,199],"Purple Bed":[205,199,199],"_Purple Bed Head":[205,199,199],"Blue Bed":[205,199,199],"_Blue Bed Head":[205,199,199],"Brown Bed":[205,199,199],"_Brown Bed Head":[205,199,199],"Green Bed":[205,199,199],"_Green Bed Head":[205,199,199],"Red Bed":[205,199,199],"_Red Bed Head":[205,199,199],"Black Bed":[205,199,199],"_Black Bed Head":[205,199,199],"Pine Log|TreeBase|Pine":[62,40,22],"Plum Log|TreeBase|Plum":[87,79,71],"Cedar Log|TreeBase|Cedar":[53,40,22],"Aspen Log|TreeBase|Aspen":[233,230,200],"Jungle Log|TreeBase|Jungle":[93,73,23],"Palm Sapling":[38,128,11],"Pine Door":[122,91,52],"_Pine Door Top":[122,91,52],"Plum Door":[174,97,49],"_Plum Door Top":[174,97,49],"Cedar Door":[81,52,25],"_Cedar Door Top":[81,52,25],"Aspen Door":[199,180,128],"_Aspen Door Top":[199,180,128],"Jungle Door":[165,124,86],"_Jungle Door Top":[165,124,86],"Palm Door":[214,153,73],"_Palm Door Top":[214,153,73],"Pine Trapdoor":[97,67,39],"Plum Trapdoor":[174,97,49],"Cedar Trapdoor":[61,37,18],"Aspen Trapdoor":[199,180,128],"Jungle Trapdoor":[124,78,58],"Palm Trapdoor":[182,129,62],"Smooth Sandstone Slab":[230,222,177],"Cactus|Growing":[81,146,43],"Fat Cactus|Growing":[81,146,43],"Pear Door":[141,110,99],"_Pear Door Top":[141,110,99],"Pear Trapdoor":[141,110,99],"Pear Sapling":[242,248,234],Board:[175,143,85],Net:[149,83,50],Cobweb:[219,214,194],"Watermelon Seeds":[72,99,4],"Watermelon Seeds|Growing":[72,99,4],"Attached Watermelon Stem":[72,99,4],"Pumpkin Seeds":[72,99,4],"Pumpkin Seeds|Growing":[72,99,4],"Attached Pumpkin Stem":[72,99,4],"Jack o'Lantern":[196,104,19],"Melon Seeds":[72,99,4],"Melon Seeds|Growing":[72,99,4],"Attached Melon Stem":[72,99,4],"Potion Table":[1,1,1],"Pine Ladder":[97,67,39],"Plum Ladder":[149,75,38],"Cedar Ladder":[81,52,25],"Aspen Ladder":[174,150,107],"Jungle Ladder":[165,124,86],"Palm Ladder":[196,139,66],"Pear Ladder":[141,110,99],"Black Carpet":[29,31,36],"Blue Carpet":[58,68,166],"Brown Carpet":[125,81,44],"Cyan Carpet":[25,153,154],"Gray Carpet":[73,79,83],"Light Gray Carpet":[154,154,149],"Green Carpet":[95,119,32],"Light Blue Carpet":[59,194,230],"Lime Carpet":[134,202,29],"Magenta Carpet":[203,74,189],"Orange Carpet":[252,133,33],"Pink Carpet":[254,155,188],"Purple Carpet":[136,45,183],"Red Carpet":[176,44,37],"White Carpet":[250,250,250],"Yellow Carpet":[255,211,64],Rice:[94,176,99],Rice_stage1:[82,153,87],Rice_stage2:[82,153,87],Rice_stage3:[82,153,87],Rice_stage4:[209,207,118],Rice_stage5:[209,207,118],"Rice|FreshlyGrown":[209,207,118],Cranberries:[30,77,51],Cranberries_stage1:[40,98,64],Cranberries_stage2:[40,98,64],"Red Mushroom":[226,61,48],"Brown Mushroom":[193,151,119],"Cotton Seeds":[40,133,34],Cotton_stage1:[40,133,34],Cotton_stage2:[42,110,30],Cotton_stage3:[236,237,240],"Tall Grass":[126,177,75],"Tall Grass|Top":[109,160,58],"Barkless Maple Log|TreeBase|Maple":[156,120,74],"Barkless Plum Log|TreeBase|Plum":[146,74,37],"Barkless Cedar Log|TreeBase|Cedar":[61,37,18],"Barkless Aspen Log|TreeBase|Aspen":[174,150,107],"Barkless Jungle Log|TreeBase|Jungle":[146,97,68],"Barkless Pine Log|TreeBase|Pine":[103,72,42],"Yellow Concrete Slab":[242,176,21],"White Concrete Slab":[208,214,215],"Red Concrete Slab":[143,33,33],"Purple Concrete Slab":[101,32,157],"Pink Concrete Slab":[214,101,143],"Orange Concrete Slab":[225,97,0],"Magenta Concrete Slab":[169,48,159],"Lime Concrete Slab":[95,170,25],"Light Gray Concrete Slab":[125,125,115],"Light Blue Concrete Slab":[37,138,200],"Green Concrete Slab":[73,91,36],"Gray Concrete Slab":[55,58,62],"Cyan Concrete Slab":[21,119,135],"Brown Concrete Slab":[97,60,32],"Blue Concrete Slab":[45,47,144],"Black Concrete Slab":[9,11,16],"Cherry Door":[233,192,187],"_Cherry Door Top":[233,192,187],"Cherry Trapdoor":[218,170,170],"Cherry Sapling":[249,194,225],"Cherry Ladder":[211,159,159],"Wood Spikes":[0,0,0],"Stone Spikes":[0,0,0],"Iron Spikes":[0,0,0],"Gold Spikes":[0,0,0],"Diamond Spikes":[0,0,0],"Kill Spikes":[0,0,0],"Corn Seeds":[59,101,0],"Corn Seeds_stage1":[36,84,0],"Corn Seeds|FreshlyGrown":[36,84,0],"Corn Seeds|Growing":[36,84,0],"Corn Plant_stage1":[59,101,0],"Corn Plant_stage2":[36,84,0],"Corn Plant_stage3":[36,84,0],"Corn Plant_stage4":[36,84,0],"Corn Plant_stage5":[36,84,0],"Corn Plant":[36,84,0],"Corn Plant|FreshlyGrown":[36,84,0],"Loot Chest":[183,125,45],"Melting Ice":[134,207,254],"White Strongbed":[173,180,182],"_White Strongbed Head":[173,180,182],"Orange Strongbed":[173,180,182],"_Orange Strongbed Head":[173,180,182],"Magenta Strongbed":[173,180,182],"_Magenta Strongbed Head":[173,180,182],"Light Blue Strongbed":[173,180,182],"_Light Blue Strongbed Head":[173,180,182],"Yellow Strongbed":[173,180,182],"_Yellow Strongbed Head":[173,180,182],"Lime Strongbed":[173,180,182],"_Lime Strongbed Head":[173,180,182],"Pink Strongbed":[173,180,182],"_Pink Strongbed Head":[173,180,182],"Gray Strongbed":[173,180,182],"_Gray Strongbed Head":[173,180,182],"Light Gray Strongbed":[173,180,182],"_Light Gray Strongbed Head":[173,180,182],"Cyan Strongbed":[173,180,182],"_Cyan Strongbed Head":[173,180,182],"Purple Strongbed":[173,180,182],"_Purple Strongbed Head":[173,180,182],"Blue Strongbed":[173,180,182],"_Blue Strongbed Head":[173,180,182],"Brown Strongbed":[173,180,182],"_Brown Strongbed Head":[173,180,182],"Green Strongbed":[173,180,182],"_Green Strongbed Head":[173,180,182],"Red Strongbed":[173,180,182],"_Red Strongbed Head":[173,180,182],"Black Strongbed":[173,180,182],"_Black Strongbed Head":[173,180,182],"Timed Spike Bomb Block":[0,0,0],"Timed Spike Bomb Block|Flashing":[0,0,0],"Fat Brown Mushroom":[167,124,97],"Fat Red Mushroom":[237,232,202],"Chili Pepper Seeds":[0,0,0],"Chili Pepper Seeds|Lava":[0,0,0],"Spectral Grass":[30,175,136],"Spectral Door":[54,157,145],"_Spectral Door Top":[54,157,145],"Spectral Trapdoor":[31,105,107],"Spectral Sapling":[22,136,139],"Spectral Ladder":[31,105,107],"Wood Enchanting Table":[1,1,1],"Stone Enchanting Table":[1,1,1],"Iron Enchanting Table":[1,1,1],"Gold Enchanting Table":[1,1,1],"Diamond Enchanting Table":[1,1,1],"Pine Grass":[93,161,125],"Pine Fern":[71,147,107],"Fallen Pine Cone":[176,127,73],"Bone Antlers":[247,239,225],"Gold Antlers":[236,224,87],"Salvaging Table":[0,0,0],"Leaf Bed":[56,105,31],"_Leaf Bed Head":[56,105,31],"Jungle Tall Grass":[45,151,13],"Jungle Tall Grass|Top":[45,151,13],Catnip:[45,151,13],"Mango Door":[197,183,95],"_Mango Door Top":[197,183,95],"Mango Trapdoor":[163,147,53],"Mango Sapling":[69,134,78],"Mango Ladder":[197,183,95],"Banana Seeds":[137,175,37],"Banana Seeds|Growing":[137,175,37],"Attached Banana Stem":[160,201,53],"Dangling Rope":[197,162,115],"Dangling Vine":[82,106,28],"Tomato Plant":[88,113,44],"Tomato Plant_stage1":[88,112,44],"Tomato Plant|FreshlyGrown":[88,113,44],"Tomato Plant|Top|FreshlyGrown":[107,132,45],"Carrot Plant":[107,132,45],"Carrot Plant_stage1":[107,132,45],"Carrot Plant|FreshlyGrown":[107,132,45],"Potato Plant":[88,113,44],"Potato Plant_stage1":[88,112,44],"Potato Plant|FreshlyGrown":[88,113,44],"Strawberry Bush":[120,158,36],"Strawberry Bush_stage1":[120,158,36],"Strawberry Bush_stage2":[120,158,36],"Sugar Cane Plant":[180,170,51],"Sugar Cane Plant_stage1":[180,170,51],"Sugar Cane Plant|FreshlyGrown":[150,154,38],"Sugar Cane Plant|Top|FreshlyGrown":[180,170,51],"Lettuce Plant":[120,158,36],"Lettuce Plant_stage1":[120,158,36],"Lettuce Plant|FreshlyGrown":[120,158,36],"Coffee Plant":[124,131,30],"Coffee Plant_stage1":[124,131,30],"Coffee Plant|FreshlyGrown":[97,115,8],"Cauliflower Plant":[154,180,81],"Cauliflower Plant_stage1":[188,201,125],"Cauliflower Plant|FreshlyGrown":[255,243,214],"Parsnip Plant":[88,113,44],"Parsnip Plant_stage1":[88,113,44],"Parsnip Plant|FreshlyGrown":[88,113,44],"Blueberry Bush":[107,132,45],"Blueberry Bush_stage1":[107,132,45],"Blueberry Bush_stage2":[107,132,45],"Red Cabbage Plant":[133,144,74],"Red Cabbage Plant_stage1":[145,129,111],"Red Cabbage Plant|FreshlyGrown":[169,100,186],"Beetroot Plant":[107,132,45],"Beetroot Plant_stage1":[107,132,45],"Beetroot Plant|FreshlyGrown":[107,132,45],"Autumn Fern":[227,205,82],"Carrot Seeds":[107,132,45],"Potato Seeds":[88,113,44],"Beetroot Seeds":[107,132,45],"White Banner":[124,75,71],"_White Banner Flag":[124,75,71],"Orange Banner":[124,75,71],"_Orange Banner Flag":[124,75,71],"Magenta Banner":[124,75,71],"_Magenta Banner Flag":[124,75,71],"Light Blue Banner":[124,75,71],"_Light Blue Banner Flag":[124,75,71],"Yellow Banner":[124,75,71],"_Yellow Banner Flag":[124,75,71],"Lime Banner":[124,75,71],"_Lime Banner Flag":[124,75,71],"Pink Banner":[124,75,71],"_Pink Banner Flag":[124,75,71],"Gray Banner":[124,75,71],"_Gray Banner Flag":[124,75,71],"Light Gray Banner":[124,75,71],"_Light Gray Banner Flag":[124,75,71],"Cyan Banner":[124,75,71],"_Cyan Banner Flag":[124,75,71],"Purple Banner":[124,75,71],"_Purple Banner Flag":[124,75,71],"Blue Banner":[124,75,71],"_Blue Banner Flag":[124,75,71],"Brown Banner":[124,75,71],"_Brown Banner Flag":[124,75,71],"Green Banner":[124,75,71],"_Green Banner Flag":[124,75,71],"Red Banner":[124,75,71],"_Red Banner Flag":[124,75,71],"Black Banner":[124,75,71],"_Black Banner Flag":[124,75,71],"Draugr Banner":[124,75,71],"_Draugr Banner Flag":[124,75,71],"Orange Ceramic":[22,163,163],"Magenta Ceramic":[199,78,189],"Light Blue Ceramic":[41,44,133],"Yellow Ceramic":[255,236,157],"Lime Ceramic":[94,169,24],"Pink Ceramic":[184,183,173],"Gray Ceramic":[54,57,61],"Light Gray Ceramic":[96,114,119],"Cyan Ceramic":[21,119,136],"Purple Ceramic":[162,84,224],"Blue Ceramic":[35,30,67],"Brown Ceramic":[131,84,50],"Green Ceramic":[208,214,215],"Red Ceramic":[142,32,32],"Black Ceramic":[153,34,34],"Tilled Soil":[148,96,63],"Bread Block":[198,144,41],"ReservedBread BlockRotation1":[198,144,41],"ReservedBread BlockRotation2":[198,144,41],"ReservedBread BlockRotation3":[198,144,41],"Mossy Messy Stone":[146,142,142],"Apple Block":[167,21,28],"Moonstone Ore":[146,142,142],"Moonstone Chest":[201,210,241],"Block of Moonstone":[152,173,217],Magma:[247,136,24],"Useless Soil":[101,65,25],"Marked Sandstone":[230,222,177],"Red Sandstone":[203,110,36],"Smooth Red Sandstone":[203,110,36],"Engraved Red Sandstone":[203,110,36],"Marked Red Sandstone":[203,110,36],"Green Stone":[121,183,165],"Green Bricks":[74,145,127],"Dark Green Bricks":[59,130,104],"Sandstone Bricks":[230,222,177],"Engraved Diorite":[246,245,240],"Diorite Bricks":[246,245,240],"Engraved Andesite":[105,109,115],"Andesite Bricks":[128,132,137],"Engraved Granite":[159,107,88],"Granite Bricks":[159,107,88],"Ice Bricks":[134,207,254],"Placeholder Packed Ice":[134,207,254],"Placeholder Blue Ice":[134,207,254],"Plum Leaves":[58,112,50],"Cedar Leaves":[37,67,20],"Palm Leaves":[88,174,62],"Plum Leaves|TreeCanopy":[58,112,50],"Cedar Leaves|TreeCanopy":[37,67,20],"Palm Leaves|TreeCanopy":[88,174,62],"Palm Log":[91,85,44],"Palm Log|TreeBase|Palm":[91,85,44],"Palm Wood Planks":[214,153,73],"Red Sand":[203,110,36],"Red Sandstone Bricks":[203,110,36],"Rocky Dirt":[142,100,78],"Autumn Maple Leaves":[204,120,31],"Autumn Maple Leaves|TreeCanopy":[204,120,31],"Fallen Maple Leaves":[204,120,31],"Maple Slab":[156,120,74],"Pine Slab":[97,67,39],"Plum Slab":[149,75,38],"Cedar Slab":[61,37,18],"Aspen Slab":[174,150,107],"Jungle Slab":[143,99,71],"Palm Slab":[196,139,66],"Dirt Slab":[129,88,70],"Grass Slab":[103,161,77],"Messy Stone Slab":[128,124,124],"Stone Slab":[146,142,142],"Smooth Stone Slab":[146,142,142],"Engraved Stone Slab":[146,142,142],"Stone Bricks Slab":[113,109,109],"Mossy Stone Slab":[128,124,124],"Mossy Stone Bricks Slab":[113,109,109],"Andesite Slab":[128,132,137],"Smooth Andesite Slab":[128,132,137],"Engraved Andesite Slab":[128,132,137],"Andesite Bricks Slab":[105,109,115],"Diorite Slab":[246,245,240],"Smooth Diorite Slab":[202,197,192],"Engraved Diorite Slab":[202,197,192],"Diorite Bricks Slab":[202,197,192],"Granite Slab":[159,107,88],"Smooth Granite Slab":[159,107,88],"Engraved Granite Slab":[159,107,88],"Granite Bricks Slab":[128,80,65],"Sandstone Slab":[217,201,158],"Engraved Sandstone Slab":[230,222,177],"Marked Sandstone Slab":[230,222,177],"Sandstone Bricks Slab":[211,190,147],"Red Sandstone Slab":[192,92,30],"Smooth Red Sandstone Slab":[203,110,36],"Engraved Red Sandstone Slab":[203,110,36],"Marked Red Sandstone Slab":[203,110,36],"Red Sandstone Bricks Slab":[186,89,29],"Bricks Slab":[162,134,125],"Ice Bricks Slab":[230,235,235],"Plum Block":[143,16,143],"Coconut Block":[117,88,39],"Pear Log":[97,97,97],"Pear Wood Planks":[141,110,99],"Pear Leaves":[242,248,234],"Pear Log|TreeBase|Pear":[97,97,97],"Pear Leaves|TreeCanopy":[242,248,234],"Pear Slab":[109,76,65],"Pear Block":[248,215,72],"Compressed Messy Stone":[117,117,117],"Extra Compressed Messy Stone":[107,107,107],"Super Compressed Messy Stone":[87,87,87],"Hyper Compressed Messy Stone":[77,77,77],"Ultra Compressed Messy Stone":[68,68,68],"Mega Compressed Messy Stone":[62,62,62],"Brown Mushroom Block":[193,151,119],"Red Mushroom Block":[226,61,48],"Mushroom Stem":[211,206,196],"Fireball Block":[236,63,49],"Iceball Block":[49,123,235],Pumpkin:[196,104,19],"Carved Pumpkin":[196,104,19],Melon:[245,220,0],"Iron Watermelon":[214,209,202],"Patterned Black Glass":[0,0,0],"Patterned Blue Glass":[32,59,118],"Patterned Brown Glass":[124,82,51],"Patterned Cyan Glass":[98,179,193],"Patterned Gray Glass":[86,90,93],"Patterned Light Gray Glass":[190,194,198],"Patterned Green Glass":[105,125,62],"Patterned Light Blue Glass":[135,187,242],"Patterned Lime Glass":[125,199,55],"Patterned Magenta Glass":[193,73,183],"Patterned Orange Glass":[242,151,82],"Patterned Pink Glass":[238,116,161],"Patterned Purple Glass":[126,63,177],"Patterned Red Glass":[143,33,33],"Patterned White Glass":[255,255,255],"Patterned Yellow Glass":[248,214,135],Bookshelf:[175,143,85],"Empty Bookshelf":[175,143,85],Mailbox:[100,63,45],"Tribe Protector":[146,142,142],"Faction Protector":[217,87,99],"Barkless Palm Log":[196,139,66],"Barkless Pear Log":[109,76,65],"Barkless Palm Log|TreeBase|Palm":[196,139,66],"Barkless Pear Log|TreeBase|Pear":[109,76,65],"Mystery Block":[238,202,78],Rocket:[52,81,51],"Super Rocket":[80,58,32],Grenade:[61,49,97],"Cherry Log":[54,34,46],"Barkless Cherry Log":[218,170,170],"Barkless Cherry Log|TreeBase|Cherry":[218,170,170],"Cherry Wood Planks":[233,192,187],"Cherry Leaves":[249,194,225],"Fallen Cherry Leaves":[249,194,225],"Cherry Log|TreeBase|Cherry":[54,34,46],"Cherry Leaves|TreeCanopy":[249,194,225],"Cherry Slab":[218,170,170],"Cherry Block":[228,54,139],"Bouncy Bomb Block":[183,45,183],"Obby Rocket":[52,81,51],"Corn Block":[236,207,17],"Melting Ice|Breaking":[64,137,254],"Yellow Paintball Explosive":[242,176,21],"White Paintball Explosive":[208,214,215],"Red Paintball Explosive":[143,33,33],"Purple Paintball Explosive":[101,32,157],"Pink Paintball Explosive":[214,101,143],"Orange Paintball Explosive":[225,97,0],"Magenta Paintball Explosive":[169,48,159],"Lime Paintball Explosive":[95,170,25],"Light Gray Paintball Explosive":[125,125,115],"Light Blue Paintball Explosive":[37,138,200],"Green Paintball Explosive":[73,91,36],"Gray Paintball Explosive":[55,58,62],"Cyan Paintball Explosive":[21,119,135],"Brown Paintball Explosive":[97,60,32],"Blue Paintball Explosive":[45,47,144],"Black Paintball Explosive":[9,11,16],"Yellow Quick Paintball Explosive":[255,211,64],"White Quick Paintball Explosive":[250,250,250],"Goal Block (Red)":[143,33,33],"Goal Block (Blue)":[45,47,144],"Red Quick Paintball Explosive":[176,44,37],"Purple Quick Paintball Explosive":[136,45,183],"Pink Quick Paintball Explosive":[254,155,188],"Orange Quick Paintball Explosive":[252,133,33],"Magenta Quick Paintball Explosive":[203,74,189],"Lime Quick Paintball Explosive":[134,202,29],"Light Gray Quick Paintball Explosive":[154,154,149],"Light Blue Quick Paintball Explosive":[59,194,230],"Green Quick Paintball Explosive":[95,119,32],"Gray Quick Paintball Explosive":[73,79,83],"Cyan Quick Paintball Explosive":[25,153,154],"Brown Quick Paintball Explosive":[125,81,44],"Blue Quick Paintball Explosive":[58,68,166],"Black Quick Paintball Explosive":[29,31,36],"Yellow Seeking Paintball Explosive":[242,176,21],"White Seeking Paintball Explosive":[208,214,215],"Red Seeking Paintball Explosive":[143,33,33],"Purple Seeking Paintball Explosive":[101,32,157],"Pink Seeking Paintball Explosive":[214,101,143],"Orange Seeking Paintball Explosive":[225,97,0],"Magenta Seeking Paintball Explosive":[169,48,159],"Lime Seeking Paintball Explosive":[95,170,25],"Light Gray Seeking Paintball Explosive":[125,125,115],"Light Blue Seeking Paintball Explosive":[37,138,200],"Green Seeking Paintball Explosive":[73,91,36],"Gray Seeking Paintball Explosive":[55,58,62],"Cyan Seeking Paintball Explosive":[21,119,135],"Brown Seeking Paintball Explosive":[97,60,32],"Blue Seeking Paintball Explosive":[45,47,144],"Black Seeking Paintball Explosive":[9,11,16],"Yellow Sticky Paintball Explosive":[242,176,21],"White Sticky Paintball Explosive":[208,214,215],"Red Sticky Paintball Explosive":[143,33,33],"Purple Sticky Paintball Explosive":[101,32,157],"Pink Sticky Paintball Explosive":[214,101,143],"Orange Sticky Paintball Explosive":[225,97,0],"Magenta Sticky Paintball Explosive":[169,48,159],"Lime Sticky Paintball Explosive":[95,170,25],"Light Gray Sticky Paintball Explosive":[125,125,115],"Light Blue Sticky Paintball Explosive":[37,138,200],"Green Sticky Paintball Explosive":[73,91,36],"Gray Sticky Paintball Explosive":[55,58,62],"Cyan Sticky Paintball Explosive":[21,119,135],"Brown Sticky Paintball Explosive":[97,60,32],"Blue Sticky Paintball Explosive":[45,47,144],"Black Sticky Paintball Explosive":[9,11,16],"Chili Pepper Block":[216,0,7],"Code Block":[227,158,100],"Toxin Ball Block":[8,94,53],"Spawn Block (Yellow)":[255,211,64],"Spawn Block (White)":[250,250,250],"Spawn Block (Red)":[176,44,37],"Spawn Block (Purple)":[136,45,183],"Spawn Block (Pink)":[254,155,188],"Spawn Block (Orange)":[252,133,33],"Spawn Block (Magenta)":[203,74,189],"Spawn Block (Lime)":[134,202,29],"Spawn Block (Light Gray)":[154,154,149],"Spawn Block (Light Blue)":[59,194,230],"Spawn Block (Green)":[95,119,32],"Spawn Block (Gray)":[73,79,83],"Spawn Block (Cyan)":[25,153,154],"Spawn Block (Brown)":[125,81,44],"Spawn Block (Blue)":[58,68,166],"Spawn Block (Black)":[29,31,36],"Checkpoint Block":[62,230,27],"Custom Lobby Block":[0,0,0],"Generator Spawn Block (Red)":[176,44,37],"Generator Spawn Block (Blue)":[58,68,166],"Generator Spawn Block (Lime)":[134,202,29],"Generator Spawn Block (Yellow)":[255,211,64],"Generator Spawn Block (Cyan)":[25,153,154],"Generator Spawn Block (White)":[250,250,250],"Generator Spawn Block (Pink)":[254,155,188],"Generator Spawn Block (Gray)":[73,79,83],"Trader Shop Spawn Block":[45,45,45],"Wizard Shop Spawn Block":[42,122,194],"Generator Spawn Block (Diamond)":[37,171,193],"Generator Spawn Block (Moonstone)":[152,173,217],"Generator Spawn Block (Ore)":[146,142,142],"Finish Block":[255,255,255],"Drop Location Block":[51,51,109],"Obby Death Block":[172,50,50],"Obby Absorb Block":[75,75,75],"Obby Absorb Death Block":[75,47,171],"Bone Block":[224,228,223],"Pig Spawner Block":[60,83,101],"Cow Spawner Block":[60,83,101],"Sheep Spawner Block":[60,83,101],"Cave Golem Spawner Block":[60,83,101],"Draugr Zombie Spawner Block":[60,83,101],"Draugr Skeleton Spawner Block":[60,83,101],"Empty Spawner Block":[60,83,101],"Frost Golem Spawner Block":[60,83,101],"Frost Zombie Spawner Block":[60,83,101],"Frost Skeleton Spawner Block":[60,83,101],"Snowy Messy Stone":[146,142,142],"Snowy Stone Slab":[128,124,124],"Draugr Knight Spawner Block":[60,83,101],"Packed Snow":[188,219,219],"Carved Messy Stone":[146,142,142],"Spectral Log":[29,123,107],"Barkless Spectral Log":[43,132,128],"Barkless Spectral Log|TreeBase|Spectral":[43,132,128],"Spectral Wood Planks":[54,157,145],"Spectral Leaves":[22,136,139],"Spectral Log|TreeBase|Spectral":[29,123,107],"Spectral Leaves|TreeCanopy":[22,136,139],"Spectral Slab":[43,132,128],"Pine Grass Block":[89,151,104],"Pine Grass Slab":[89,151,104],"Pine Cone Block":[133,88,38],"Wolf Spawner Block":[60,83,101],"Bear Spawner Block":[60,83,101],"Deer Spawner Block":[60,83,101],"Stag Spawner Block":[60,83,101],"Gold Watermelon Stag Spawner Block":[60,83,101],Chalk:[249,251,251],"Yellow Chalk":[252,244,180],"White Chalk":[225,247,248],"Red Chalk":[242,133,135],"Purple Chalk":[192,155,200],"Pink Chalk":[247,173,198],"Orange Chalk":[242,160,133],"Magenta Chalk":[230,163,224],"Lime Chalk":[172,210,149],"Light Gray Chalk":[182,206,204],"Light Blue Chalk":[160,196,231],"Green Chalk":[158,179,147],"Gray Chalk":[111,128,138],"Cyan Chalk":[172,219,210],"Brown Chalk":[182,164,151],"Blue Chalk":[131,167,222],"Black Chalk":[43,57,67],"Yellow Chalk Bricks":[252,244,180],"White Chalk Bricks":[225,247,248],"Red Chalk Bricks":[242,133,135],"Purple Chalk Bricks":[192,155,200],"Pink Chalk Bricks":[247,173,198],"Orange Chalk Bricks":[242,160,133],"Magenta Chalk Bricks":[230,163,224],"Lime Chalk Bricks":[172,210,149],"Light Gray Chalk Bricks":[182,206,204],"Light Blue Chalk Bricks":[160,196,231],"Green Chalk Bricks":[158,179,147],"Gray Chalk Bricks":[111,128,138],"Cyan Chalk Bricks":[172,219,210],"Brown Chalk Bricks":[182,164,151],"Blue Chalk Bricks":[131,167,222],"Black Chalk Bricks":[43,57,67],"Yellow Chalk Slab":[252,244,180],"White Chalk Slab":[225,247,248],"Red Chalk Slab":[242,133,135],"Purple Chalk Slab":[192,155,200],"Pink Chalk Slab":[247,173,198],"Orange Chalk Slab":[242,160,133],"Magenta Chalk Slab":[230,163,224],"Lime Chalk Slab":[172,210,149],"Light Gray Chalk Slab":[182,206,204],"Light Blue Chalk Slab":[160,196,231],"Green Chalk Slab":[158,179,147],"Gray Chalk Slab":[111,128,138],"Cyan Chalk Slab":[172,219,210],"Brown Chalk Slab":[182,164,151],"Blue Chalk Slab":[131,167,222],"Black Chalk Slab":[43,57,67],"Yellow Chalk Bricks Slab":[227,214,113],"White Chalk Bricks Slab":[178,212,214],"Red Chalk Bricks Slab":[233,84,86],"Purple Chalk Bricks Slab":[160,112,170],"Pink Chalk Bricks Slab":[236,125,163],"Orange Chalk Bricks Slab":[233,119,82],"Magenta Chalk Bricks Slab":[212,114,204],"Lime Chalk Bricks Slab":[137,190,106],"Light Gray Chalk Bricks Slab":[145,168,166],"Light Blue Chalk Bricks Slab":[109,164,218],"Green Chalk Bricks Slab":[121,151,106],"Gray Chalk Bricks Slab":[83,97,106],"Cyan Chalk Bricks Slab":[116,201,184],"Brown Chalk Bricks Slab":[154,124,102],"Blue Chalk Bricks Slab":[79,129,206],"Gorilla Spawner Block":[60,83,101],"Wildcat Spawner Block":[60,83,101],"Draugr Huntress Spawner Block":[60,83,101],"Magma Golem Spawner Block":[60,83,101],"Horse Spawner Block":[60,83,101],"Spirit Golem Spawner Block":[60,83,101],"Spirit Wolf Spawner Block":[60,83,101],"Spirit Bear Spawner Block":[60,83,101],"Spirit Stag Spawner Block":[60,83,101],"Spirit Gorilla Spawner Block":[60,83,101],"Black Chalk Bricks Slab":[26,37,44],"Jungle Grass Block":[15,146,8],"Jungle Grass Slab":[15,146,8],"Mango Log":[81,73,71],"Barkless Mango Log":[197,183,95],"Barkless Mango Log|TreeBase|Mango":[197,183,95],"Mango Wood Planks":[210,196,113],"Mango Leaves":[34,109,53],"Mango Log|TreeBase|Mango":[81,73,71],"Mango Leaves|TreeCanopy":[34,109,53],"Mango Slab":[197,183,95],"Mango Block":[250,126,4],"Banana Block":[234,217,113],"Fruity Maple Leaves":[56,105,31],"Pine Cone Leaves":[19,36,9],"Fruity Plum Leaves":[58,112,50],"Fruity Palm Leaves":[88,174,62],"Fruity Pear Leaves":[242,248,234],"Fruity Cherry Leaves":[249,194,225],"Fruity Mango Leaves":[29,98,46],"Leather Block":[129,95,72],"Autumn Aspen Leaves":[252,215,11],"Autumn Aspen Leaves|TreeCanopy":[252,215,11],"Iron Chest":[228,224,218],Crate:[183,151,93],"Carrot Block":[200,101,13],"Potato Block":[175,132,68],"Beetroot Block":[110,36,52],"Water":[66,105,245],"Lava":[227,105,54]};
+
+function rgbToHex(rgb) {
+    if (!rgb || rgb.length < 3) return '#BEBEBE'; 
+    return "#" + rgb.map(c => {
+        const hex = c.toString(16);
+        return hex.length === 1 ? "0" + hex : hex;
+    }).join('');
+}
+
+function getBlockColor(blockId) {
+
+    if (blockId === 0) {
+        return '#00000000'; 
+    }
+
+    const blockName = getBlockName(blockId);
+    if (!blockName) {
+        return '#BEBEBE'; 
+    }
+
+    const cleanBlockName = blockName.split('|')[0];
+    const colorRgb = averageColor[cleanBlockName];
+
+    if (colorRgb) {
+        return rgbToHex(colorRgb);
+    } else {
+        return '#BEBEBE'; 
+    }
+}
+
+function adjustColor(hex, percent) {
+    const f = parseInt(hex.slice(1), 16);
+    const t = percent < 0 ? 0 : 255;
+    const p = percent < 0 ? percent * -1 : percent;
+    const R = f >> 16;
+    const G = (f >> 8) & 0x00FF;
+    const B = f & 0x0000FF;
+    const newR = Math.round((t - R) * (p / 100)) + R;
+    const newG = Math.round((t - G) * (p / 100)) + G;
+    const newB = Math.round((t - B) * (p / 100)) + B;
+    return `#${(0x1000000 + newR * 0x10000 + newG * 0x100 + newB).toString(16).slice(1)}`;
+}
+
+let isUndergroundCached = false;
+let lastUndergroundCheckTime = 0;
+
+function updateMinimap() {
+    if (!injectedBool || !minimapCanvas) return;
+
+    const myPos = n.noa.getPosition(1);
+    if (!myPos) return;
+
+    const now = Date.now();
+    if (now - lastUndergroundCheckTime > 1000) {
+        lastUndergroundCheckTime = now;
+
+        const myX = Math.floor(myPos[0]);
+        const myZ = Math.floor(myPos[2]);
+        const startY = Math.floor(myPos[1]) + 2;
+        const skyLimit = 256;
+
+        let isCurrentlyUnderground = false;
+        for (let y = startY; y < skyLimit; y++) {
+            const blockId = I.getBlockID(myX, y, myZ);
+            if (blockId !== 0) {
+                const blockName = getBlockName(blockId);
+                if (blockName && !blockName.toLowerCase().includes('leave')) {
+                    isCurrentlyUnderground = true;
+                    break;
+                }
+            }
+        }
+        isUndergroundCached = isCurrentlyUnderground;
+    }
+
+    if (minimapWorker && !isWorkerBusy) {
+        isWorkerBusy = true;
+
+        const chunkHash = Fuxny.world[Fuxny.impKey].hash;
+        if (!minimapChunkDataField) {
+            const firstChunk = Object.values(chunkHash)[0];
+            if (firstChunk) minimapChunkDataField = autoDetectChunkDataField(firstChunk);
         }
 
-        async function processObfuscation() {
-            const originalCode = inputCodeEl.value;
-            if (!originalCode.trim()) {
-                outputCodeEl.textContent = 'コードが入力されていません。';
-                resultInfoEl.innerHTML = '';
-                copyBtn.classList.remove('visible');
+        const chunkHashForWorker = {};
+        if (minimapChunkDataField) {
+            for (const key in chunkHash) {
+                const chunk = chunkHash[key];
+                if (chunk[minimapChunkDataField]) {
+                    chunkHashForWorker[key] = {
+                        data: chunk[minimapChunkDataField].data,
+                        stride: chunk[minimapChunkDataField].stride,
+                        pos: chunk.pos
+                    };
+                }
+            }
+        }
+
+        minimapWorker.postMessage({
+            chunkHash: chunkHashForWorker,
+            myPos: myPos,
+            MINIMAP_RANGE: MINIMAP_RANGE,
+            isUnderground: isUndergroundCached
+        });
+    }
+
+    const ctx = minimapCanvas.getContext('2d');
+    const blockSize = MINIMAP_SIZE / (MINIMAP_RANGE * 2);
+    const playerCanvasX = MINIMAP_SIZE / 2;
+    const playerCanvasY = MINIMAP_SIZE / 2;
+
+    if (isUndergroundCached) {
+        ctx.fillStyle = 'rgba(50, 45, 60, 0.7)';
+    } else {
+        ctx.fillStyle = 'rgba(26, 29, 33, 0.7)';
+    }
+    ctx.fillRect(0, 0, MINIMAP_SIZE, MINIMAP_SIZE);
+
+    if (lastSurfaceData.length > 0) {
+        for (const data of lastSurfaceData) {
+            const baseColor = getBlockColor(data.blockId);
+            const finalColor = adjustColor(baseColor, data.brightness);
+
+            ctx.fillStyle = finalColor;
+
+            const relativeX = data.worldX - myPos[0];
+            const relativeZ = data.worldZ - myPos[2];
+
+            ctx.fillRect(
+                playerCanvasX + relativeX * blockSize,
+                playerCanvasY - relativeZ * blockSize,
+                blockSize + 1,
+                blockSize + 1
+            );
+        }
+    }
+
+    ctx.fillStyle = '#FF4500';
+    ctx.strokeStyle = '#1a1d21';
+    ctx.lineWidth = 1;
+
+    for (const id of n.noa.playerList) {
+        if (id === 1) continue;
+        const ePos = n.noa.getPosition(id);
+        if (!ePos) continue;
+        const dx = ePos[0] - myPos[0];
+        const dz = ePos[2] - myPos[2];
+        if (Math.abs(dx) <= MINIMAP_RANGE && Math.abs(dz) <= MINIMAP_RANGE) {
+            const markerX = playerCanvasX + dx * blockSize - 2.5;
+            const markerY = playerCanvasY - dz * blockSize - 2.5;
+            const markerSize = 5;
+            ctx.fillRect(markerX, markerY, markerSize, markerSize);
+            ctx.strokeRect(markerX, markerY, markerSize, markerSize);
+        }
+    }
+
+    const heading = Fuxny.camera.heading;
+    const arrowLength = 10;
+    const arrowWidth = 8;
+    ctx.save();
+    ctx.translate(playerCanvasX, playerCanvasY);
+    ctx.rotate(heading);
+    ctx.beginPath();
+    ctx.moveTo(0, -arrowLength / 2);
+    ctx.lineTo(arrowWidth / 2, arrowLength / 2);
+    ctx.lineTo(-arrowWidth / 2, arrowLength / 2);
+    ctx.closePath();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fill();
+    ctx.strokeStyle = '#1a1d21';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+}
+
+function startMinimap() {
+    if (minimapIntervalId) return;
+    if (!minimapCanvas) {
+        minimapCanvas = document.createElement('canvas');
+        minimapCanvas.id = 'minimap-canvas';
+        minimapCanvas.width = MINIMAP_SIZE;
+        minimapCanvas.height = MINIMAP_SIZE;
+        minimapCanvas.style.position = 'fixed';
+        minimapCanvas.style.top = '20px';
+        minimapCanvas.style.right = '20px';
+        minimapCanvas.style.border = '3px solid var(--border-color)';
+        minimapCanvas.style.borderRadius = '3px';
+        minimapCanvas.style.zIndex = '999990';
+        document.body.appendChild(minimapCanvas);
+    }
+
+    if (!minimapWorker) {
+        setupMinimapWorker();
+    }
+
+    minimapCanvas.style.display = 'block';
+    minimapIntervalId = setInterval(updateMinimap, MINIMAP_UPDATE_INTERVAL);
+    updateMinimap();
+}
+
+function stopMinimap() {
+    if (!minimapIntervalId) return;
+    clearInterval(minimapIntervalId);
+    minimapIntervalId = null;
+    if (minimapCanvas) {
+        minimapCanvas.style.display = 'none';
+    }
+
+    if (minimapWorker) {
+        minimapWorker.terminate();
+        minimapWorker = null;
+        isWorkerBusy = false;
+        lastSurfaceData = [];
+        console.log("[Minimap] Web Worker terminated.");
+    }
+}
+
+    function performInjection() {
+        l.init();
+
+        function inject() {
+            let winDescriptors = Object.getOwnPropertyDescriptors(window);
+            let wpName = Object.keys(winDescriptors).find(key => winDescriptors[key]?.set?.toString().includes("++"));
+            let wpInstance = window[wpName] = window[wpName];
+
+            wpInstance.push([
+                [Math.floor(Math.random() * 90000) + 10000], {},
+                function(wpRequire) {
+                    Fuxny.findModule = (code) => wpRequire(Object.keys(wpRequire.m)[Object.values(wpRequire.m).findIndex(m => m.toString().includes(code))]);
+                    Fuxny.Props = Object.values(Fuxny.findModule("nonBlocksClient:")).find(prop => typeof prop == "object");
+                    Fuxny.noa = Object.values(Fuxny.Props).find(prop => prop?.entities);
+                }
+            ]);
+
+            if (!Fuxny.noa) {
+                console.error("[HACK] Injection failed: 'noa' object not found.");
                 return;
             }
 
-            obfuscateBtn.disabled = true;
-            obfuscateBtn.textContent = '処理中...';
-            outputCodeEl.textContent = '';
-            resultInfoEl.innerHTML = '';
-            copyBtn.classList.remove('visible');
+            let _cachedPlayerData = null;
+        Object.defineProperty(Fuxny.noa, 'playerdata', {
+            get: function() {
+                if (_cachedPlayerData) {
+                    return _cachedPlayerData;
+                }
+                for (const key in this) {
+                    try {
+                        const potentialObject = this[key];
+                        if (potentialObject && typeof potentialObject === 'object' &&
+                            potentialObject.hasOwnProperty('crouchingSpeed') &&
+                            potentialObject.hasOwnProperty('walkingSpeed'))
+                        {
+                            console.log(`[Simple Hack] 'playerdata' dynamically linked to: Fuxny.noa.${key}`);
+                            _cachedPlayerData = potentialObject; 
+                            return _cachedPlayerData;
+                        }
+                    } catch (e) { continue; }
+                }
+                console.warn("[Simple Hack] 'playerdata' could not be linked.");
+                return null;
+            },
+            configurable: true
+        });
 
-            try {
-                // --- ステップ1: Terserでコードを圧縮 ---
-                const terserResult = await Terser.minify(originalCode, {
-                    mangle: { toplevel: true },
-                    compress: { drop_console: true }
-                });
-                if (terserResult.error) throw new Error('Terser Error: ' + terserResult.error.message);
-                const minifiedCode = terserResult.code;
+            const targetValue = r.values(Fuxny.noa.entities)[2];
+            const entityEntries = Object.entries(Fuxny.noa.entities);
+            Fuxny.impKey = entityEntries.find(([_, val]) => val === targetValue)?.[0];
+            Fuxny.registry = r.values(Fuxny.noa)[17];
+            Fuxny.rendering = r.values(Fuxny.noa)[12];
+            Fuxny.entities = Fuxny.noa.entities;
+            Fuxny.world = r.values(Fuxny.noa)[11];
+            Fuxny.camera = Fuxny.noa.camera;
+            Fuxny.bloxd = Fuxny.noa.bloxd;
+            Fuxny.physics = Fuxny.noa.physics;
+            Fuxny.entityList = r.values(Fuxny.noa)[30];
 
-                // --- ステップ2: javascript-obfuscatorで難読化 ---
-                const obfuscationResult = JavaScriptObfuscator.obfuscate(minifiedCode, {
-                    compact: true, controlFlowFlattening: false, deadCodeInjection: false,
-                    stringArray: true, stringArrayEncoding: ['none'], stringArrayThreshold: 0.75,
-                    transformObjectKeys: true, identifierNamesGenerator: 'hexadecimal'
-                });
-                const obfuscatedCode = obfuscationResult.getObfuscatedCode();
+            let scene = r.values(Fuxny.rendering).find(value => value?.meshes?.[0]);
+            let mesh = scene.meshes[0];
+            Fuxny.Lion = {
+                scene: scene,
+                Mesh: mesh.constructor,
+                StandardMaterial: mesh.material.constructor,
+                Color3: mesh.material.diffuseColor.constructor,
+            };
 
-                // --- ステップ3: Base91エンコードと、難読化されたローダーの生成 ---
-                const utf8Bytes = new TextEncoder().encode(obfuscatedCode);
-                // ▼▼▼ 変更点: 内蔵したエンコーダーを呼び出す ▼▼▼
-                const encodedCode = base91Encode(utf8Bytes);
+            if (Fuxny.impKey) {
+                const entity = Fuxny.noa.entities?.[Fuxny.impKey];
+                if (entity?.moveState?.list?.[0] && entity?.movement?.list?.[0]) {
+                    playerKey = Fuxny.impKey;
+                    moveState = entity.moveState.list[0];
+                    physState = entity.movement.list[0];
+                }
+            }
 
-                // 実行ローダーに埋め込むための、自己完結したBase91デコード関数（これは変更なし）
-                const base91DecodeFunctionString = `(a)=>{for(var b={},c=0;c<91;c++)b["ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_\`{|}~".charAt(c)]=c;var d=[],e=0,f=0,g=-1,h=0;for(c=0;c<a.length;c++){var i=b[a.charAt(c)];if(void 0!==i)if(g<0)g=i;else{g+=91*i,e|=g<<f,f+=13<(8191&g)?13:14;do d[h++]=255&e,e>>=8,f-=8;while(7<f);g=-1}}return g>-1&&(d[h++]=(e|g<<f)&255),new Uint8Array(d)}`;
+            const maybeEntity = r.values(r.values(Fuxny.entities[Fuxny.impKey]).find(value => value?.list?.[0]?._blockItem).list[0])[1];
+            if (maybeEntity) {
+                const hasDoAttackDirect = typeof maybeEntity?.doAttack === 'function';
+                const hasDoAttackBreakingItem = typeof maybeEntity?.breakingItem?.doAttack === 'function';
+                if (hasDoAttackDirect) {
+                    playerEntity = maybeEntity;
+                } else if (hasDoAttackBreakingItem) {
+                    playerEntity = maybeEntity.breakingItem;
+                }
+            }
 
-                const finalCode = `(()=>{const b=${base91DecodeFunctionString},c='${encodedCode}',d=new TextDecoder().decode(b(c)),e=new Blob([d],{type:'application/javascript'}),f=URL.createObjectURL(e);import(f).then(()=>URL.revokeObjectURL(f))})();`;
+            for (let i = 0; i < 10000; i++) {
+                const meshState = Fuxny.entities.getState(i, "mesh");
+                if (meshState?.mesh?.id === "skyBox") {
+                    skyboxMesh = meshState.mesh;
+                    break;
+                }
+            }
 
-                // --- 結果の表示 ---
-                outputCodeEl.textContent = finalCode;
-                copyBtn.classList.add('visible');
-                
-                const originalSize = new Blob([originalCode]).size;
-                const finalSize = new Blob([finalCode]).size;
-                const changeRatio = ((finalSize - originalSize) / originalSize * 100).toFixed(2);
-                
-                resultInfoEl.innerHTML = `
-                    元のサイズ: ${formatBytes(originalSize)}<br>
-                    変換後のサイズ: ${formatBytes(finalSize)}<br>
-                    サイズ変化: <span style="color: ${changeRatio >= 0 ? '#e74c3c' : '#2ecc71'};">${changeRatio >= 0 ? '+' : ''}${changeRatio}%</span>
-                `;
+            playerInventoryParent = Fuxny.entities[Fuxny.impKey].inventory.list[0].opWrapper;
 
-            } catch (error) {
-                outputCodeEl.textContent = 'エラーが発生しました。\n' + error.message;
-                outputCodeEl.classList.add('error');
-            } finally {
-                obfuscateBtn.disabled = false;
-                obfuscateBtn.textContent = '難読化を実行';
+            function findOnlysendBytes(obj) {
+                if (!obj) return null;
+                const proto = Object.getPrototypeOf(obj);
+                const props = Object.getOwnPropertyNames(proto);
+                for (const key of props) {
+                    if (key === 'constructor') continue;
+                    const val = proto[key];
+                    if (typeof val === 'function') {
+                        const str = val.toString();
+                        const looksLikesendBytes = val.length === 2 && /Protocol\.ROOM_DATA_BYTES/i.test(str) && str.includes('Uint8Array') && /typeof/.test(str) && str.includes('.encode') && (str.includes('.byteLength') || str.includes('.length')) && str.includes('.set');
+                        if (looksLikesendBytes) return key;
+                    }
+                }
+                return null;
+            }
+            colyRoom = r.values(Fuxny.bloxd.client.msgHandler)[0];
+            sendBytesName = findOnlysendBytes(colyRoom);
+            if (colyRoom && sendBytesName) {
+                blinkState.originalSendBytes = colyRoom[sendBytesName];
+            } else {
+                console.warn("[Blink] Could not find sendBytes function for injection.");
+            }
+
+            injectedBool = true;
+        }
+
+        inject();
+        startTargetFinder();
+    }
+
+    function waitForElement(selector, callback) {
+        const observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                for (const node of mutation.addedNodes) {
+                    if (node.nodeType === 1 && node.matches(selector)) {
+                        observer.disconnect();
+                        callback(node);
+                        return;
+                    }
+                }
+            }
+        });
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+let playerEspIntervalId = null;
+
+function findThinMeshes() {
+    if (!Fuxny.rendering) return [];
+    const values = r.values(Fuxny.rendering);
+    for (const val of values) {
+        if (val?.thinMeshes && Array.isArray(val.thinMeshes)) {
+            return val.thinMeshes;
+        }
+    }
+    return [];
+}
+
+function updatePlayerESP() {
+    if (!injectedBool) return;
+
+    try {
+        const thinMeshes = findThinMeshes();
+        if (thinMeshes.length === 0) return;
+
+        const renderingGroupId = 2;
+
+        for (const item of thinMeshes) {
+            const mesh = item?.meshVariations?.__DEFAULT__?.mesh;
+            if (mesh && typeof mesh.renderingGroupId === "number") {
+                mesh.renderingGroupId = renderingGroupId;
             }
         }
-    </script>
-</body>
-</html>
+    } catch (e) {
+        console.error("[Player ESP] Error during update:", e);
+        setPlayerESP(false);
+        showTemporaryNotification("Player ESP Error. See console.", "#FF5252");
+    }
+}
+
+function resetPlayerESP() {
+    if (!injectedBool) return;
+
+    try {
+        const thinMeshes = findThinMeshes();
+        if (thinMeshes.length === 0) return;
+
+        const defaultGroupId = 0;
+
+        for (const item of thinMeshes) {
+            const mesh = item?.meshVariations?.__DEFAULT__?.mesh;
+            if (mesh && typeof mesh.renderingGroupId === "number") {
+                mesh.renderingGroupId = defaultGroupId;
+            }
+        }
+    } catch (e) {
+        console.error("[Player ESP] Error during reset:", e);
+    }
+}
+
+function setPlayerESP(enabled) {
+    if (enabled) {
+        if (playerEspIntervalId) return;
+        playerEspIntervalId = setInterval(updatePlayerESP, 100);
+        updatePlayerESP();
+    } else {
+        if (!playerEspIntervalId) return;
+        clearInterval(playerEspIntervalId);
+        playerEspIntervalId = null;
+        resetPlayerESP();
+    }
+}
+
+    function setWireframe(enabled) {
+        if (!injectedBool || !Fuxny.Lion?.scene?.meshes) {
+            console.warn("[Wireframe] Not injected or scene not found.");
+            return;
+        }
+
+        const groupId = enabled ? 2 : 0;
+
+        Fuxny.Lion.scene.meshes.forEach(mesh => {
+
+            if (mesh && mesh.id !== "skyBox" && !mesh.id.includes("espbox") && !mesh.id.includes("NameTag")) {
+                if (mesh.material) {
+                    try {
+                        mesh.material.wireframe = enabled;
+                    } catch (e) {
+
+                    }
+                }
+                if (typeof mesh.renderingGroupId !== "undefined") {
+
+                    if (mesh.renderingGroupId < 5) {
+                        mesh.renderingGroupId = groupId;
+                    }
+                }
+            }
+        });
+    }
+
+    function setBlink(enabled) {
+        if (!colyRoom || !sendBytesName || !blinkState.originalSendBytes) {
+
+            if (!fakeLagIntervalId) {
+                console.warn("[Blink] Cannot toggle, not properly injected.");
+            }
+            return;
+        }
+        blinkState.enabled = enabled;
+        if (enabled) {
+            colyRoom[sendBytesName] = (...args) => {
+                blinkState.queued.push(args);
+            };
+        } else {
+            colyRoom[sendBytesName] = blinkState.originalSendBytes;
+            for (const args of blinkState.queued) {
+                blinkState.originalSendBytes.apply(colyRoom, args);
+            }
+            blinkState.queued = [];
+        }
+    }
+
+    function startFakeLag() {
+        if (fakeLagIntervalId || !colyRoom || !sendBytesName || !blinkState.originalSendBytes) return;
+
+        const performLag = () => {
+
+            setBlink(true);
+
+            setTimeout(() => {
+
+                if (fakeLagIntervalId) {
+                    setBlink(false);
+                }
+            }, fakeLagModule.duration);
+        };
+
+        performLag();
+        fakeLagIntervalId = setInterval(performLag, fakeLagModule.interval);
+    }
+
+    function stopFakeLag() {
+        if (!fakeLagIntervalId) return;
+        clearInterval(fakeLagIntervalId);
+        fakeLagIntervalId = null;
+
+        if (blinkState.enabled) {
+            setBlink(false);
+        }
+    }
+
+    function derpTick() {
+        if (Fuxny && Fuxny.camera) {
+
+            Fuxny.camera.heading += derpModule.speed * 0.01;
+        }
+    }
+
+    function startDerp() {
+        if (derpIntervalId) return;
+        derpIntervalId = setInterval(derpTick, 15);
+    }
+
+    function stopDerp() {
+        clearInterval(derpIntervalId);
+        derpIntervalId = null;
+    }
+
+class Killaura {
+    constructor() {
+        this.delay = 50;
+        this.range = 5;
+        this.swingEnabled = true;
+        this.triggerbotEnabled = true;
+        this.includeMobs = false;
+        this.reverseKb = false;
+    }
+
+    tryKill() {
+        const myPos = n.noa.getPosition(1);
+        if (!myPos) return;
+
+        let targets = [];
+
+        if (this.includeMobs) {
+            const names = Fuxny.bloxd?.entityNames;
+            if (!names) return;
+
+            const ids = Object.keys(names);
+            for (let i = 2; i < ids.length; i++) {
+                targets.push(ids[i]);
+            }
+        } else {
+            const list = n.noa.playerList;
+            if (!list) return;
+
+            for (let id of list) {
+                if (id !== 1) targets.push(id.toString());
+            }
+        }
+
+        for (let idStr of targets) {
+            const id = Number(idStr);
+            const enemyPos = n.noa.getPosition(id);
+            if (!enemyPos) continue;
+
+            if (S.distanceBetweenSqrt(myPos, enemyPos) > this.range) continue;
+
+            const life = Fuxny.entities.getState(id, "genericLifeformState");
+            if (life && !life.isAlive) continue;
+
+            const vec = this.reverseKb
+                ? S.normalizeVector([myPos[0]-enemyPos[0], myPos[1]-enemyPos[1], myPos[2]-enemyPos[2]])
+                : S.normalizeVector([enemyPos[0]-myPos[0], enemyPos[1]-myPos[1], enemyPos[2]-myPos[2]]);
+
+            if (document.isPointerDown || this.triggerbotEnabled) {
+                n.noa.doAttack(vec, idStr, "BodyMesh");
+
+                if (this.swingEnabled) {
+                    try {
+                        const held = n.noa.getHeldItem(1);
+                        if (held?.trySwingBlock) held.trySwingBlock();
+
+                        const arm = Fuxny.entities[Fuxny.impKey]?.moveState?.list?.[0];
+                        if (arm) arm.setArmsAreSwinging();
+                    } catch {}
+                }
+            }
+        }
+    }
+}
+    const killauraModule = new Killaura();
+
+    function startKillaura() {
+        if (killauraInterval) return;
+        killauraInterval = setInterval(() => killauraModule.tryKill(), killauraModule.delay);
+    }
+
+    function stopKillaura() {
+        clearInterval(killauraInterval);
+        killauraInterval = null;
+    }
+
+    let bhopAnimationId = null;
+    let isBhopEnabled = false;
+    let didJumpLastFrame = false;
+
+    function bunnyHop() {
+
+        if (!physState.isOnGround?.() || moveState.crouching || moveState.speed <= 0.05) return;
+
+        if (isPC) {
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {
+                key: ' ',
+                code: 'Space',
+                bubbles: true,
+                cancelable: true
+            }));
+        } else {
+
+            moveState.jumping = true;
+        }
+
+        physState._hadJumpInputPrevTick = false;
+
+        didJumpLastFrame = true;
+    }
+
+    function bhopLoop() {
+        if (!isBhopEnabled) {
+            bhopAnimationId = null;
+            return;
+        }
+
+        if (didJumpLastFrame) {
+            if (isPC) {
+                document.dispatchEvent(new KeyboardEvent('keyup', {
+                    key: ' ',
+                    code: 'Space',
+                    bubbles: true,
+                    cancelable: true
+                }));
+            } else {
+                moveState.jumping = false;
+            }
+
+            didJumpLastFrame = false;
+        }
+
+        bunnyHop();
+
+        bhopAnimationId = requestAnimationFrame(bhopLoop);
+    }
+
+    function startBhop() {
+        if (isBhopEnabled) return;
+        isBhopEnabled = true;
+        if (!bhopAnimationId) {
+            bhopAnimationId = requestAnimationFrame(bhopLoop);
+        }
+    }
+
+    function stopBhop() {
+        isBhopEnabled = false;
+
+        if (didJumpLastFrame) {
+            if (isPC) {
+                document.dispatchEvent(new KeyboardEvent('keyup', {
+                    key: ' ',
+                    code: 'Space',
+                    bubbles: true,
+                    cancelable: true
+                }));
+            } else {
+                moveState.jumping = false;
+            }
+            didJumpLastFrame = false;
+        }
+
+        if (bhopAnimationId) {
+            cancelAnimationFrame(bhopAnimationId);
+            bhopAnimationId = null;
+        }
+    }
+
+class Aimbot {
+    constructor() {
+        this.smoothing = 0.5;
+        this.intervalMs = 5;
+        this.maxTargetDistance = 8;
+
+        this.isHumanized = false;
+
+        this.microMovementStrength = 0.012;
+
+        this.driftStrength = 0.05;
+        this.driftVector = { heading: 0, pitch: 0 };
+        this.driftUpdateTime = 0;
+
+        this.overshootStrength = 0.1;
+    }
+
+    angleDiff(a, b) {
+        let d = a - b;
+        while (d > Math.PI) d -= Math.PI * 2;
+        while (d < -Math.PI) d += Math.PI * 2;
+        return d;
+    }
+
+    aimTick() {
+        try {
+            const myPos = n.noa.getPosition(1);
+            if (!myPos) return;
+            const cam = Fuxny.camera;
+            if (!cam || !n.noa.playerList) return;
+
+            let best = { id: null, dist: Infinity, heading: 0, pitch: 0, pos: null };
+            for (const id of n.noa.playerList) {
+                if (id === 1) continue;
+                const ePos = n.noa.getPosition(id);
+                if (!ePos) continue;
+
+                const lifeformState = Fuxny.entities.getState(id, "genericLifeformState");
+                if (!lifeformState || !lifeformState.isAlive) continue;
+
+                const dist = S.distanceBetweenSqrt(myPos, ePos);
+                if (dist > this.maxTargetDistance) continue;
+
+                if (dist < best.dist) {
+                    const targetHeadPos = [ePos[0], ePos[1] + 1.5, ePos[2]];
+                    const myEyePos = [myPos[0], myPos[1] + 1.6, myPos[2]];
+
+                    const dx = targetHeadPos[0] - myEyePos[0];
+                    const dy = targetHeadPos[1] - myEyePos[1];
+                    const dz = targetHeadPos[2] - myEyePos[2];
+
+                    const useX = Math.abs(dx) >= 0.5;
+                    const useY = Math.abs(dy) >= 0.5;
+                    const useZ = Math.abs(dz) >= 0.5;
+
+                    let heading = cam.heading;
+                    let pitch = cam.pitch;
+
+                    // heading（水平回転）: X/Zで計算。どちらか片方が生きていればOK
+                    if (useX || useZ) {
+                        const hdx = useX ? dx : 0;
+                        const hdz = useZ ? dz : 0;
+                        heading = Math.atan2(hdx, hdz);
+                    }
+
+                    // pitch（上下回転）: Yが生きていれば計算
+                    if (useY) {
+                        const vDist = Math.sqrt((useX ? dx * dx : 0) + dy * dy + (useZ ? dz * dz : 0));
+                        if (vDist > 0.0001) {
+                            pitch = -Math.asin(dy / vDist);
+                        }
+                    }
+
+                    best = { id, dist, heading, pitch, pos: ePos };
+                }
+            }
+
+            if (!best.id) return;
+
+            let targetHeading = best.heading;
+            let targetPitch = best.pitch;
+
+            if (this.isHumanized) {
+                const now = Date.now();
+
+                targetHeading += (Math.random() - 0.5) * this.microMovementStrength;
+                targetPitch += (Math.random() - 0.5) * this.microMovementStrength;
+
+                if (now > this.driftUpdateTime) {
+                    this.driftVector.heading = (Math.random() - 0.5);
+                    this.driftVector.pitch = (Math.random() - 0.5);
+                    this.driftUpdateTime = now + Math.random() * 700 + 300;
+                }
+
+                targetHeading += this.driftVector.heading * this.driftStrength;
+                targetPitch += this.driftVector.pitch * this.driftStrength;
+            }
+
+            cam.heading += this.angleDiff(targetHeading, cam.heading) * this.smoothing;
+            cam.pitch += this.angleDiff(targetPitch, cam.pitch) * this.smoothing;
+
+        } catch (err) {
+            console.error("Aimbot tick error:", err);
+            stopAimbot();
+        }
+    }
+}
+
+    const aimbotModule = new Aimbot();
+
+    function startAimbot() {
+        if (!aimbotInterval) aimbotInterval = setInterval(() => aimbotModule.aimTick(), aimbotModule.intervalMs);
+    }
+
+    function stopAimbot() {
+        clearInterval(aimbotInterval);
+        aimbotInterval = null;
+    }
+
+    function setNight(enabled) {
+        if (skyboxMesh) skyboxMesh.isVisible = !enabled;
+    }
+
+    function wangPlace(position) {
+        let heldBlock = r.values(Fuxny.noa.entities[Fuxny.impKey]).find(value => value?.list?.[0]?._blockItem).list[0]._blockItem;
+        let worldInstanceKey = Object.keys(heldBlock)[0];
+        let worldInstance = Object.values(heldBlock)[0];
+        let targetedBlockKey = Object.keys(worldInstance)[25];
+        let targetedBlock = worldInstance[targetedBlockKey];
+
+        function spoofTargetedBlock(position) {
+            return new Proxy({}, {
+                get(target, prop) {
+                    if (prop === worldInstanceKey) {
+                        return new Proxy(worldInstance, {
+                            get(inner, key) {
+                                if (key === targetedBlockKey) {
+                                    let spoofedTargetedBlock = structuredClone(targetedBlock) || {};
+                                    spoofedTargetedBlock.position = position;
+                                    return spoofedTargetedBlock;
+                                }
+                                return worldInstance[key];
+                            },
+                        });
+                    }
+                    if (prop == "checkTargetedBlockCanBePlacedOver") return () => true;
+                    if (typeof heldBlock[prop] == "function") return heldBlock[prop].bind(heldBlock);
+                    return heldBlock[prop];
+                },
+            });
+        }
+        heldBlock.placeBlock.call(spoofTargetedBlock(position));
+    }
+
+    let safescaffoldIntervalId = null;
+    let isBuildingBridge = false;
+    const MAX_BUILD_RANGE = 7.0;
+    const MAX_PATH_LENGTH = 10;
+
+    const SCAN_OFFSETS = (function() {
+        const offsets = [];
+        const MAX_RADIUS = 7;
+
+        for (let x = -MAX_RADIUS; x <= MAX_RADIUS; x++) {
+            for (let y = -MAX_RADIUS; y <= MAX_RADIUS; y++) {
+                for (let z = -MAX_RADIUS; z <= MAX_RADIUS; z++) {
+
+                    if (x === 0 && y === 0 && z === 0) continue;
+
+                    const distanceSq = x * x + y * y + z * z;
+                    offsets.push({
+                        x,
+                        y,
+                        z,
+                        dist: distanceSq
+                    });
+                }
+            }
+        }
+
+        offsets.sort((a, b) => a.dist - b.dist);
+
+        return offsets;
+    })();
+
+    function findClosestNonAirBlock(startPos) {
+        const startX = startPos[0];
+        const startY = startPos[1];
+        const startZ = startPos[2];
+
+        for (const offset of SCAN_OFFSETS) {
+            const checkX = startX + offset.x;
+            const checkY = startY + offset.y;
+            const checkZ = startZ + offset.z;
+
+            if (I.getBlockID(checkX, checkY, checkZ) !== 0) {
+
+                return [checkX, checkY, checkZ];
+            }
+        }
+
+        return null;
+    }
+
+    function calculateBresenhamPath2D(x0, z0, x1, z1, y) {
+        const path = [];
+        const dx = Math.abs(x1 - x0);
+        const dz = Math.abs(z1 - z0);
+        const sx = (x0 < x1) ? 1 : -1;
+        const sz = (z0 < z1) ? 1 : -1;
+
+        let currentX = x0;
+        let currentZ = z0;
+        let err = dx - dz;
+
+        while (true) {
+            path.push([currentX, y, currentZ]);
+            if (currentX === x1 && currentZ === z1) break;
+            const e2 = 2 * err;
+            if (e2 > -dz) {
+                err -= dz;
+                currentX += sx;
+            } else {
+                err += dx;
+                currentZ += sz;
+            }
+        }
+        return path;
+    }
+
+    function calculateVerticalThenDiagonalPath(startPos, endPos) {
+        const startPath = [];
+        let [currentX, currentY, currentZ] = startPos.map(Math.floor);
+        const [targetX, targetY, targetZ] = endPos.map(Math.floor);
+
+        startPath.push([currentX, currentY, currentZ]);
+
+        while (currentY !== targetY) {
+            currentY += Math.sign(targetY - currentY);
+            startPath.push([currentX, currentY, currentZ]);
+        }
+
+        const bridgePath = calculateBresenhamPath2D(currentX, currentZ, targetX, targetZ, currentY);
+        bridgePath.shift();
+        return startPath.concat(bridgePath);
+    }
+
+    async function buildBridge(path) {
+        if (isBuildingBridge) return;
+        isBuildingBridge = true;
+
+        const buildTimeout = setTimeout(() => {
+            isBuildingBridge = false;
+        }, 200);
+
+        const checkPlace = (x, y, z) => (playerEntity.checkTargetedBlockCanBePlacedOver([x, y, z]) || r.values(Fuxny.world)[47].call(Fuxny.world, x, y, z) === 0);
+
+        for (const placePos of path) {
+
+            if (!isBuildingBridge) {
+                break;
+            }
+
+            const playerPos = Fuxny.entities.getState(1, 'position')?.position;
+
+            if (!playerPos) break;
+
+            const distance = S.distanceBetweenSqrt(playerPos, placePos);
+            if (distance <= MAX_BUILD_RANGE) {
+                if (checkPlace(placePos[0], placePos[1], placePos[2])) {
+                    wangPlace(placePos);
+                }
+            }
+        }
+
+        clearTimeout(buildTimeout);
+        isBuildingBridge = false;
+    }
+
+    function startSafeScaffold() {
+        if (safescaffoldIntervalId) return;
+        safescaffoldIntervalId = setInterval(() => {
+
+            if (isBuildingBridge || !Fuxny.entities.getState(1, 'position') || !playerEntity || playerEntity.heldItemState.heldType !== "CubeBlock") return;
+
+            const myPos = Fuxny.entities.getState(1, 'position')?.position;
+            if (!myPos) return;
+
+            const myFootPos = [Math.floor(myPos[0]), Math.floor(myPos[1] - 1), Math.floor(myPos[2])];
+
+            if (I.getBlockID(myFootPos[0], myFootPos[1], myFootPos[2]) !== 0) return;
+
+            const closestBlock = findClosestNonAirBlock(myFootPos);
+
+            if (closestBlock) {
+                const path = calculateVerticalThenDiagonalPath(closestBlock, myFootPos);
+
+                if (path && path.length > 1 && path.length < MAX_PATH_LENGTH) {
+                    buildBridge(path);
+                }
+            }
+        }, 5);
+    }
+
+    function stopSafeScaffold() {
+        clearInterval(safescaffoldIntervalId);
+        safescaffoldIntervalId = null;
+        isBuildingBridge = false;
+    }
+
+    let scaffoldYLockIntervalId = null;
+    let isBuildingBridgeForYLock = false;
+
+    let lockedY = null;
+    let lastBlockPlacedTime = 0;
+    let lockTimeoutId = null;
+
+    async function buildBridgeForYLock(path, targetFootPos) {
+        if (isBuildingBridgeForYLock) return;
+        isBuildingBridgeForYLock = true;
+
+        const buildTimeout = setTimeout(() => {
+            isBuildingBridgeForYLock = false;
+        }, 200);
+
+        const checkPlace = (x, y, z) => (playerEntity.checkTargetedBlockCanBePlacedOver([x, y, z]) || r.values(Fuxny.world)[47].call(Fuxny.world, x, y, z) === 0);
+
+        for (const placePos of path) {
+            if (!isBuildingBridgeForYLock) break;
+
+            const playerPos = Fuxny.entities.getState(1, 'position')?.position;
+            if (!playerPos) break;
+
+            const distance = S.distanceBetweenSqrt(playerPos, placePos);
+            if (distance <= MAX_BUILD_RANGE) {
+                if (checkPlace(placePos[0], placePos[1], placePos[2])) {
+                    wangPlace(placePos);
+
+                    lastBlockPlacedTime = Date.now();
+                    if (lockTimeoutId) clearTimeout(lockTimeoutId);
+                    lockTimeoutId = setTimeout(() => {
+                        if (Date.now() - lastBlockPlacedTime >= 500) {
+                            lockedY = null;
+                            showTemporaryNotification("Y-Lock Released", "#FF9800");
+                        }
+                    }, 500);
+                }
+            }
+        }
+
+        if (lockedY === null) {
+            lockedY = targetFootPos[1];
+            showTemporaryNotification(`Y-Lock Acquired: ${lockedY}`, "#4CAF50");
+        }
+
+        clearTimeout(buildTimeout);
+        isBuildingBridgeForYLock = false;
+    }
+
+    function startScaffoldYLock() {
+        if (scaffoldYLockIntervalId) return;
+        scaffoldYLockIntervalId = setInterval(() => {
+            if (isBuildingBridgeForYLock || !Fuxny.entities.getState(1, 'position') || !playerEntity || playerEntity.heldItemState.heldType !== "CubeBlock") return;
+
+            const myPos = Fuxny.entities.getState(1, 'position')?.position;
+            if (!myPos) return;
+
+            let targetFootPos;
+            const currentFootY = Math.floor(myPos[1] - 1);
+
+            if (lockedY !== null) {
+                targetFootPos = [Math.floor(myPos[0]), lockedY, Math.floor(myPos[2])];
+            } else {
+                targetFootPos = [Math.floor(myPos[0]), currentFootY, Math.floor(myPos[2])];
+            }
+
+            if (I.getBlockID(targetFootPos[0], targetFootPos[1], targetFootPos[2]) !== 0) return;
+
+            const scanStartPos = [Math.floor(myPos[0]), currentFootY, Math.floor(myPos[2])];
+            const closestBlock = findClosestNonAirBlock(scanStartPos);
+
+            if (closestBlock) {
+                const path = calculateVerticalThenDiagonalPath(closestBlock, targetFootPos);
+
+                if (path && path.length > 1 && path.length < MAX_PATH_LENGTH) {
+                    buildBridgeForYLock(path, targetFootPos);
+                }
+            }
+        }, 5);
+    }
+
+    function stopScaffoldYLock() {
+        clearInterval(scaffoldYLockIntervalId);
+        scaffoldYLockIntervalId = null;
+        isBuildingBridgeForYLock = false;
+
+        lockedY = null;
+        if (lockTimeoutId) {
+            clearTimeout(lockTimeoutId);
+            lockTimeoutId = null;
+        }
+    }
+
+    function startTargetFinder() {
+        if (targetFinderId) clearInterval(targetFinderId);
+        targetFinderId = setInterval(() => {
+            if (!injectedBool || !Fuxny.entities) return;
+            if (!Fuxny.entities.getState(myId, "genericLifeformState")?.isAlive) {
+                lastClosestId = null;
+                return;
+            }
+            const myPos = Fuxny.entities.getState(myId, 'position')?.position;
+            if (!myPos) return;
+            const playerIds = n.noa.playerList;
+            if (!playerIds) return;
+            let closestId = null;
+            let minDist = 100;
+            for (const playerId of playerIds) {
+                const pos = Fuxny.entities.getState(playerId, 'position')?.position;
+                if (!pos) continue;
+                const state = Fuxny.entities.getState(playerId, "genericLifeformState");
+                if (!state || !state.isAlive) continue;
+                const dist = S.distanceBetween(myPos, pos);
+                if (dist < minDist) {
+                    minDist = dist;
+                    closestId = playerId;
+                }
+            }
+            lastClosestId = closestId;
+            targetEntityDistance = minDist;
+        }, 20);
+    }
+
+    function fightBotTick() {
+
+        const myPos = n.noa.getPosition(1);
+        if (!myPos) return;
+
+        let bestTarget = {
+            id: null,
+            pos: null,
+            dist: Infinity
+        };
+
+        for (const id of n.noa.playerList) {
+            if (id === 1) continue;
+            const ePos = n.noa.getPosition(id);
+            if (!ePos) continue;
+            const lifeformState = Fuxny.entities.getState(id, "genericLifeformState");
+            if (!lifeformState || !lifeformState.isAlive) continue;
+            const dist = S.distanceBetweenSqrt(myPos, ePos);
+            if (dist <= fightBotModule.radius * 2 && dist < bestTarget.dist) {
+                bestTarget = {
+                    id,
+                    pos: ePos,
+                    dist
+                };
+            }
+        }
+
+        if (bestTarget.id) {
+            const enemyPos = bestTarget.pos;
+
+            const cam = Fuxny.camera;
+            if (cam) {
+                const myEyePos = [myPos[0], myPos[1] + 1.6, myPos[2]];
+                const enemyHeadPos = [enemyPos[0], enemyPos[1] + 1.6, enemyPos[2]];
+                const dx = enemyHeadPos[0] - myEyePos[0];
+                const dy = enemyHeadPos[1] - myEyePos[1];
+                const dz = enemyHeadPos[2] - myEyePos[2];
+                const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                const targetHeading = Math.atan2(dx, dz);
+                const targetPitch = -Math.asin(dy / dist);
+                cam.heading = targetHeading;
+                cam.pitch = targetPitch;
+            }
+
+            const vector = S.normalizeVector([enemyPos[0] - myPos[0], enemyPos[1] - myPos[1] + 1.0, enemyPos[2] - myPos[2]]);
+            n.noa.doAttack(vector, bestTarget.id.toString(), "BodyMesh");
+            const heldItem = n.noa.getHeldItem(1);
+            heldItem.trySwingBlock?.();
+            moveState.setArmsAreSwinging?.();
+
+            if (fightBotModule.didJumpLastTick) {
+                simulateKeyUp(' ', 'Space');
+                fightBotModule.didJumpLastTick = false;
+            }
+            if (physState?.isOnGround?.() && !moveState.crouching) {
+                simulateKeyDown(' ', 'Space');
+                fightBotModule.didJumpLastTick = true;
+            }
+
+            if (fightBotModule.isStrafing) {
+
+                if (Date.now() > fightBotModule.strafeEndTime) {
+
+                    simulateKeyUp(fightBotModule.strafeDirection, fightBotModule.strafeDirection === 'a' ? 'KeyA' : 'KeyD');
+                    fightBotModule.isStrafing = false;
+                    fightBotModule.strafeDirection = '';
+
+                    fightBotModule.nextStrafeTime = Date.now() + (Math.random() * 200 + 700);
+                }
+            } else if (Date.now() > fightBotModule.nextStrafeTime) {
+
+                const strafeDuration = Math.random() * 6000 + 1500;
+                const direction = Math.random() < 0.5 ? 'a' : 'd';
+
+                fightBotModule.isStrafing = true;
+                fightBotModule.strafeDirection = direction;
+                fightBotModule.strafeEndTime = Date.now() + strafeDuration;
+
+                simulateKeyDown(direction, direction === 'a' ? 'KeyA' : 'KeyD');
+            }
+
+            const currentDistance = bestTarget.dist;
+            const buffer = 0.1;
+
+            if (currentDistance > fightBotModule.desiredDistance + buffer) {
+
+                if (fightBotModule.isSPressed) {
+                    simulateKeyUp('s', 'KeyS');
+                    fightBotModule.isSPressed = false;
+                }
+                if (!fightBotModule.isShiftPressed) {
+                    simulateKeyDown('Shift', 'ShiftLeft');
+                    fightBotModule.isShiftPressed = true;
+                }
+                if (!fightBotModule.isWPressed) {
+                    simulateKeyDown('w', 'KeyW');
+                    fightBotModule.isWPressed = true;
+                }
+            } else if (currentDistance < fightBotModule.desiredDistance - buffer) {
+
+                if (fightBotModule.isWPressed) {
+                    simulateKeyUp('w', 'KeyW');
+                    fightBotModule.isWPressed = false;
+                }
+                if (!fightBotModule.isShiftPressed) {
+                    simulateKeyDown('Shift', 'ShiftLeft');
+                    fightBotModule.isShiftPressed = true;
+                }
+                if (!fightBotModule.isSPressed) {
+                    simulateKeyDown('s', 'KeyS');
+                    fightBotModule.isSPressed = true;
+                }
+            } else {
+
+                if (fightBotModule.isWPressed) {
+                    simulateKeyUp('w', 'KeyW');
+                    fightBotModule.isWPressed = false;
+                }
+                if (fightBotModule.isSPressed) {
+                    simulateKeyUp('s', 'KeyS');
+                    fightBotModule.isSPressed = false;
+                }
+                if (fightBotModule.isShiftPressed) {
+                    simulateKeyUp('Shift', 'ShiftLeft');
+                    fightBotModule.isShiftPressed = false;
+                }
+            }
+
+        } else {
+
+            if (fightBotModule.isWPressed) {
+                simulateKeyUp('w', 'KeyW');
+                fightBotModule.isWPressed = false;
+            }
+            if (fightBotModule.isSPressed) {
+                simulateKeyUp('s', 'KeyS');
+                fightBotModule.isSPressed = false;
+            }
+            if (fightBotModule.isShiftPressed) {
+                simulateKeyUp('Shift', 'ShiftLeft');
+                fightBotModule.isShiftPressed = false;
+            }
+            if (fightBotModule.didJumpLastTick) {
+                simulateKeyUp(' ', 'Space');
+                fightBotModule.didJumpLastTick = false;
+            }
+            if (fightBotModule.isStrafing) {
+                simulateKeyUp(fightBotModule.strafeDirection, fightBotModule.strafeDirection === 'a' ? 'KeyA' : 'KeyD');
+                fightBotModule.isStrafing = false;
+            }
+        }
+    }
+
+    function startFightBot() {
+        if (fightBotIntervalId) return;
+        fightBotIntervalId = setInterval(fightBotTick, 5);
+    }
+
+    function stopFightBot() {
+        if (!fightBotIntervalId) return;
+        clearInterval(fightBotIntervalId);
+        fightBotIntervalId = null;
+
+        if (fightBotModule.isWPressed) {
+            simulateKeyUp('w', 'KeyW');
+            fightBotModule.isWPressed = false;
+        }
+        if (fightBotModule.isSPressed) {
+            simulateKeyUp('s', 'KeyS');
+            fightBotModule.isSPressed = false;
+        }
+        if (fightBotModule.isShiftPressed) {
+            simulateKeyUp('Shift', 'ShiftLeft');
+            fightBotModule.isShiftPressed = false;
+        }
+        if (fightBotModule.didJumpLastTick) {
+            simulateKeyUp(' ', 'Space');
+            fightBotModule.didJumpLastTick = false;
+        }
+
+        if (fightBotModule.isStrafing) {
+            simulateKeyUp(fightBotModule.strafeDirection, fightBotModule.strafeDirection === 'a' ? 'KeyA' : 'KeyD');
+            fightBotModule.isStrafing = false;
+            fightBotModule.strafeDirection = '';
+        }
+    }
+
+    function clearESPBoxes() {
+        for (const key in chestBoxes) {
+            for (const {
+                    mesh,
+                    id
+                }
+                of chestBoxes[key]) {
+                mesh.dispose();
+                Fuxny.entities.deleteEntity(id);
+            }
+        }
+        scannedChunks.clear();
+        chestBoxes = {};
+    }
+
+    function reverseIndex(i, stride) {
+        const x = Math.floor(i / stride[0]);
+        const remX = i % stride[0];
+        const y = Math.floor(remX / stride[1]);
+        const z = remX % stride[1];
+        return [x, y, z];
+    }
+
+    function getChunkKey(chunk) {
+        const [wx, wy, wz] = chunk.pos || [0, 0, 0];
+        const cx = Math.floor(wx / 32),
+            cy = Math.floor(wy / 32),
+            cz = Math.floor(wz / 32);
+        return `${cx}|${cy}|${cz}|overworld`;
+    }
+
+    function scanChunk(chunk, blockIDsToScan) {
+        const blockData = chunk[chunkDataField];
+        if (!blockData) return;
+        const {
+            data,
+            stride
+        } = blockData;
+        const pos = chunk.pos || [0, 0, 0];
+        if (!data || !stride) return;
+        const chunkKey = getChunkKey(chunk);
+        for (let i = 0; i < data.length; i++) {
+            const blockID = data[i];
+            if (!blockIDsToScan.includes(blockID)) continue;
+
+            let wireframeColor;
+
+            if ([204, 205, 206, 207].includes(blockID)) {
+                wireframeColor = new Fuxny.Lion.Color3(1, 0.5, 0); 
+            } else if (blockID === 45) { 
+                wireframeColor = new Fuxny.Lion.Color3(0, 1, 1); 
+            } else if (blockID === 50) { 
+                wireframeColor = new Fuxny.Lion.Color3(1, 1, 0); 
+            } else if (blockID === 465) { 
+                wireframeColor = new Fuxny.Lion.Color3(0.7, 0.5, 1); 
+            } else { 
+                wireframeColor = new Fuxny.Lion.Color3(0.75, 0.75, 0.75); 
+            }
+
+            const [x, y, z] = reverseIndex(i, stride);
+            const worldX = pos[0] + x + 0.5,
+                worldY = pos[1] + y + 0.5,
+                worldZ = pos[2] + z + 0.5;
+            const mesh = Fuxny.Lion.Mesh.CreateBox("espbox", 1.0, Fuxny.Lion.scene);
+            mesh.position.set(worldX, worldY, worldZ);
+            mesh.renderingGroupId = 1;
+            mesh.material = new Fuxny.Lion.StandardMaterial("mat", Fuxny.Lion.scene);
+            mesh.material.wireframe = true;
+            mesh.material.emissiveColor = wireframeColor; 
+            const id = Fuxny.entities.add([worldX, worldY, worldZ], 1, 1, mesh, null, false);
+            if (!chestBoxes[chunkKey]) chestBoxes[chunkKey] = [];
+            chestBoxes[chunkKey].push({
+                mesh,
+                id
+            });
+        }
+    }
+
+    function autoDetectChunkDataField(chunk) {
+        for (const key of Object.keys(chunk)) {
+            const val = chunk[key];
+            if (val && typeof val === "object" && Array.isArray(val.stride) && val.stride.length === 3 && (Array.isArray(val.data) || ArrayBuffer.isView(val.data))) {
+                return key;
+            }
+        }
+        return null;
+    }
+
+    function scanAllChunks() {
+        if (!Fuxny?.world || !Fuxny?.world?.[Fuxny.impKey]?.hash) return;
+        const chunkHash = Fuxny.world[Fuxny.impKey].hash;
+        for (const scannedKey of scannedChunks) {
+            if (!(scannedKey in chestBoxes)) continue;
+            if (!Object.values(chunkHash).some(chunk => getChunkKey(chunk) === scannedKey)) {
+                for (const {
+                        mesh,
+                        id
+                    }
+                    of chestBoxes[scannedKey]) {
+                    mesh.dispose();
+                    Fuxny.entities.deleteEntity(id);
+                }
+                delete chestBoxes[scannedKey];
+                scannedChunks.delete(scannedKey);
+            }
+        }
+
+        const blockIDsToScan = [];
+        if (chestESPEnabled) {
+            blockIDsToScan.push(...[204, 205, 206, 207]); 
+        }
+        if (oreESPEnabled) {
+            blockIDsToScan.push(...[44, 45, 465, 50]); 
+        }
+
+        if (blockIDsToScan.length === 0) return; 
+
+        for (const chunkKey in chunkHash) {
+            const chunk = chunkHash[chunkKey];
+            if (!chunkDataField) chunkDataField = autoDetectChunkDataField(chunk);
+            if (!chunkDataField || !chunk[chunkDataField]?.data || !chunk.pos) continue;
+            const key = getChunkKey(chunk);
+            if (scannedChunks.has(key)) continue;
+            scannedChunks.add(key);
+            scanChunk(chunk, blockIDsToScan);
+        }
+    }
+
+    function updateEspInterval() {
+        const anyEspEnabled = chestESPEnabled || oreESPEnabled;
+        if (anyEspEnabled && !chestOreInterval) {
+            chestOreInterval = setInterval(scanAllChunks, 3000);
+        } else if (!anyEspEnabled && chestOreInterval) {
+            clearInterval(chestOreInterval);
+            chestOreInterval = null;
+            clearESPBoxes();
+        }
+    }
+
+    function setChestESP(enabled) {
+        chestESPEnabled = enabled;
+        updateEspInterval();
+        if (enabled) {
+            scanAllChunks();
+        } else if (!oreESPEnabled) {
+            clearESPBoxes();
+        }
+    }
+
+    function setOreESP(enabled) {
+        oreESPEnabled = enabled;
+        updateEspInterval();
+        if (enabled) {
+            scanAllChunks();
+        } else if (!chestESPEnabled) {
+            clearESPBoxes();
+        }
+    }
+
+    function moveItem(itemName, desiredSlot) {
+        if (!playerInventoryParent || !playerInventoryParent.playerInventory?.items) return false;
+        const items = playerInventoryParent.playerInventory.items;
+        let oldSlot = null;
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (!item || typeof item.name !== 'string') continue;
+            if (item.name.toLowerCase().includes(itemName)) {
+                oldSlot = i;
+                break;
+            }
+        }
+        if (oldSlot === null) return false;
+        playerInventoryParent.swapPosClient(oldSlot, desiredSlot, null);
+        return true;
+    }
+
+    function isSurroundedAtY2(x, y, z) {
+        return (
+            r.values(Fuxny.world)[47].call(Fuxny.world, x + 1, y, z) !== 0 ||
+            r.values(Fuxny.world)[47].call(Fuxny.world, x - 1, y, z) !== 0 ||
+            r.values(Fuxny.world)[47].call(Fuxny.world, x, y, z + 1) !== 0 ||
+            r.values(Fuxny.world)[47].call(Fuxny.world, x, y, z - 1) !== 0
+        );
+    }
+
+    function placeToPlayer(position) {
+        const blockX = Math.floor(position[0]),
+            blockY = Math.floor(position[1]),
+            blockZ = Math.floor(position[2]);
+        if ((playerEntity.checkTargetedBlockCanBePlacedOver([blockX, blockY - 3, blockZ]) ||
+                r.values(Fuxny.world)[47].call(Fuxny.world, blockX, blockY - 3, blockZ) === 0) &&
+            isSurroundedAtY2(blockX, blockY - 2, blockZ)) wangPlace([blockX, blockY - 3, blockZ]);
+        if ((playerEntity.checkTargetedBlockCanBePlacedOver([blockX, blockY - 2, blockZ]) ||
+                r.values(Fuxny.world)[47].call(Fuxny.world, blockX, blockY - 2, blockZ) === 0) &&
+            isSurroundedAtY2(blockX, blockY - 1, blockZ)) wangPlace([blockX, blockY - 3, blockZ]);
+        if ((playerEntity.checkTargetedBlockCanBePlacedOver([blockX, blockY - 1, blockZ]) ||
+                r.values(Fuxny.world)[47].call(Fuxny.world, blockX, blockY - 1, blockZ) === 0) &&
+            isSurroundedAtY2(blockX, blockY, blockZ)) wangPlace([blockX, blockY - 1, blockZ]);
+        if (playerEntity.checkTargetedBlockCanBePlacedOver([blockX, blockY, blockZ]) || r.values(Fuxny.world)[47].call(Fuxny.world, blockX, blockY, blockZ) === 0) wangPlace([blockX, blockY, blockZ]);
+    }
+
+    function placeSpike(position) {
+        const blockX = Math.floor(position[0]),
+            blockY = Math.floor(position[1]),
+            blockZ = Math.floor(position[2]);
+        if (playerEntity.checkTargetedBlockCanBePlacedOver([blockX, blockY + 1, blockZ]) || r.values(Fuxny.world)[47].call(Fuxny.world, blockX, blockY + 1, blockZ) === 0) wangPlace([blockX, blockY + 1, blockZ]);
+    }
+
+    const autoSWModule = {
+        interval: 50
+    };
+
+    async function executeAutoSW() {
+        if (lastClosestId && targetEntityDistance <= 36) {
+            if (moveItem("net", webSlot) || moveItem("web", webSlot)) {
+                let enemyPos = Fuxny.entities.getState(lastClosestId, 'position').position;
+                Fuxny.noa.inputs.down['_events'][`HotBarSlot${webSlot + 1}`]();
+                placeToPlayer(enemyPos);
+                await sleep(autoSWModule.interval / 2);
+                if (moveItem("spikes", spikeSlot)) {
+                    Fuxny.noa.inputs.down['_events'][`HotBarSlot${spikeSlot + 1}`]();
+                    placeSpike(enemyPos);
+                }
+            } else {
+                if (moveItem("spikes", spikeSlot)) {
+                    Fuxny.noa.inputs.down['_events'][`HotBarSlot${spikeSlot + 1}`]();
+                    await sleep(autoSWModule.interval / 2);
+                    let enemyPos = Fuxny.entities.getState(lastClosestId, 'position').position;
+                    placeToPlayer(enemyPos);
+                }
+            }
+            Fuxny.noa.inputs.down['_events'].HotBarSlot1();
+        }
+    }
+
+    function startAutoSW() {
+        if (autoSWIntervalId) return;
+        executeAutoSW();
+        autoSWIntervalId = setInterval(executeAutoSW, autoSWModule.interval);
+        showTemporaryNotification("AutoSW Activated (Holding)", "#4CAF50");
+    }
+
+    function stopAutoSW() {
+        clearInterval(autoSWIntervalId);
+        autoSWIntervalId = null;
+        showTemporaryNotification("AutoSW Deactivated", "#FF9800");
+    }
+
+    function shootAtEnemies() {
+        if (!playerEntity || !Fuxny.bloxd || !Fuxny.entities) return;
+        const myPos = Fuxny.entities.getState(1, "position").position.slice();
+        myPos[1] += 1.6;
+        if (playerEntity.heldItemState._gunItem.heldItemState.heldType !== "Gun" || playerEntity.heldItemState._gunItem.reloading) return;
+        for (const key in Fuxny.bloxd.entityNames) {
+            if (key === "1") continue;
+            const entityData = Fuxny.entityList?.[1]?.[key];
+            if (!entityData || !entityData._isAlive || !entityData.canAttack) continue;
+            if (Fuxny.entityList[1][key]?.lobbyLeaderboardValues?.team) {
+                if (Fuxny.entityList[1][key].lobbyLeaderboardValues.team === Fuxny.entityList[1][1].lobbyLeaderboardValues.team) continue;
+            }
+            if (Fuxny.entityList[1][key]?.lobbyLeaderboardValues?.teamDisplay) {
+                if (Fuxny.entityList[1][key].lobbyLeaderboardValues.teamDisplay === Fuxny.entityList[1][1].lobbyLeaderboardValues.teamDisplay) continue;
+            }
+            const enemyPos = Fuxny.entities.getState(key, "position")?.position;
+            if (!enemyPos) continue;
+            const targetPos = [enemyPos[0], enemyPos[1] + 1.6, enemyPos[2]];
+            const vector = S.normalizeVector([targetPos[0] - myPos[0], targetPos[1] - myPos[1], targetPos[2] - myPos[2]]);
+            const gun = playerEntity.heldItemState._gunItem;
+            const losCheck = gun.fireBullet(new Float32Array(vector), 0);
+            if (losCheck.meshNodeHit !== "HeadMesh") continue;
+            const originalFunc = gun.inaccuracyCalculator.getDirectionWithInaccuracy;
+            gun.inaccuracyCalculator.getDirectionWithInaccuracy = () => new Float32Array(vector);
+            gun.fireBulletLocal();
+            gun.inaccuracyCalculator.getDirectionWithInaccuracy = originalFunc;
+        }
+    }
+
+    function startKillshot() {
+        if (killshotInterval) return;
+        killshotInterval = setInterval(shootAtEnemies, 50);
+    }
+
+    function stopKillshot() {
+        clearInterval(killshotInterval);
+        killshotInterval = null;
+    }
+
+    const materialRank = {
+        "Wood": 0,
+        "Stone": 1,
+        "Iron": 2,
+        "Gold": 3,
+        "Diamond": 4,
+        "Knight": 5
+    };
+
+    const armorTypes = {
+        "Helmet": 46,
+        "Chestplate": 47,
+        "Gauntlets": 48,
+        "Leggings": 49,
+        "Boots": 50
+    };
+
+    function getMaterialRankForItem(item) {
+        if (!item || !item.name) return -1;
+        const mat = Object.keys(materialRank).find(m => item.name.includes(m));
+        return mat ? materialRank[mat] : -1;
+    }
+
+    function cleanInventory() {
+        if (!playerInventoryParent || !playerInventoryParent.playerInventory) return;
+        const inv = playerInventoryParent.playerInventory;
+        const items = inv.items;
+
+        function findIndices(predicate) {
+            const result = [];
+            for (let i = 0; i <= 45; i++) {
+                const it = items[i];
+                if (it && predicate(it, i)) result.push(i);
+            }
+            return result;
+        }
+        const dropNames = ["Seeds", "Sapling", "Mushroom", "Empty Bottle"];
+        for (let i = 0; i <= 45; i++) {
+            const item = items[i];
+            if (!item) continue;
+            if (dropNames.some(name => item.name.includes(name))) {
+                playerInventoryParent.removeItemClient(i, item.amount, true);
+            }
+        }
+
+        for (let i = 0; i <= 45; i++) {
+            const item = items[i];
+            if (!item) continue;
+            const type = Object.keys(armorTypes).find(t => item.name.includes(t));
+            if (!type) continue;
+            const material = Object.keys(materialRank).find(m => item.name.includes(m));
+            if (!material) continue;
+            const targetSlot = armorTypes[type];
+            const currentArmorItem = items[targetSlot];
+            if (!currentArmorItem) {
+                playerInventoryParent.swapPosClient(i, targetSlot);
+            } else {
+                const currentMat = Object.keys(materialRank).find(m => currentArmorItem.name.includes(m));
+                const currentRank = currentMat ? materialRank[currentMat] : -1;
+                if (materialRank[material] > currentRank) {
+                    playerInventoryParent.swapPosClient(i, targetSlot);
+                } else {
+                    playerInventoryParent.removeItemClient(i, 1, true);
+                }
+            }
+        }
+        const swordIndices = findIndices(it => it.name.includes("Sword"));
+        let bestSwordIdx = -1;
+        let bestSwordRank = -1;
+        for (const idx of swordIndices) {
+            const rank = getMaterialRankForItem(items[idx]);
+            if (rank > bestSwordRank) {
+                bestSwordRank = rank;
+                bestSwordIdx = idx;
+            }
+        }
+        if (bestSwordIdx !== -1) {
+            const hot0 = items[0];
+            if (!hot0) {
+                if (bestSwordIdx !== 0) playerInventoryParent.swapPosClient(bestSwordIdx, 0);
+            } else {
+                if (hot0.name.includes("Sword")) {
+                    const hot0Rank = getMaterialRankForItem(hot0);
+                    if (bestSwordRank > hot0Rank) {
+                        playerInventoryParent.swapPosClient(bestSwordIdx, 0);
+                    }
+                } else {
+                    playerInventoryParent.swapPosClient(bestSwordIdx, 0);
+                }
+            }
+            bestSwordIdx = 0;
+        }
+        for (const idx of swordIndices) {
+            if (idx === bestSwordIdx) continue;
+            const it = items[idx];
+            if (!it || !it.name.includes("Sword")) continue;
+            playerInventoryParent.removeItemClient(idx, it.amount, true);
+        }
+        const bowIndices = findIndices(it => it.name.includes("Bow"));
+        let bestBowIdx = -1;
+        let bestBowRank = -1;
+        for (const idx of bowIndices) {
+            const rank = getMaterialRankForItem(items[idx]);
+            if (rank > bestBowRank) {
+                bestBowRank = rank;
+                bestBowIdx = idx;
+            }
+        }
+        if (bestBowIdx !== -1) {
+            const hot1 = items[1];
+            if (!hot1) {
+                if (bestBowIdx !== 1) playerInventoryParent.swapPosClient(bestBowIdx, 1);
+            } else {
+                if (hot1.name.includes("Bow")) {
+                    const hot1Rank = getMaterialRankForItem(hot1);
+                    if (bestBowRank > hot1Rank) {
+                        playerInventoryParent.swapPosClient(bestBowIdx, 1);
+                    }
+                } else {
+                    playerInventoryParent.swapPosClient(bestBowIdx, 1);
+                }
+            }
+            bestBowIdx = 1;
+        }
+        for (const idx of bowIndices) {
+            if (idx === bestBowIdx) continue;
+            const it = items[idx];
+            if (!it || !it.name.includes("Bow")) continue;
+            playerInventoryParent.removeItemClient(idx, it.amount, true);
+        }
+        for (let h = 0; h <= 9; h++) {
+            const hotItem = items[h];
+            if (!hotItem) continue;
+            if (hotItem.name.includes("Arrow")) {
+                let freeSlot = -1;
+                for (let s = 10; s <= 45; s++) {
+                    if (!items[s]) {
+                        freeSlot = s;
+                        break;
+                    }
+                }
+                if (freeSlot !== -1) {
+                    playerInventoryParent.swapPosClient(h, freeSlot);
+                }
+            }
+        }
+        const pickIndices = findIndices(it => it.name.includes("Pickaxe"));
+        let bestPickIdx = -1;
+        let bestPickRank = -1;
+        for (const idx of pickIndices) {
+            const rank = getMaterialRankForItem(items[idx]);
+            if (rank > bestPickRank) {
+                bestPickRank = rank;
+                bestPickIdx = idx;
+            }
+        }
+        if (bestPickIdx !== -1) {
+            const hot2 = items[2];
+            if (!hot2) {
+                if (bestPickIdx !== 2) playerInventoryParent.swapPosClient(bestPickIdx, 2);
+            } else {
+                if (hot2.name.includes("Pickaxe")) {
+                    const hot2Rank = getMaterialRankForItem(hot2);
+                    if (bestPickRank > hot2Rank) {
+                        playerInventoryParent.swapPosClient(bestPickIdx, 2);
+                    }
+                } else {
+                    playerInventoryParent.swapPosClient(bestPickIdx, 2);
+                }
+            }
+            bestPickIdx = 2;
+        }
+        for (const idx of pickIndices) {
+            if (idx === bestPickIdx) continue;
+            const it = items[idx];
+            if (!it || !it.name.includes("Pickaxe")) continue;
+            playerInventoryParent.removeItemClient(idx, it.amount, true);
+        }
+        const blockNames = ["Wood Planks", "Messy Stone"];
+        for (const name of blockNames) {
+            const indices = findIndices(it => it.name.includes(name) && it.typeObj && it.typeObj.stackable);
+            if (indices.length <= 1) continue;
+            let target = indices[0];
+            for (let k = 1; k < indices.length; k++) {
+                const src = indices[k];
+                const srcItem = items[src];
+                if (!srcItem) continue;
+                try {
+                    playerInventoryParent.moveItemIntoIdxsClient(target, target + 1, src, srcItem.amount);
+                } catch (e) {
+                    playerInventoryParent.swapPosClient(src, target);
+                }
+            }
+        }
+        let bestBlockSlot = -1;
+        let bestBlockAmount = -1;
+        for (let i = 0; i <= 45; i++) {
+            const it = items[i];
+            if (!it) continue;
+            if (blockNames.some(name => it.name.includes(name))) {
+                if (it.amount > bestBlockAmount && it.amount !== bestBlockAmount) {
+                    bestBlockAmount = it.amount;
+                    bestBlockSlot = i;
+                }
+            }
+        }
+        if (bestBlockSlot !== -1) {
+            const hot9 = items[9];
+            if (!hot9) {
+                if (bestBlockSlot !== 9) playerInventoryParent.swapPosClient(bestBlockSlot, 9);
+            } else {
+                playerInventoryParent.swapPosClient(bestBlockSlot, 9);
+            }
+        } {
+            const snowIndices = findIndices(it => it.name.includes("Snowball") && it.typeObj && it.typeObj.stackable);
+            if (snowIndices.length > 0) {
+                const target = snowIndices[0];
+                for (let k = 1; k < snowIndices.length; k++) {
+                    const src = snowIndices[k];
+                    if (!items[src]) continue;
+                    try {
+                        playerInventoryParent.moveItemIntoIdxsClient(target, target + 1, src, items[src].amount);
+                    } catch (e) {
+                        playerInventoryParent.swapPosClient(src, target);
+                    }
+                }
+                const hot3 = items[3];
+                if (!hot3) {
+                    if (target !== 3) playerInventoryParent.swapPosClient(target, 3);
+                } else {
+                    playerInventoryParent.swapPosClient(target, 3);
+                }
+            }
+        } {
+            const breadIndices = findIndices(it => it.name.includes("Bread") && it.typeObj && it.typeObj.stackable);
+            if (breadIndices.length > 0) {
+                const target = breadIndices[0];
+                for (let k = 1; k < breadIndices.length; k++) {
+                    const src = breadIndices[k];
+                    if (!items[src]) continue;
+                    try {
+                        playerInventoryParent.moveItemIntoIdxsClient(target, target + 1, src, items[src].amount);
+                    } catch (e) {
+                        playerInventoryParent.swapPosClient(src, target);
+                    }
+                }
+                const hot8 = items[8];
+                if (!hot8) {
+                    if (target !== 8) playerInventoryParent.swapPosClient(target, 8);
+                } else {
+                    playerInventoryParent.swapPosClient(target, 8);
+                }
+            }
+        }
+    }
+
+    function startInventoryCleaner() {
+        if (inventoryCleanerInterval) return;
+        inventoryCleanerInterval = setInterval(cleanInventory, 250);
+    }
+
+    function stopInventoryCleaner() {
+        clearInterval(inventoryCleanerInterval);
+        inventoryCleanerInterval = null;
+    }
+
+    let autoArmorInterval = null,
+        autoWeaponInterval = null;
+
+    function autoEquipBestWeapon() {
+        if (!playerInventoryParent?.playerInventory?.items) return;
+        const items = playerInventoryParent.playerInventory.items;
+        const TARGET_WEAPON_SLOT = 0;
+        const WEAPON_KEYWORDS = ["Sword", "Axe"];
+
+        let bestInInventory = {
+            rank: -1,
+            index: -1
+        };
+        for (let i = 0; i <= 45; i++) {
+            const item = items[i];
+            if (item && item.name && WEAPON_KEYWORDS.some(kw => item.name.includes(kw))) {
+                const rank = getMaterialRankForItem(item);
+                if (rank > bestInInventory.rank) {
+                    bestInInventory = {
+                        rank: rank,
+                        index: i
+                    };
+                }
+            }
+        }
+
+        const currentWeapon = items[TARGET_WEAPON_SLOT];
+        const currentRank = getMaterialRankForItem(currentWeapon);
+
+        if (bestInInventory.rank > currentRank) {
+            playerInventoryParent.swapPosClient(bestInInventory.index, TARGET_WEAPON_SLOT, null);
+        }
+    }
+
+    function startAutoWeapon() {
+        if (autoWeaponInterval) return;
+        autoWeaponInterval = setInterval(autoEquipBestWeapon, 250);
+    }
+
+    function stopAutoWeapon() {
+        clearInterval(autoWeaponInterval);
+        autoWeaponInterval = null;
+    }
+
+    function autoEquipBestArmor() {
+
+        if (!playerInventoryParent?.playerInventory?.items) return;
+        const items = playerInventoryParent.playerInventory.items;
+
+        for (const type in armorTypes) {
+            const equipmentSlot = armorTypes[type];
+
+            let bestInInventory = {
+                rank: -1,
+                index: -1
+            };
+            for (let i = 0; i <= 45; i++) {
+                const item = items[i];
+                if (item && item.name && item.name.includes(type)) {
+                    const rank = getMaterialRankForItem(item);
+                    if (rank > bestInInventory.rank) {
+                        bestInInventory = {
+                            rank: rank,
+                            index: i
+                        };
+                    }
+                }
+            }
+
+            const equippedItem = items[equipmentSlot];
+            const equippedRank = getMaterialRankForItem(equippedItem);
+
+            if (bestInInventory.rank > equippedRank) {
+                playerInventoryParent.swapPosClient(bestInInventory.index, equipmentSlot, null);
+            }
+        }
+    }
+
+    function startAutoArmor() {
+        if (autoArmorInterval) return;
+        autoArmorInterval = setInterval(autoEquipBestArmor, 250);
+    }
+
+    function stopAutoArmor() {
+        clearInterval(autoArmorInterval);
+        autoArmorInterval = null;
+    }
+
+    function sortInventory() {
+        if (!playerInventoryParent || !playerInventoryParent.playerInventory?.items) {
+            showTemporaryNotification("Inventory not accessible!", "#FF5252");
+            return;
+        }
+        const inv = playerInventoryParent.playerInventory;
+        const items = inv.items;
+        let swapped;
+        do {
+            swapped = false;
+            for (let i = 10; i < 45; i++) {
+                const currentItem = items[i];
+                const nextItem = items[i + 1];
+                if ((!currentItem && nextItem) || (currentItem && nextItem && currentItem.name > nextItem.name)) {
+                    playerInventoryParent.swapPosClient(i, i + 1);
+                    swapped = true;
+                }
+            }
+        } while (swapped);
+        showTemporaryNotification("Inventory Sorted!", "#4CAF50");
+    }
+
+    function findClassConstructorForPickupReach(obj) {
+        let current = obj;
+        while (current) {
+            for (const key of Reflect.ownKeys(current)) {
+                let val;
+                try {
+                    const desc = Object.getOwnPropertyDescriptor(current, key);
+                    val = desc?.value ?? current[key];
+                } catch {
+                    continue;
+                }
+                const fnStr = val?.toString() || '';
+                if (typeof val === "function" && fnStr.includes("this.names.position") && fnStr.includes(".base[0]")) {
+                    return val;
+                }
+            }
+            current = Object.getPrototypeOf(current);
+        }
+        return null;
+    }
+
+    function findGhMethodForPickupReach(clsConstructor) {
+        const protoLocal = clsConstructor?.prototype;
+        if (!protoLocal) return null;
+        for (const key of Reflect.ownKeys(protoLocal)) {
+            if (key === "constructor") continue;
+            const fn = protoLocal[key];
+            const fnStr = fn?.toString() || '';
+            if (typeof fn === "function" && fnStr.includes("this.names.position") && fnStr.includes(".base[0]")) {
+                return {
+                    fn,
+                    key
+                };
+            }
+        }
+        return null;
+    }
+
+    function setPickupReach(enabled) {
+        pickupReachEnabled = enabled;
+        if (enabled) {
+            if (!protoForPickupReach || !originalGetEntitiesInAABB) {
+                const cls = findClassConstructorForPickupReach(Fuxny.noa.entities);
+                if (!cls) {
+                    console.warn("[PickupReach] Could not find class constructor");
+                    return;
+                }
+                const ghMethod = findGhMethodForPickupReach(cls);
+                if (!ghMethod) {
+                    console.warn("[PickupReach] Could not find getEntitiesInAABB method");
+                    return;
+                }
+                protoForPickupReach = cls.prototype;
+                originalGetEntitiesInAABB = ghMethod.fn;
+                ghMethodKey = ghMethod.key;
+            }
+            protoForPickupReach[ghMethodKey] = function(box, name) {
+                const center = [(box.base[0] + box.max[0]) / 2, (box.base[1] + box.max[1]) / 2, (box.base[2] + box.max[2]) / 2];
+                const halfSize = [(box.max[0] - box.base[0]) / 2, (box.max[1] - box.base[1]) / 2, (box.max[2] - box.base[2]) / 2];
+                const enlarged = {
+                    base: center.map((c, i) => c - halfSize[i] * RANGE_MULTIPLIER),
+                    max: center.map((c, i) => c + halfSize[i] * RANGE_MULTIPLIER)
+                };
+                return originalGetEntitiesInAABB.call(this, enlarged, name);
+            };
+        } else {
+            if (protoForPickupReach && ghMethodKey && originalGetEntitiesInAABB) {
+                protoForPickupReach[ghMethodKey] = originalGetEntitiesInAABB;
+            }
+        }
+    }
+
+function updatePlayerCoords() {
+
+    if (!Fuxny?.bloxd?.entityNames || !Fuxny?.entities?.getState) return;
+
+    try {
+
+        for (const entityId in Fuxny.bloxd.entityNames) {
+
+            if (entityId === "1") continue;
+
+            const entityData = Fuxny.bloxd.entityNames[entityId];
+
+            const positionData = Fuxny.entities.getState(entityId, "position");
+
+            if (!positionData || !positionData.position) continue;
+
+            const position = positionData.position;
+            const x = Math.round(position[0]);
+            const y = Math.round(position[1]);
+            const z = Math.round(position[2]);
+
+            const baseName = entityData.entityName.replace(/\s*\(\-?\d+,\s*\-?\d+,\s*\-?\d+\)$/, "");
+
+            entityData.entityName = `${baseName} (${x}, ${y}, ${z})`;
+        }
+    } catch (error) {
+
+        console.error("Error updating player coords:", error);
+        stopPlayerCoords();
+    }
+}
+
+function startPlayerCoords() {
+
+    if (playerCoordsIntervalId) return;
+
+    playerCoordsIntervalId = setInterval(updatePlayerCoords, 100);
+}
+
+function stopPlayerCoords() {
+
+    if (!playerCoordsIntervalId) return;
+
+    clearInterval(playerCoordsIntervalId);
+    playerCoordsIntervalId = null;
+    showTemporaryNotification("Player Coords Disabled", "#FF9800");
+}
+
+    function forceShowNametags() {
+        if (!Fuxny?.entityList || !Fuxny?.Lion?.scene) return;
+        try {
+            for (const subGroup of Object.values(Fuxny.entityList)) {
+                if (!subGroup) continue;
+                for (const obj of Object.values(subGroup)) {
+                    if (obj?.lobbyLeaderboardValues) {
+                        try {
+                            Object.defineProperty(obj, 'hasPriorityNametag', {
+                                get: () => true,
+                                set(v) {},
+                                configurable: true
+                            });
+                            Object.defineProperty(obj, 'canSee', {
+                                get: () => true,
+                                set(v) {},
+                                configurable: true
+                            });
+                        } catch (e) {}
+                    }
+                }
+            }
+            Fuxny.Lion.scene.meshes.forEach(mesh => {
+                if (mesh?.id?.includes('NameTag')) {
+                    try {
+                        Object.defineProperty(mesh, '_isVisible', {
+                            get: () => true,
+                            set(v) {},
+                            configurable: true
+                        });
+                        Object.defineProperty(mesh, 'renderingGroupId', {
+                            get: () => 3,
+                            set(v) {},
+                            configurable: true
+                        });
+                    } catch (e) {}
+                }
+            });
+        } catch (e) {
+            console.error("Error forcing nametags:", e);
+            stopNametags();
+        }
+    }
+
+    function startNametags() {
+        if (nametagsIntervalId) return;
+        forceShowNametags();
+        nametagsIntervalId = setInterval(forceShowNametags, 3000);
+    }
+
+    function stopNametags() {
+        clearInterval(nametagsIntervalId);
+        nametagsIntervalId = null;
+        showTemporaryNotification("Nametags Disabled. Reload to reset.", "#FF9800");
+    }
+
+    // --- [変更箇所] HACK_CATEGORIESの定義 ---
+    const HACK_CATEGORIES = {
+        combat: [{
+                id: 'killaura',
+                name: 'Killaura',
+                type: 'toggle',
+                settings: [{
+                    id: 'delay',
+                    name: 'Delay (ms)',
+                    type: 'slider',
+                    min: 10,
+                    max: 200,
+                    step: 5,
+                    default: 50
+                }, {
+                    id: 'range',
+                    name: 'Range',
+                    type: 'slider',
+                    min: 3,
+                    max: 10,
+                    step: 0.5,
+                    default: 5
+                }, {
+                    id: 'swing',
+                    name: 'Swing',
+                    type: 'toggle',
+                    default: true
+                }, {
+                    id: 'mobs',
+                    name: 'Include Mobs',
+                    type: 'toggle',
+                    default: false
+                }, {
+                    id: 'kb',
+                    name: 'Reverse KB',
+                    type: 'toggle',
+                    default: false
+                }, {
+                    id: 'triggerbot',
+                    name: 'Triggerbot',
+                    type: 'toggle',
+                    default: true
+                }]
+            },
+            {
+                id: 'killshot',
+                name: 'Killshot',
+                type: 'toggle'
+            },
+            {
+                id: 'aimbot',
+                name: 'Aimbot',
+                type: 'toggle',
+                settings: [{
+                    id: 'distance',
+                    name: 'Distance',
+                    type: 'slider',
+                    min: 4,
+                    max: 500,
+                    step: 1,
+                    default: 8
+                }, {
+                    id: 'humanize',
+                    name: 'Human Aimbot',
+                    type: 'toggle',
+                    default: false 
+                }, {
+                    id: 'smoothing',
+                    name: 'Smoothing',
+                    type: 'slider',
+                    min: 0.1,
+                    max: 1.0,
+                    step: 0.05,
+                    default: 0.5
+                }]
+            },
+            {
+                id: 'fight-bot',
+                name: 'Fight Bot',
+                type: 'toggle',
+                settings: [{
+                    id: 'radius',
+                    name: 'Radius',
+                    type: 'slider',
+                    min: 5,
+                    max: 50,
+                    step: 1,
+                    default: 7
+                }]
+            },
+            {
+                id: 'autosw',
+                name: 'Auto SW (Hold)',
+                type: 'hold',
+                settings: [{
+                    id: 'interval',
+                    name: 'Interval (ms)',
+                    type: 'slider',
+                    min: 5,
+                    max: 100,
+                    step: 5,
+                    default: 50
+                }]
+            },
+        ],
+        render: [{
+                id: 'player-esp',
+                name: 'Player ESP',
+                type: 'toggle'
+            },
+            {
+                id: 'minimap',
+                name: 'Minimap',
+                type: 'toggle'
+            },
+            {
+                id: 'chest-esp',
+                name: 'Chest ESP',
+                type: 'toggle'
+            },
+            {
+                id: 'ore-esp',
+                name: 'Ore ESP',
+                type: 'toggle'
+            },
+            {
+                id: 'wireframe',
+                name: 'Wireframe',
+                type: 'toggle'
+            },
+            {
+                id: 'nametags',
+                name: 'Nametags',
+                type: 'toggle'
+            },
+            {
+                id: 'player-coords',
+                name: 'Player Coords',
+                type: 'toggle'
+            },
+            {
+                id: 'night',
+                name: 'Night',
+                type: 'toggle'
+            },
+        ],
+        move: [{
+                id: 'bhop',
+                name: 'BHOP',
+                type: 'toggle'
+            },
+            {
+                id: 'crouch-speed',
+                name: 'Crouch Speed',
+                type: 'toggle'
+            },
+            {
+                id: 'auto-sprint',
+                name: 'Auto Sprint',
+                type: 'toggle'
+            },
+            {
+                id: 'safescaffold',
+                name: 'Scaffold',
+                type: 'toggle'
+            },
+            {
+                id: 'scaffold-ylock',
+                name: 'Scaffold Y-Lock',
+                type: 'toggle'
+            },
+            // --- [追加] ClientMoveとFreezeをmoveカテゴリに追加 ---
+            {
+                id: 'clientmove',
+                name: 'Client Move',
+                type: 'toggle'
+            },
+            {
+                id: 'freeze',
+                name: 'Freeze',
+                type: 'toggle'
+            },
+        ],
+        world: [{
+                id: 'fast-place',
+                name: 'Fast Place',
+                type: 'toggle',
+                settings: [{
+                    id: 'delay',
+                    name: 'Delay (ms)',
+                    type: 'slider',
+                    min: 0,
+                    max: 100,
+                    step: 5,
+                    default: 20
+                }]
+            },
+            {
+                id: 'ore-miner',
+                name: 'Ore Miner',
+                type: 'toggle'
+            },
+            {
+                id: 'pickup-reach',
+                name: 'Pickup Reach',
+                type: 'toggle'
+            },
+            {
+                id: 'blink',
+                name: 'Blink',
+                type: 'toggle'
+            },
+            {
+                id: 'fake-lag',
+                name: 'Fake Lag',
+                type: 'toggle',
+                settings: [{
+                    id: 'duration',
+                    name: 'Lag Duration (ms)',
+                    type: 'slider',
+                    min: 50,
+                    max: 1000,
+                    step: 10,
+                    default: 200
+                }, {
+                    id: 'interval',
+                    name: 'Lag Interval (ms)',
+                    type: 'slider',
+                    min: 100,
+                    max: 3000,
+                    step: 10,
+                    default: 500
+                }]
+            },
+        ],
+        utility: [{
+                id: 'inv-cleaner',
+                name: 'Inv Cleaner',
+                type: 'toggle'
+            },
+            {
+                id: 'auto-armor',
+                name: 'Auto Armor',
+                type: 'toggle'
+            },
+            {
+                id: 'auto-weapon',
+                name: 'Auto Weapon',
+                type: 'toggle'
+            },
+            {
+                id: 'sort-inventory',
+                name: 'Sort Inventory',
+                type: 'action'
+            },
+            {
+                id: 'kill-softly',
+                name: 'Swing Speed(Client)',
+                type: 'toggle',
+                settings: [{
+                    id: 'duration',
+                    name: 'Duration (ms)',
+                    type: 'slider',
+                    min: 200,
+                    max: 5000,
+                    step: 100,
+                    default: 200
+                }]
+            },
+            {
+                id: 'derp',
+                name: 'Derp',
+                type: 'toggle',
+                settings: [{
+                    id: 'speed',
+                    name: 'Speed',
+                    type: 'slider',
+                    min: -100,
+                    max: 100,
+                    step: 5,
+                    default: 5
+                }]
+            },
+            // --- [追加] AutoRespawnをutilityカテゴリに追加 ---
+            {
+                id: 'autorespawn',
+                name: 'Auto Respawn',
+                type: 'toggle'
+            },
+        ]
+    };
+    const HACK_LIST = [].concat(...Object.values(HACK_CATEGORIES));
+    let keybinds = {};
+
+    const style = document.createElement('style');
+    style.textContent = `
+        :root { --bg-color: #1a1d21; --primary-color: #3a78ff; --text-color: #e0e0e0; --border-color: #33373e; --hover-color: #2c3035; --transition-speed: 0.2s; }
+        .hack-ui-container { position: fixed; top: 20px; left: 20px; z-index: 999999; font-family: "Segoe UI", "Roboto", sans-serif; }
+        #simple-hack-ui { background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 0; color: var(--text-color); width: 360px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); backdrop-filter: blur(5px); transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease; overflow: hidden; }
+        #simple-hack-ui.hidden { opacity: 0; transform: scale(0.95); pointer-events: none; }
+        .ui-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--border-color); cursor: move; }
+        .ui-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: white; }
+        .ui-header-controls { display: flex; align-items: center; gap: 4px; }
+        .ui-control-btn { background: none; border: none; color: #888; font-size: 20px; cursor: pointer; transition: color 0.2s ease, background-color 0.2s ease; padding: 0 4px; }
+        .ui-control-btn:hover { color: white; }
+        .ui-control-btn.text-btn { font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+        .ui-control-btn.text-btn:hover { background-color: var(--hover-color); }
+        .ui-tabs { display: flex; border-bottom: 1px solid var(--border-color); }
+        .ui-tab-btn { flex: 1; padding: 10px; background: none; border: none; color: #888; font-size: 14px; cursor: pointer; transition: all 0.2s ease; border-bottom: 2px solid transparent; }
+        .ui-tab-btn:hover { color: white; }
+        .ui-tab-btn.active { color: var(--primary-color); border-bottom-color: var(--primary-color); font-weight: 600; }
+        .ui-tab-content { display: none; padding: 0 12px 12px 12px; }
+        .ui-tab-content.active { display: block; }
+        #reopen-hack-ui { position: fixed; top: 20px; left: 20px; background-color: var(--bg-color); border: none; color: white; width: 40px; height: 40px; border-radius: 5px; font-size: 24px; cursor: move; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease; z-index: 999998; }
+        #reopen-hack-ui.hidden { opacity: 0; transform: scale(0.95); pointer-events: none; }
+        .hack-item { padding: 8px 0; border-bottom: 1px solid var(--border-color); }
+        .hack-item:last-child { border-bottom: none; }
+        .hack-control { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
+        .hack-label-keybind { display: flex; flex-direction: column; gap: 4px; }
+        .hack-label-keybind label { font-size: 14px; font-weight: 500; color: var(--text-color); }
+        .keybind-btn { border: 1px solid var(--border-color); background-color: var(--hover-color); color: #a0a0a0; padding: 3px 6px; border-radius: 5px; font-size: 11px; font-family: monospace; cursor: pointer; width: fit-content; transition: all 0.2s ease; }
+        .keybind-btn:hover { border-color: var(--primary-color); color: white; }
+        .keybind-btn.waiting { background-color: var(--primary-color); color: white; }
+        .hold-btn { grid-column: 2; background-color: var(--hover-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; user-select: none; text-align: center; }
+        .hold-btn:hover { background-color: var(--primary-color); border-color: var(--primary-color); color: white; }
+        .hold-btn:active { transform: scale(0.95); background-color: #2a5cdd; }
+        .toggle-switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--hover-color); transition: .3s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: #ccc; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(18px); background-color: white; }
+        .hack-settings { padding-top: 8px; }
+        .setting-control { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; margin-top: 4px; }
+        .setting-control label { font-size: 12px; color: #a0a0a0; }
+        .setting-control > span:not(.setting-value) { grid-column: 2; }
+        .setting-control > .toggle-switch { grid-column: 3; justify-self: end; }
+        .setting-control input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: var(--hover-color); outline: none; border-radius: 4px; grid-column: 2; }
+        .setting-control input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; background: var(--primary-color); cursor: pointer; border-radius: 50%; }
+        .setting-control input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: var(--primary-color); cursor: pointer; border-radius: 50%; border: none; }
+        .setting-value { font-size: 12px; color: #a0a0a0; font-family: monospace; min-width: 28px; text-align: right; grid-column: 3; }
+
+        .setting-control .toggle-switch {
+            width: 32px;
+            height: 18px;
+        }
+        .setting-control .slider:before {
+            height: 12px;
+            width: 12px;
+            left: 3px;
+            bottom: 3px;
+        }
+        .setting-control input:checked + .slider {
+            background-color: #5a6a8a;
+        }
+        .setting-control input:checked + .slider:before {
+            transform: translateX(14px);
+        }
+
+        #notification-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000000; }
+        .notification { padding: 12px 18px; color: white; background-color: rgba(26, 29, 33, 0.9); border-left: 4px solid var(--primary-color); border-radius: 6px; margin-top: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.5s, transform 0.5s; transform: translateX(20px); font-size: 14px; }
+    `;
+    document.head.appendChild(style);
+
+    const uiContainer = document.createElement('div');
+    uiContainer.id = 'hack-ui-container';
+    uiContainer.className = 'hack-ui-container';
+    const ui = document.createElement('div');
+    ui.id = 'simple-hack-ui';
+
+    let uiContent = `
+        <div class="ui-header">
+            <h3>Simple Client</h3>
+            <div class="ui-header-controls">
+                <button id="inject-btn" class="ui-control-btn text-btn">Inject</button>
+                <button id="new-account-btn" class="ui-control-btn text-btn">NewAc</button>
+                <button id="minimize-hack-ui" class="ui-control-btn">×</button>
+            </div>
+        </div>
+        <div class="ui-tabs">
+            ${Object.keys(HACK_CATEGORIES).map((cat, i) => `<button class="ui-tab-btn ${i === 0 ? 'active' : ''}" data-tab="${cat}">${cat.charAt(0).toUpperCase() + cat.slice(1)}</button>`).join('')}
+        </div>
+    `;
+
+    Object.keys(HACK_CATEGORIES).forEach((category, index) => {
+        uiContent += `<div id="tab-${category}" class="ui-tab-content ${index === 0 ? 'active' : ''}">`;
+        HACK_CATEGORIES[category].forEach(hack => {
+            uiContent += `<div class="hack-item" id="item-${hack.id}">`;
+            uiContent += `
+                <div class="hack-control" id="control-${hack.id}">
+                    <div class="hack-label-keybind">
+                        <label for="hack-${hack.id}">${hack.name}</label>
+                        <button class="keybind-btn" data-hack-id="${hack.id}">None</button>
+                    </div>
+                    ${hack.type === 'toggle'
+                    ? `<label class="toggle-switch"><input type="checkbox" id="hack-${hack.id}"><span class="slider"></span></label>`
+                    : hack.type === 'hold'
+                        ? `<button class="hold-btn" id="hack-${hack.id}">Hold</button>`
+                        : hack.type === 'action'
+                            ? `<button class="hold-btn" id="hack-${hack.id}">Run</button>`
+                            : ''
+                }
+                </div>
+            `;
+
+            if (hack.settings) {
+                uiContent += `<div class="hack-settings">`;
+                hack.settings.forEach(setting => {
+                    if (setting.type === 'slider') {
+                        const savedValue = localStorage.getItem(`setting_${hack.id}_${setting.id}`);
+                        const defaultValue = savedValue !== null ? savedValue : setting.default;
+                        uiContent += `
+                        <div class="setting-control" id="setting-${hack.id}-${setting.id}">
+                           <label for="slider-${hack.id}-${setting.id}">${setting.name}</label>
+                           <input type="range" id="slider-${hack.id}-${setting.id}" min="${setting.min}" max="${setting.max}" step="${setting.step}" value="${defaultValue}">
+                           <span class="setting-value" id="value-${hack.id}-${setting.id}">${parseFloat(defaultValue).toFixed(setting.step < 1 ? 2 : 0)}</span>
+                        </div>
+                     `;
+                    } else if (setting.type === 'toggle') {
+                        const savedValue = localStorage.getItem(`setting_${hack.id}_${setting.id}`);
+                        const defaultValue = savedValue !== null ? JSON.parse(savedValue) : setting.default;
+                        uiContent += `
+                        <div class="setting-control" id="setting-${hack.id}-${setting.id}">
+                           <label for="toggle-${hack.id}-${setting.id}">${setting.name}</label>
+                           <span></span>
+                           <label class="toggle-switch">
+                              <input type="checkbox" id="toggle-${hack.id}-${setting.id}" ${defaultValue ? 'checked' : ''}>
+                              <span class="slider"></span>
+                           </label>
+                        </div>
+                    `;
+                    }
+                });
+                uiContent += `</div>`;
+            }
+            uiContent += `</div>`;
+        });
+        uiContent += `</div>`;
+    });
+
+    ui.innerHTML = uiContent;
+    const reopenBtn = document.createElement('button');
+    reopenBtn.id = 'reopen-hack-ui';
+    reopenBtn.innerHTML = '☰';
+    reopenBtn.style.display = 'none';
+
+    uiContainer.appendChild(ui);
+    document.body.appendChild(uiContainer);
+    document.body.appendChild(reopenBtn);
+
+    function showTemporaryNotification(message, color = '#3a78ff', duration = 2000) {
+        let container = document.getElementById('notification-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'notification-container';
+            document.body.appendChild(container);
+        }
+        const notif = document.createElement('div');
+        notif.className = 'notification';
+        notif.textContent = message;
+        notif.style.borderLeftColor = color;
+        container.prepend(notif);
+        setTimeout(() => {
+            notif.style.opacity = '1';
+            notif.style.transform = 'translateX(0)';
+        }, 10);
+        setTimeout(() => {
+            notif.style.opacity = '0';
+            notif.style.transform = 'translateX(20px)';
+            setTimeout(() => notif.remove(), 500);
+        }, duration);
+    }
+
+    function clearCookiesAndReload() {
+        if (confirm("Are you sure you want to clear cookies and get a new account? This will log you out.")) {
+            const cookies = document.cookie.split(";");
+
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i];
+                const eqPos = cookie.indexOf("=");
+                const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                document.cookie = name.trim() + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+            }
+
+            location.reload();
+        }
+    }
+
+    function loadPositions() {
+        const uiPos = JSON.parse(localStorage.getItem('hack-ui-container_position'));
+        if (uiPos && uiPos.top && uiPos.left) {
+            uiContainer.style.top = uiPos.top;
+            uiContainer.style.left = uiPos.left;
+        }
+
+        const reopenBtnPos = JSON.parse(localStorage.getItem('reopen-hack-ui_position'));
+        if (reopenBtnPos && reopenBtnPos.top && reopenBtnPos.left) {
+            reopenBtn.style.top = reopenBtnPos.top;
+            reopenBtn.style.left = reopenBtnPos.left;
+        }
+    }
+
+    function loadSettings() {
+        for (const hack of HACK_LIST) {
+            const savedKey = localStorage.getItem(`keybind_${hack.id}`) || 'None';
+            keybinds[hack.id] = savedKey;
+            document.querySelector(`.keybind-btn[data-hack-id="${hack.id}"]`).textContent = savedKey;
+        }
+
+        HACK_LIST.forEach(hack => {
+            if (hack.settings) {
+                hack.settings.forEach(setting => {
+                    if (setting.type === 'slider') {
+                        const savedValue = localStorage.getItem(`setting_${hack.id}_${setting.id}`);
+                        const defaultValue = setting.default;
+                        const valueToApply = savedValue !== null ? parseFloat(savedValue) : defaultValue;
+
+                        const slider = document.getElementById(`slider-${hack.id}-${setting.id}`);
+                        const valueSpan = document.getElementById(`value-${hack.id}-${setting.id}`);
+                        if (slider) slider.value = valueToApply;
+                        if (valueSpan) valueSpan.textContent = valueToApply.toFixed(setting.step < 1 ? 2 : 0);
+
+                        if (hack.id === 'killaura' && setting.id === 'delay') killauraModule.delay = valueToApply;
+                        if (hack.id === 'killaura' && setting.id === 'range') killauraModule.range = valueToApply;
+                        if (hack.id === 'aimbot' && setting.id === 'distance') aimbotModule.maxTargetDistance = valueToApply;
+                        if (hack.id === 'aimbot' && setting.id === 'smoothing') aimbotModule.smoothing = valueToApply;
+                        if (hack.id === 'autosw' && setting.id === 'interval') autoSWModule.interval = valueToApply;
+                        if (hack.id === 'kill-softly' && setting.id === 'duration') killSoftlyModule.duration = valueToApply;
+                        if (hack.id === 'derp' && setting.id === 'speed') derpModule.speed = valueToApply;
+                        if (hack.id === 'fake-lag' && setting.id === 'duration') fakeLagModule.duration = valueToApply;
+                        if (hack.id === 'fake-lag' && setting.id === 'interval') fakeLagModule.interval = valueToApply;
+                        if (hack.id === 'fast-place' && setting.id === 'delay') fastPlaceModule.delay = valueToApply;
+
+                    } else if (setting.type === 'toggle') {
+                        const savedValue = localStorage.getItem(`setting_${hack.id}_${setting.id}`);
+                        const defaultValue = setting.default;
+                        const valueToApply = savedValue !== null ? JSON.parse(savedValue) : defaultValue;
+
+                        const checkbox = document.getElementById(`toggle-${hack.id}-${setting.id}`);
+                        if (checkbox) checkbox.checked = valueToApply;
+
+                        if (hack.id === 'killaura' && setting.id === 'swing') killauraModule.swingEnabled = valueToApply;
+                        if (hack.id === 'aimbot' && setting.id === 'humanize')
+        aimbotModule.isHumanized = valueToApply;
+                        if (hack.id === 'killaura' && setting.id === 'triggerbot') killauraModule.triggerbotEnabled = valueToApply;
+                        if (hack.id === 'killaura' && setting.id === 'mobs') killauraModule.includeMobs = valueToApply;
+                        if (hack.id === 'killaura' && setting.id === 'kb') killauraModule.reverseKb = valueToApply;
+                    }
+                });
+            }
+        });
+    }
+
+    function saveKeybind(hackId, key) {
+        keybinds[hackId] = key;
+        localStorage.setItem(`keybind_${hackId}`, key);
+        document.querySelector(`.keybind-btn[data-hack-id="${hackId}"]`).textContent = key;
+    }
+
+    let activeKeys = new Set();
+
+    function handleKeydown(e) {
+        if (e.code === 'ShiftRight') {
+            const ui = document.getElementById('simple-hack-ui');
+            if (ui.classList.contains('hidden')) {
+                document.getElementById('reopen-hack-ui').click();
+            } else {
+                document.getElementById('minimize-hack-ui').click();
+            }
+            return;
+        }
+
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable || e.repeat) return;
+        const pressedKey = e.code;
+        for (const hack of HACK_LIST) {
+            if (keybinds[hack.id] === pressedKey) {
+                const hackElement = document.getElementById(`hack-${hack.id}`);
+                if (hack.type === 'toggle' || hack.type === 'action') {
+                    hackElement.click();
+                } else if (hack.type === 'hold' && !activeKeys.has(pressedKey)) {
+                    activeKeys.add(pressedKey);
+                    const startEvent = new MouseEvent('mousedown');
+                    hackElement.dispatchEvent(startEvent);
+                }
+            }
+        }
+    }
+
+    function handleKeyup(e) {
+        const releasedKey = e.code;
+        if (activeKeys.has(releasedKey)) {
+            activeKeys.delete(releasedKey);
+            const hack = HACK_LIST.find(h => keybinds[h.id] === releasedKey && h.type === 'hold');
+            if (hack) {
+                const hackElement = document.getElementById(`hack-${hack.id}`);
+                if (hackElement) {
+                    const endEvent = new MouseEvent('mouseup');
+                    hackElement.dispatchEvent(endEvent);
+                }
+            }
+        }
+    }
+
+    function makeElementDraggable(element) { 
+        let pos1 = 0,
+            pos2 = 0,
+            pos3 = 0,
+            pos4 = 0;
+
+        element.onmousedown = dragMouseDown;
+
+        function dragMouseDown(e) {
+
+            const targetElement = e.target;
+
+            if (targetElement.closest('input, button, .slider, .keybind-btn, .setting-control label')) {
+                return; 
+            }
+
+            e = e || window.event;
+            if (e.button !== 0) return; 
+            e.preventDefault();
+
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+            document.onmousemove = elementDrag;
+        }
+
+        function elementDrag(e) {
+            e = e || window.event;
+            e.preventDefault();
+            pos1 = pos3 - e.clientX;
+            pos2 = pos4 - e.clientY;
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+
+            let newTop = element.offsetTop - pos2;
+            let newLeft = element.offsetLeft - pos1;
+
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            const header = element.querySelector('.ui-header'); 
+            const headerHeight = header ? header.offsetHeight : 40; 
+            const elementWidth = element.offsetWidth;
+
+            if (newTop < 0) newTop = 0;
+            if (newTop + headerHeight > screenHeight) newTop = screenHeight - headerHeight;
+            if (newLeft < 0) newLeft = 0;
+            if (newLeft + elementWidth > screenWidth) newLeft = screenWidth - elementWidth;
+
+            element.style.top = newTop + "px";
+            element.style.left = newLeft + "px";
+        }
+
+        function closeDragElement() {
+            document.onmouseup = null;
+            document.onmousemove = null;
+
+            const position = {
+                top: element.style.top,
+                left: element.style.left
+            };
+            localStorage.setItem(`${element.id}_position`, JSON.stringify(position));
+        }
+    }
+
+    function setupEventListeners() {
+        const TRANSITION_DURATION = 200;
+
+        document.getElementById('inject-btn').addEventListener('click', () => {
+            showTemporaryNotification("Attempting to inject...", "#3a78ff");
+            try {
+                performInjection();
+                if (injectedBool) {
+                    showTemporaryNotification("Injection Successful!", "#4CAF50");
+                } else {
+                    showTemporaryNotification("Injection Failed. Check console.", "#FF5252");
+                }
+            } catch (e) {
+                console.error("[HACK] Manual injection failed with error:", e);
+                showTemporaryNotification("Injection Failed. Check console.", "#FF5252");
+            }
+        });
+
+        document.getElementById('new-account-btn').addEventListener('click', clearCookiesAndReload);
+
+        document.getElementById('minimize-hack-ui').addEventListener('click', () => {
+            ui.classList.add('hidden');
+            setTimeout(() => {
+                ui.style.display = 'none';
+                reopenBtn.style.display = 'flex';
+                requestAnimationFrame(() => {
+                    reopenBtn.classList.remove('hidden');
+                });
+            }, TRANSITION_DURATION);
+        });
+        reopenBtn.addEventListener('click', () => {
+            reopenBtn.classList.add('hidden');
+            setTimeout(() => {
+                reopenBtn.style.display = 'none';
+                ui.style.display = 'block';
+                requestAnimationFrame(() => {
+                    ui.classList.remove('hidden');
+                });
+            }, TRANSITION_DURATION);
+        });
+
+        document.querySelectorAll('.ui-tab-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.dataset.tab;
+                document.querySelectorAll('.ui-tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.ui-tab-content').forEach(content => content.classList.remove('active'));
+                button.classList.add('active');
+                document.getElementById(`tab-${tabId}`).classList.add('active');
+            });
+        });
+
+        const preCheck = (featureName, el) => {
+            if (!injectedBool) {
+                showTemporaryNotification(`Injection is required for ${featureName}. Join a game to inject.`, "#FF5252");
+                if (el && el.type === 'checkbox') el.checked = false;
+                return false;
+            }
+            return true;
+        };
+
+        HACK_LIST.forEach(hack => {
+            const element = document.getElementById(`hack-${hack.id}`);
+            const keybindBtn = document.querySelector(`.keybind-btn[data-hack-id="${hack.id}"]`);
+
+            if (hack.type === 'toggle') {
+                element.addEventListener('change', (e) => {
+                    if (!preCheck(hack.name, e.currentTarget)) return;
+                    const isEnabled = e.currentTarget.checked;
+                    // --- [変更箇所] イベントリスナーのswitch文 ---
+                    switch (hack.id) {
+                        case 'killaura':
+                            isEnabled ? startKillaura() : stopKillaura();
+                            break;
+                        case 'killshot':
+                            isEnabled ? startKillshot() : stopKillshot();
+                            break;
+                        case 'bhop':
+                            isEnabled ? startBhop() : stopBhop();
+                            break;
+                        case 'crouch-speed':
+                            if (Fuxny.noa.playerdata) {
+                                Fuxny.noa.playerdata.crouchingSpeed = isEnabled ? 7 : 2;
+                            }
+                            break;
+                        case 'auto-sprint':
+                            if (Fuxny.noa.playerdata) {
+                                Fuxny.noa.playerdata.walkingSpeed = isEnabled ? 7 : 4;
+                            }
+                            break;
+                        case 'fight-bot':
+                            isEnabled ? startFightBot() : stopFightBot();
+                            break;
+                        case 'aimbot':
+                            isEnabled ? startAimbot() : stopAimbot();
+                            break;
+                        case 'chest-esp':
+                            setChestESP(isEnabled);
+                            break;
+
+                        case 'ore-esp':
+                            setOreESP(isEnabled);
+                            break;
+
+                        case 'kill-softly':
+                            if (playerEntity && playerEntity.heldItemState) {
+                                playerEntity.heldItemState.swingDuration = isEnabled ? killSoftlyModule.duration : 200;
+                            }
+                            break;
+                        case 'night':
+                            setNight(isEnabled);
+                            break;
+
+                        case 'derp':
+                            isEnabled ? startDerp() : stopDerp();
+                            break;
+                        case 'pickup-reach':
+                            setPickupReach(isEnabled);
+                            break;
+                        case 'fast-place':
+                            isEnabled ? startFastPlace() : stopFastPlace();
+                            break;
+                        case 'safescaffold':
+                            isEnabled ? startSafeScaffold() : stopSafeScaffold();
+                            break;
+                        case 'scaffold-ylock':
+                            isEnabled ? startScaffoldYLock() : stopScaffoldYLock();
+                            break;
+                        case 'inv-cleaner':
+                            isEnabled ? startInventoryCleaner() : stopInventoryCleaner();
+                            break;
+                        case 'auto-armor':
+                            isEnabled ? startAutoArmor() : stopAutoArmor();
+                            break;
+                        case 'auto-weapon':
+                            isEnabled ? startAutoWeapon() : stopAutoWeapon();
+                            break;
+                        case 'player-coords':
+                            isEnabled ? startPlayerCoords() : stopPlayerCoords();
+                            break;
+                        case 'nametags':
+                            isEnabled ? startNametags() : stopNametags();
+                            break;
+                        case 'player-esp':
+                            setPlayerESP(isEnabled);
+                            break;
+                        case 'minimap':
+                            isEnabled ? startMinimap() : stopMinimap();
+                            break;
+                        case 'wireframe':
+                            setWireframe(isEnabled);
+                            break;
+                        case 'blink':
+                            setBlink(isEnabled);
+                            break;
+                        case 'fake-lag':
+                            isEnabled ? startFakeLag() : stopFakeLag();
+                            break;
+                        case 'ore-miner':
+                            isEnabled ? startOreMiner() : stopOreMiner();
+                            break;
+                        // --- [追加] 新機能のロジック ---
+                        case 'autorespawn':
+                            if (Fuxny.noa.playerdata) {
+                                Fuxny.noa.playerdata.autoRespawn = isEnabled;
+                            }
+                            break;
+                        case 'clientmove':
+                            if (Fuxny.entities && Fuxny.entities[Fuxny.impKey] && Fuxny.entities[Fuxny.impKey].updateServerOfMovement) {
+                                Fuxny.entities[Fuxny.impKey].updateServerOfMovement.list[0][Object.keys(Fuxny.entities[Fuxny.impKey].updateServerOfMovement.list[0])[0]] = isEnabled ? 0 : 1;
+                            }
+                            break;
+                        case 'freeze':
+                             if (Fuxny.entities && Fuxny.entities[Fuxny.impKey] && Fuxny.entities[Fuxny.impKey].crouchingHandler) {
+                                Fuxny.entities[Fuxny.impKey].crouchingHandler.list[0][Object.keys(Fuxny.entities[Fuxny.impKey].crouchingHandler.list[0])[0]] = isEnabled ? 0 : 1;
+                            }
+                            break;
+                    }
+                    showTemporaryNotification(`${hack.name} ${isEnabled ? 'Enabled' : 'Disabled'}`);
+                });
+            } else if (hack.type === 'hold') {
+                if (hack.id === 'autosw') {
+                    element.addEventListener('mousedown', () => {
+                        if (preCheck(hack.name)) startAutoSW();
+                    });
+                    element.addEventListener('mouseup', stopAutoSW);
+                    element.addEventListener('mouseleave', stopAutoSW);
+                    element.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        if (preCheck(hack.name)) startAutoSW();
+                    });
+                    element.addEventListener('touchend', stopAutoSW);
+                    element.addEventListener('touchcancel', stopAutoSW);
+                }
+            } else if (hack.type === 'action') {
+                element.addEventListener('click', () => {
+                    if (!preCheck(hack.name)) return;
+                    if (hack.id === 'sort-inventory') sortInventory();
+                });
+            }
+
+            keybindBtn.addEventListener('click', () => {
+                keybindBtn.textContent = '...';
+                keybindBtn.classList.add('waiting');
+                const keydownHandler = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    let newKey = (e.key === 'Escape') ? (keybinds[hack.id] || 'None') : (e.key === 'Delete' || e.key === 'Backspace') ? 'None' : e.code;
+                    saveKeybind(hack.id, newKey);
+                    keybindBtn.classList.remove('waiting');
+                    window.removeEventListener('keydown', keydownHandler, true);
+                };
+                window.addEventListener('keydown', keydownHandler, true);
+            });
+
+            if (hack.settings) {
+                hack.settings.forEach(setting => {
+                    if (setting.type === 'slider') {
+                        const slider = document.getElementById(`slider-${hack.id}-${setting.id}`);
+                        const valueSpan = document.getElementById(`value-${hack.id}-${setting.id}`);
+                        if (slider && valueSpan) {
+                            slider.addEventListener('input', () => {
+                                const rawValue = slider.value;
+                                const value = parseFloat(rawValue);
+                                valueSpan.textContent = value.toFixed(setting.step < 1 ? 2 : 0);
+                                localStorage.setItem(`setting_${hack.id}_${setting.id}`, rawValue);
+                                if (hack.id === 'fight-bot' && setting.id === 'radius') {
+                                    fightBotModule.radius = value;
+                                } else if (hack.id === 'killaura' && setting.id === 'delay') {
+                                    killauraModule.delay = value;
+                                    if (killauraInterval) {
+                                        stopKillaura();
+                                        startKillaura();
+                                    }
+                                } else if (hack.id === 'killaura' && setting.id === 'range') killauraModule.range = value;
+                                else if (hack.id === 'aimbot' && setting.id === 'distance') aimbotModule.maxTargetDistance = value;
+                                else if (hack.id === 'aimbot' && setting.id === 'smoothing') aimbotModule.smoothing = value;
+                                else if (hack.id === 'autosw' && setting.id === 'interval') autoSWModule.interval = value;
+                                else if (hack.id === 'kill-softly' && setting.id === 'duration') {
+                                    killSoftlyModule.duration = value;
+                                    const toggle = document.getElementById('hack-kill-softly');
+                                    if (toggle && toggle.checked && playerEntity && playerEntity.heldItemState) {
+                                        playerEntity.heldItemState.swingDuration = value;
+                                    }
+                                } else if (hack.id === 'derp' && setting.id === 'speed') {
+                                    derpModule.speed = value;
+                                } else if (hack.id === 'fake-lag') {
+                                    if (setting.id === 'duration') fakeLagModule.duration = value;
+                                    if (setting.id === 'interval') fakeLagModule.interval = value;
+
+                                    if (document.getElementById('hack-fake-lag').checked) {
+                                        stopFakeLag();
+                                        startFakeLag();
+                                    }
+                                } else if (hack.id === 'fast-place' && setting.id === 'delay') {
+                                    fastPlaceModule.delay = value;
+                                    if (fastPlaceIntervalId) {
+                                        stopFastPlace();
+                                        startFastPlace();
+                                    }
+                                }
+                            });
+                        }
+                    } else if (setting.type === 'toggle') {
+                        const checkbox = document.getElementById(`toggle-${hack.id}-${setting.id}`);
+                        if (checkbox) {
+                            checkbox.addEventListener('change', (e) => {
+                                const isEnabled = e.currentTarget.checked;
+                                localStorage.setItem(`setting_${hack.id}_${setting.id}`, isEnabled);
+                                if (hack.id === 'killaura' && setting.id === 'swing') {
+                                    killauraModule.swingEnabled = isEnabled;
+                                }
+                                if (hack.id === 'aimbot' && setting.id === 'humanize') {
+                                    aimbotModule.isHumanized = isEnabled;
+                                }
+                                if (hack.id === 'killaura' && setting.id === 'triggerbot') {
+                                    killauraModule.triggerbotEnabled = isEnabled;
+                                }
+                                if (hack.id === 'killaura' && setting.id === 'mobs') {
+                                    killauraModule.includeMobs = isEnabled;
+                                }
+                                if (hack.id === 'killaura' && setting.id === 'kb') {
+                                    killauraModule.reverseKb = isEnabled;
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        });
+
+        makeElementDraggable(uiContainer); 
+        makeElementDraggable(reopenBtn);
+    }
+
+    (async () => {
+        setupEventListeners();
+        loadSettings();
+        loadPositions();
+
+        window.addEventListener('keydown', handleKeydown);
+        window.addEventListener('keyup', handleKeyup);
+
+        waitForElement('div.MainLoadingState.FullyFancyText', async (el) => {
+            console.log("[HACK] Game loaded. Attempting injection...");
+
+            const MAX_RETRIES = 10;
+            const RETRY_DELAY = 500;
+
+            for (let i = 0; i < MAX_RETRIES; i++) {
+                try {
+                    performInjection();
+                    if (injectedBool) {
+                        showTemporaryNotification("Injection Successful!", "#4CAF50");
+                        console.log(`[HACK] Injection succeeded on attempt ${i + 1}.`);
+                        return;
+                    }
+                } catch (e) {
+                    console.error(`[HACK] Injection attempt ${i + 1} failed with error:`, e);
+                }
+
+                if (i < MAX_RETRIES - 1) {
+                    console.log(`[HACK] Retrying in ${RETRY_DELAY}ms...`);
+                    await sleep(RETRY_DELAY);
+                }
+            }
+
+            showTemporaryNotification("Injection Failed. See console.", "#FF5252");
+            console.error("[HACK] Injection failed after all retries.");
+        });
+    })();
+
+})();
