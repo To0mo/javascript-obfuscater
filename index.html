@@ -3,135 +3,147 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🛑 フル装備 AST難読化ツール</title>
+<title>🛑 ブラウザ完結型 AST難読化ツール</title>
 <style>
 body { font-family: 'Consolas', monospace; background: #101010; color: #0f0; padding: 20px; }
-.container { max-width: 1100px; margin: auto; background: #000; padding: 20px; border: 1px solid #0f0; border-radius: 8px; }
-h1 { text-align:center; color:#fff; text-shadow: 0 0 10px #0f0; }
-textarea, pre { width: 100%; background:#181818; color:#ccc; border:1px solid #333; padding:15px; box-sizing:border-box; font-family:inherit; }
-textarea { min-height:180px; }
-.controls { display:flex; gap:10px; margin:15px 0; justify-content:center; flex-wrap:wrap; }
-button { padding:10px 20px; cursor:pointer; background:#003300; color:#0f0; border:1px solid #0f0; font-weight:bold; transition:0.2s; }
-button:hover { background:#005500; box-shadow:0 0 10px #0f0; }
-.options { display:grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap:10px; padding:10px; border:1px solid #333; margin-bottom:15px; background:#0a0a0a; }
-label { display:flex; align-items:center; cursor:pointer; user-select:none; }
-input[type="checkbox"] { accent-color:#0f0; margin-right:6px; }
-#statusText { font-weight:bold; margin-left:10px; }
+.container { max-width: 1100px; margin:auto; background:#000; padding:20px; border:1px solid #0f0; border-radius:8px;}
+h1 { text-align:center; color:#fff; text-shadow:0 0 10px #0f0;}
+textarea, pre { width:100%; background:#181818; color:#ccc; border:1px solid #333; padding:15px; box-sizing:border-box; font-family:inherit;}
+textarea { min-height:180px;}
+.controls { display:flex; gap:10px; margin:15px 0; justify-content:center; flex-wrap:wrap;}
+button { padding:10px 20px; cursor:pointer; background:#003300; color:#0f0; border:1px solid #0f0; font-weight:bold; transition:0.2s;}
+button:hover { background:#005500; box-shadow:0 0 10px #0f0;}
+.options { display:grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap:10px; padding:10px; border:1px solid #333; margin-bottom:15px; background:#0a0a0a;}
+label { display:flex; align-items:center; cursor:pointer; user-select:none;}
+input[type="checkbox"] { accent-color:#0f0; margin-right:6px;}
+#statusText { font-weight:bold; margin-left:10px;}
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>🛑 フル装備 AST難読化ツール</h1>
-  <textarea id="input" placeholder="// JavaScriptコードをここに"></textarea>
+<h1>🛑 ブラウザ完結型 AST難読化ツール</h1>
+<textarea id="input" placeholder="// JavaScriptコードをここに"></textarea>
 
-  <div class="options">
-    <label>層数: <input type="range" id="layers" min="1" max="5" value="1"> <span id="layerVal">1</span></label>
-    <label><input type="checkbox" id="renameVars" checked>変数/関数名リネーム</label>
-    <label><input type="checkbox" id="stringBase64" checked>文字列 Base64化</label>
-    <label><input type="checkbox" id="stringHex">文字列 \xHH化</label>
-    <label><input type="checkbox" id="numberHex" checked>数値16進化</label>
-    <label><input type="checkbox" id="removeComments">コメント削除</label>
-    <label><input type="checkbox" id="wrapEval">Eval圧縮/IIFEラップ</label>
-  </div>
-
-  <div class="controls">
-    <button onclick="processObfuscation()">💀 難読化</button>
-    <button onclick="copyToClip()">📋 コピー</button>
-    <button onclick="downloadCode()">💾 ダウンロード</button>
-    <button onclick="runTest()" style="border-color:#f55; color:#fcc;">🚨 実行テスト</button>
-  </div>
-
-  <div>ステータス: <span id="statusText">待機中</span></div>
-  <pre id="output"></pre>
+<div class="options">
+<label>層数: <input type="range" id="layers" min="1" max="5" value="1"> <span id="layerVal">1</span></label>
+<label><input type="checkbox" id="renameVars" checked>変数/関数名リネーム</label>
+<label><input type="checkbox" id="stringBase64" checked>文字列 Base64化</label>
+<label><input type="checkbox" id="stringHex">文字列 \xHH化</label>
+<label><input type="checkbox" id="numberHex" checked>数値16進化</label>
+<label><input type="checkbox" id="removeComments">コメント削除</label>
+<label><input type="checkbox" id="wrapEval">Eval圧縮/IIFEラップ</label>
 </div>
 
-<!-- ライブラリ -->
+<div class="controls">
+<button onclick="processObfuscation()">💀 難読化</button>
+<button onclick="copyToClip()">📋 コピー</button>
+<button onclick="downloadCode()">💾 ダウンロード</button>
+<button onclick="runTest()" style="border-color:#f55; color:#fcc;">🚨 実行テスト</button>
+</div>
+
+<div>ステータス: <span id="statusText">待機中</span></div>
+<pre id="output"></pre>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/acorn/dist/acorn.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/estraverse/estraverse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/escodegen/escodegen.browser.js"></script>
 
 <script>
-let finalCode = "";
+let finalCode="";
 
-function obfuscateCode(source, options={}) {
+// --- 自作 AST トラバース ---
+function walkAST(node, enter, leave){
+  if(!node) return;
+  if(enter) enter(node);
+  for(const key in node){
+    if(node.hasOwnProperty(key)){
+      const child = node[key];
+      if(Array.isArray(child)){
+        child.forEach(c=>typeof c==='object' && walkAST(c, enter, leave));
+      } else if(typeof child==='object' && child!==null){
+        walkAST(child, enter, leave);
+      }
+    }
+  }
+  if(leave) leave(node);
+}
+
+// --- 難読化 ---
+function obfuscateCode(source, options={}){
   const { renameIdentifiers=true, stringBase64=true, stringHex=false, numberHex=true, removeComments=false } = options;
-  const ast = acorn.parse(source, { ecmaVersion:'latest', sourceType:'module', locations:true, onComment:removeComments?()=>{}:null });
-
-  const scopeStack = [];
+  const ast = acorn.parse(source,{ecmaVersion:'latest', sourceType:'module', onComment: removeComments?()=>{}:null});
+  
+  const scopeStack=[];
   function pushScope(){ scopeStack.push({ nameMap:new Map(), counter:0 }); }
   function popScope(){ scopeStack.pop(); }
   function currentScope(){ return scopeStack[scopeStack.length-1]; }
   function genName(scope){ return `_0x${scope.counter++}`; }
-
-  estraverse.replace(ast, {
-    enter(node, parent) {
-      if(node.type==='Program'||node.type==='FunctionDeclaration'||node.type==='FunctionExpression'||node.type==='ArrowFunctionExpression'){
-        pushScope();
-        if(node.params){
-          for(const param of node.params){
-            if(param.type==='Identifier'){
-              const newName=genName(currentScope());
-              currentScope().nameMap.set(param.name,newName);
-              param.name=newName;
-            }
+  
+  walkAST(ast, node=>{
+    if(node.type==='Program'||node.type==='FunctionDeclaration'||node.type==='FunctionExpression'||node.type==='ArrowFunctionExpression'){
+      pushScope();
+      if(node.params){
+        for(const param of node.params){
+          if(param.type==='Identifier'){
+            const newName=genName(currentScope());
+            currentScope().nameMap.set(param.name,newName);
+            param.name=newName;
           }
         }
-        if(node.type==='FunctionDeclaration' && node.id){
-          const newName=genName(currentScope());
-          currentScope().nameMap.set(node.id.name,newName);
-          node.id.name=newName;
-        }
       }
-
-      if(renameIdentifiers && node.type==='VariableDeclarator' && node.id.type==='Identifier'){
+      if(node.type==='FunctionDeclaration' && node.id){
         const newName=genName(currentScope());
         currentScope().nameMap.set(node.id.name,newName);
         node.id.name=newName;
       }
+    }
 
-      if(renameIdentifiers && node.type==='Identifier'){
-        const name=node.name;
-        for(let i=scopeStack.length-1;i>=0;i--){
-          const scope=scopeStack[i];
-          if(scope.nameMap.has(name)){ node.name=scope.nameMap.get(name); break; }
-        }
-      }
+    if(renameIdentifiers && node.type==='VariableDeclarator' && node.id.type==='Identifier'){
+      const newName=genName(currentScope());
+      currentScope().nameMap.set(node.id.name,newName);
+      node.id.name=newName;
+    }
 
-      if(node.type==='Literal'){
-        if(typeof node.value==='string'){
-          if(stringBase64){ node.value=btoa(node.value); node.raw=`"${btoa(node.value)}"`; }
-          else if(stringHex){ 
-            let out=''; for(let i=0;i<node.value.length;i++){ out+='\\x'+node.value.charCodeAt(i).toString(16).padStart(2,'0'); }
-            node.value=out; node.raw=`"${out}"`;
-          }
-        } else if(typeof node.value==='number' && numberHex){
-          node.raw='0x'+node.value.toString(16);
-        }
+    if(renameIdentifiers && node.type==='Identifier'){
+      const name=node.name;
+      for(let i=scopeStack.length-1;i>=0;i--){
+        const scope=scopeStack[i];
+        if(scope.nameMap.has(name)){ node.name=scope.nameMap.get(name); break; }
       }
-    },
-    leave(node){
-      if(node.type==='Program'||node.type==='FunctionDeclaration'||node.type==='FunctionExpression'||node.type==='ArrowFunctionExpression'){
-        popScope();
+    }
+
+    if(node.type==='Literal'){
+      if(typeof node.value==='string'){
+        if(stringBase64){ node.raw='"'+btoa(node.value)+'"'; node.value=btoa(node.value);}
+        else if(stringHex){ let out=''; for(let i=0;i<node.value.length;i++){ out+='\\x'+node.value.charCodeAt(i).toString(16).padStart(2,'0'); } node.value=out; node.raw='"'+out+'"';}
+      } else if(typeof node.value==='number' && numberHex){
+        node.raw='0x'+node.value.toString(16);
       }
+    }
+  }, node=>{
+    if(node.type==='Program'||node.type==='FunctionDeclaration'||node.type==='FunctionExpression'||node.type==='ArrowFunctionExpression'){
+      popScope();
     }
   });
 
   let code = escodegen.generate(ast,{format:{indent:{style:'  '},semicolons:true}});
-  if(options.wrapEval) code = `eval(${JSON.stringify(code)})`;
+  if(options.wrapEval) code=`eval(${JSON.stringify(code)})`;
   return code;
 }
 
-function multiLayerObfuscate(source, layers=1, options={}) {
+// --- 多層難読化 ---
+function multiLayerObfuscate(source,layers=1,options={}){
   let code=source;
-  for(let i=0;i<layers;i++){ code=obfuscateCode(code, options); }
+  for(let i=0;i<layers;i++) code=obfuscateCode(code,options);
   return code;
 }
 
+// --- UI操作 ---
 function processObfuscation(){
   const input=document.getElementById('input').value;
   if(!input.trim()) return alert("コードを入力してください");
   const layers=parseInt(document.getElementById('layers').value);
-  const options = {
+  const options={
     renameIdentifiers:document.getElementById('renameVars').checked,
     stringBase64:document.getElementById('stringBase64').checked,
     stringHex:document.getElementById('stringHex').checked,
@@ -153,9 +165,32 @@ function processObfuscation(){
   },20);
 }
 
-function copyToClip(){navigator.clipboard.writeText(finalCode);document.getElementById('statusText').textContent="コピー完了";}
-function downloadCode(){ const blob=new Blob([finalCode],{type:'text/javascript'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='obfuscated.js'; a.click(); }
-function runTest(){ if(!finalCode) return; try{ const log=console.log; let output=""; console.log=(...args)=>{output+=args.join(" ")+"\n";log(...args)}; new Function(finalCode)(); console.log=log; alert(output?"実行成功！\n"+output:"実行成功！(ログなし)"); }catch(e){alert("実行時エラー:\n"+e.message);} }
+function copyToClip(){
+  navigator.clipboard.writeText(finalCode);
+  document.getElementById('statusText').textContent="コピー完了";
+}
+
+function downloadCode(){
+  const blob=new Blob([finalCode],{type:'text/javascript'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='obfuscated.js';
+  a.click();
+}
+
+function runTest(){
+  if(!finalCode) return;
+  try{
+    const log=console.log;
+    let output="";
+    console.log=(...args)=>{ output+=args.join(" ")+"\n"; log(...args);}
+    new Function(finalCode)();
+    console.log=log;
+    alert(output ? "実行成功！\n"+output : "実行成功！(ログなし)");
+  }catch(e){
+    alert("実行時エラー:\n"+e.message);
+  }
+}
 
 document.getElementById('layers').addEventListener('input', e=>document.getElementById('layerVal').textContent=e.target.value);
 </script>
