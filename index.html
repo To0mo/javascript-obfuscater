@@ -3,47 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🛑 多層難読化ツール [Final Fix]</title>
+  <title>🛑 多層難読化ツール [Parser Edition]</title>
   <style>
-    body { font-family: 'Courier New', monospace; background: #050505; color: #0f0; padding: 20px; }
-    .container { max-width: 1100px; margin: auto; background: #000; padding: 30px; border-radius: 8px; border: 1px solid #0f0; }
-    textarea, #output { width: 100%; background: #111; color: #0f0; border: 1px solid #333; padding: 15px; box-sizing: border-box; height: 180px; font-size: 14px; }
-    textarea:focus, #output:focus { outline: none; border-color: #0f0; }
-    #output { min-height: 200px; white-space: pre-wrap; word-break: break-all; color: #cfc; opacity: 0.9; }
-    .controls { display: flex; gap: 15px; justify-content: center; margin: 25px 0; }
-    button { padding: 12px 24px; background: #002200; color: #0f0; border: 1px solid #0f0; cursor: pointer; font-weight: bold; }
-    button:hover { background: #004400; }
-    .options { background: #0a0a0a; padding: 15px; border: 1px solid #333; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom:20px; }
-    .status-bar { border-top: 1px dashed #333; padding-top: 15px; text-align: center; color: #888; }
+    body { font-family: 'Consolas', 'Monaco', monospace; background: #101010; color: #0f0; padding: 20px; }
+    .container { max-width: 1000px; margin: auto; background: #000; padding: 20px; border: 1px solid #0f0; border-radius: 8px; box-shadow: 0 0 15px #002200; }
+    h1 { text-align: center; margin-top: 0; color: #fff; text-shadow: 0 0 10px #0f0; }
+    .subtitle { text-align: center; color: #8f8; font-size: 0.85em; margin-bottom: 20px; }
+    textarea, #output { width: 100%; background: #181818; color: #ccc; border: 1px solid #333; padding: 15px; box-sizing: border-box; height: 180px; font-size: 13px; font-family: inherit; }
+    textarea:focus, #output:focus { outline: 2px solid #050; border-color: #0f0; color: #fff; }
+    #output { min-height: 200px; white-space: pre-wrap; word-break: break-all; color: #cfc; }
+    
+    .controls { display: flex; gap: 15px; justify-content: center; margin: 20px 0; }
+    button { padding: 10px 25px; background: #003300; color: #0f0; border: 1px solid #0f0; cursor: pointer; font-weight: bold; font-family: inherit; transition: 0.2s; }
+    button:hover { background: #005500; box-shadow: 0 0 10px #0f0; }
+    
+    .options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; padding: 15px; background: #0a0a0a; border: 1px solid #333; margin-bottom: 15px; }
+    label { display: flex; align-items: center; cursor: pointer; user-select: none; }
+    input[type="checkbox"] { accent-color: #0f0; margin-right: 8px; }
+    
+    #statusText { font-weight: bold; margin-left: 10px; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🛑 多層難読化ツール <span style="font-size:0.6em; color:#fa0;">[Final Fix]</span></h1>
-    <p style="text-align:center; color:#8f8; font-size:0.9em;">数値カッコ排除 / コメント削除 / 正規表現リテラル対策済み</p>
+    <h1>🛑 多層難読化ツール [Parser Edition]</h1>
+    <p class="subtitle">簡易パーサー搭載：正規表現リテラル / 文字列 / 割り算を正確に識別</p>
 
-    <textarea id="input" placeholder="// ここにコードを入力&#13;&#10;const data = { 200: 'OK', 404: 'Not Found' };&#13;&#10;var regex = /&quot;/g;&#13;&#10;console.log(data[200]);">
-// テストコード
-var config = { 
-  10: "Low", 
-  20: "High" 
-};
-var text = "これは\"テスト\"です";
-var reg = /"/g; // 正規表現リテラル内のクォート対策
+    <textarea id="input" placeholder="// コードを入力してください
+const regex = /&quot;/g; // 正規表現内のクォートも安全
+const div = 10 / 2;    // 割り算も安全
+console.log(`Result: ${div}`);">
+// 難読化テスト
+var magic = 10 / 2;
+var reg = /"/g; // クォートを含む正規表現
+var text = 'He said "Hello"';
 
-console.log(config[10]);
-if(100 > 50) {
-  alert(text.replace(reg, "'"));
+if (text.match(reg)) {
+  console.log(`Match found! Value: ${magic}`);
 }
 </textarea>
 
     <div class="options">
       <div><strong>層数: <input type="range" id="layers" min="1" max="3" value="1"> <span id="layerVal">1</span></strong></div>
-      <label><input type="checkbox" id="stripComments" checked disabled> コメント削除 (必須)</label>
       <label><input type="checkbox" id="renameVars" checked> 変数名リネーム</label>
-      <label><input type="checkbox" id="stringEscape" checked> 文字列難読化</label>
-      <label><input type="checkbox" id="numberSafe" checked> 数値Hex化 (安全)</label>
-      <label><input type="checkbox" id="wrapEval" checked> Eval圧縮</label>
+      <label><input type="checkbox" id="stringEscape" checked> 文字列難読化 (\xHH)</label>
+      <label><input type="checkbox" id="numberSafe" checked> 数値Hex化</label>
+      <label><input type="checkbox" id="wrapEval" checked> Eval圧縮 (JSON)</label>
     </div>
 
     <div class="controls">
@@ -52,7 +57,7 @@ if(100 > 50) {
       <button onclick="runTest()" style="border-color:#f55; color:#fcc;">🚨 実行テスト</button>
     </div>
 
-    <div class="status-bar">ステータス: <span id="statusText">待機中</span></div>
+    <div style="text-align:center; color:#888;">ステータス: <span id="statusText">待機中</span></div>
     <pre id="output"></pre>
   </div>
 
@@ -60,130 +65,214 @@ if(100 > 50) {
 let finalCode = "";
 
 /**
- * 正規表現定数
+ * コードを解析し、文字列・正規表現・コメントをマスクする簡易パーサー
+ * これにより / / (割り算) と / / (正規表現) を区別し、
+ * "文字列" や `テンプレート` を保護します。
  */
-// 文字列（シングル・ダブル・バッククォート全部）
-// ただしテンプレートリテラル内のネストまでは完璧には追えないが、通常の文字列はこれでOK
-const STRING_REGEX = /((['"`])(?:\\.|[^\\])*?\2)/g;
+function maskLiterals(code) {
+  let output = "";
+  const store = [];
+  let i = 0;
+  const len = code.length;
 
-// 正規表現リテラル（簡易）: スラッシュで囲まれ、改行を含まないもの
-// ※除算(/)との誤爆を防ぐのは難しいが、典型的なリテラル /.../g を保護する
-const REGEX_LITERAL = /\/((?:\\.|[^\\\r\n])+?)\/[gimsuy]*/g;
+  // 直前の有効なトークンが何だったか（正規表現vs割り算の判定に使う）
+  // trueなら「値(identifier/number/close-paren)」の直後 -> 次の / は割り算
+  // falseなら「演算子/開始カッコ/キーワード」の直後 -> 次の / は正規表現
+  let lastIsValue = false; 
+
+  function addPlaceholder(content, type) {
+    const id = store.length;
+    store.push({ type, content });
+    output += `___TOK_${type}_${id}___`;
+  }
+
+  while (i < len) {
+    const char = code[i];
+    const next = code[i+1] || "";
+
+    // 1. コメントの処理 (削除対象)
+    if (char === '/' && next === '/') {
+      let start = i;
+      i += 2;
+      while (i < len && code[i] !== '\n') i++;
+      // 行コメントは削除 (改行は残す)
+      output += "\n"; 
+      lastIsValue = false; // 改行後はリセット
+      continue;
+    }
+    if (char === '/' && next === '*') {
+      i += 2;
+      while (i < len && !(code[i] === '*' && code[i+1] === '/')) i++;
+      i += 2;
+      // ブロックコメント削除
+      output += " ";
+      continue;
+    }
+
+    // 2. 文字列リテラル (' " `)
+    if (char === '"' || char === "'" || char === '`') {
+      const quote = char;
+      let start = i;
+      i++;
+      while (i < len) {
+        if (code[i] === '\\') {
+          i += 2; // エスケープスキップ
+          continue;
+        }
+        if (code[i] === quote) {
+          i++;
+          break;
+        }
+        i++;
+      }
+      const content = code.slice(start, i);
+      // テンプレートリテラル(`)か通常文字列(STR)か
+      const type = (quote === '`') ? 'TMPL' : 'STR';
+      addPlaceholder(content, type);
+      lastIsValue = true; // 文字列は値扱い
+      continue;
+    }
+
+    // 3. 正規表現リテラル vs 割り算
+    if (char === '/') {
+      // 直前が値(変数や数字)なら、これは割り算(演算子)
+      if (lastIsValue) {
+        output += char;
+        i++;
+        lastIsValue = false; // 演算子の後は値ではない
+        continue;
+      } else {
+        // 直前が演算子や区切り文字なら、これは正規表現リテラルの開始
+        let start = i;
+        i++;
+        let inClass = false; // [...] の中かどうか
+        while (i < len) {
+          if (code[i] === '\\') {
+            i += 2;
+            continue;
+          }
+          if (code[i] === '[') {
+            inClass = true;
+          } else if (code[i] === ']') {
+            inClass = false;
+          } else if (code[i] === '/' && !inClass) {
+            i++;
+            // フラグ (g, i, m...) を読み飛ばす
+            while (i < len && /^[gimsuy]/.test(code[i])) {
+              i++;
+            }
+            break;
+          }
+          i++;
+        }
+        const regex = code.slice(start, i);
+        addPlaceholder(regex, 'REGEX');
+        lastIsValue = true; // 正規表現リテラルは値扱い
+        continue;
+      }
+    }
+
+    // 4. 通常のコード文字
+    // 空白は無視して状態維持、それ以外は状態更新
+    if (/\s/.test(char)) {
+      output += char;
+      i++;
+      // lastIsValueは変更しない（空白またぎで判定するため）
+    } else {
+      output += char;
+      i++;
+      // 識別子(変数名・数字)、閉じ括弧 ) ] } の後は「値」とみなす
+      if (/[a-zA-Z0-9_$\]\)]/.test(char)) {
+        lastIsValue = true;
+      } else {
+        // ( [ { = + - * , ; : ? ! < > 等の後は「値ではない」
+        lastIsValue = false;
+      }
+    }
+  }
+
+  return { output, store };
+}
 
 function obfuscateOnce(sourceCode) {
-  let code = sourceCode;
-  const stringStore = [];
+  // Step 1: パーサーでリテラル類を全て退避
+  const { output: maskedCode, store } = maskLiterals(sourceCode);
+  let code = maskedCode;
 
-  // ----------------------------------------------------------
-  // 0. コメント削除 (解析の邪魔になるため必須)
-  // ----------------------------------------------------------
-  // ブロックコメント
-  code = code.replace(/\/\*[\s\S]*?\*\//g, "");
-  // 行コメント (URLの http:// を消さないように注意が必要だが、簡易的に行頭やスペース後の // を消す)
-  code = code.replace(/([^:]|^)\/\/.*$/gm, "$1");
-
-
-  // ----------------------------------------------------------
-  // 1. 文字列 & 正規表現リテラルの保護 (マスク)
-  // ----------------------------------------------------------
-  
-  // 先に文字列をマスクする
-  code = code.replace(STRING_REGEX, (match) => {
-    const placeholder = `___STR_${stringStore.length}___`;
-    stringStore.push(match);
-    return placeholder;
-  });
-
-  // ----------------------------------------------------------
-  // 2. 変数名リネーム
-  // ----------------------------------------------------------
+  // Step 2: 変数名リネーム
   if (document.getElementById('renameVars').checked) {
     const varMap = {};
     let varCount = 0;
-    // 壊すとまずいグローバル変数は除外
-    const exclude = ['window', 'document', 'console', 'alert', 'eval', 'JSON', 'Math', 'parseInt', 'setTimeout', 'setInterval', 'location', 'history', 'String', 'Number', 'Array', 'Object'];
+    const exclude = ['window', 'document', 'console', 'alert', 'eval', 'JSON', 'Math', 'parseInt', 'setTimeout', 'setInterval', 'location'];
 
     code = code.replace(/\b(var|let|const|function)\s+([a-zA-Z_$][\w$]*)/g, (m, type, name) => {
       if (exclude.includes(name)) return m;
       if (!varMap[name]) {
-        // 識別子として安全な文字のみを使用
         varMap[name] = `_0x${Math.floor(Math.random()*0xffff).toString(16)}_${varCount++}`;
       }
       return `${type} ${varMap[name]}`;
     });
 
-    // 置換実行
     for (const [orig, neo] of Object.entries(varMap)) {
-      // キーワード境界を厳密にチェック
-      const re = new RegExp(`(?<!\\.|[a-zA-Z0-9_$])${orig}\\b`, 'g');
+      // トークンプレースホルダ (TOK_STR_0等) を壊さないよう注意
+      const re = new RegExp(`(?<!\\.|[a-zA-Z0-9_$])${orig}\\b(?!\\s*:)`, 'g');
       code = code.replace(re, neo);
     }
   }
 
-  // ----------------------------------------------------------
-  // 3. 数値難読化 (Unexpected token fix)
-  // ----------------------------------------------------------
+  // Step 3: 数値Hex化
   if (document.getElementById('numberSafe').checked) {
-    // マスクされた文字列(STR_0)内の数字を巻き込まないようチェック
     code = code.replace(/\b(\d+)\b/g, (match) => {
-      // もしプレースホルダの一部なら無視 (簡易チェック)
-      if (code.includes(`___STR_${match}___`)) return match;
-      // 既にHexなら無視
-      if (code.substring(code.indexOf(match)-2, code.indexOf(match)) === '0x') return match;
-
+      // プレースホルダ内の数字(TOK_STR_123)を巻き込まないチェック
+      if (maskedCode.includes(`_${match}_`)) return match; 
       const n = parseInt(match, 10);
-      if (isNaN(n)) return match;
-      if (match.startsWith('0') && match.length > 1) return match; // 0始まりは無視
-      if (n < 10) return match; 
-
-      // 【重要修正】カッコや計算式を使わず、純粋なHexリテラルにする
-      // これなら { 0x10: "val" } となり構文エラーにならない
-      return `0x${n.toString(16)}`; 
+      if (isNaN(n) || n < 10) return match;
+      return `0x${n.toString(16)}`;
     });
   }
 
-  // ----------------------------------------------------------
-  // 4. 文字列復元 & 中身の難読化
-  // ----------------------------------------------------------
-  code = code.replace(/___STR_(\d+)___/g, (match, index) => {
-    let originalStr = stringStore[parseInt(index)];
-    
-    // 文字列難読化がOFFならそのまま戻す
-    if (!document.getElementById('stringEscape').checked) return originalStr;
+  // Step 4: リテラルの復元
+  // ここで文字列だけ難読化し、正規表現やテンプレートリテラルはそのまま戻す
+  const doStringEscape = document.getElementById('stringEscape').checked;
 
-    // テンプレートリテラル(`)や正規表現リテラル(/)は中身をいじると壊れるのでそのまま戻す
-    const firstChar = originalStr[0];
-    if (firstChar === '`' || firstChar === '/') return originalStr;
+  // 正規表現でプレースホルダを探して置換
+  code = code.replace(/___TOK_([A-Z]+)_(\d+)___/g, (match, type, id) => {
+    const item = store[parseInt(id)];
+    const original = item.content;
 
-    // 通常の文字列 (" or ')
-    const quote = firstChar;
-    const content = originalStr.slice(1, -1);
-    
-    let obfuscated = "";
-    for (let i = 0; i < content.length; i++) {
-      const c = content.charCodeAt(i);
-      const char = content[i];
-      
-      // バックスラッシュは既にエスケープされているので触らない
-      if (char === '\\') {
-        obfuscated += char + (content[i+1] || '');
-        i++; 
-        continue;
-      }
-
-      // アルファベットや記号をHex化
-      if (Math.random() > 0.5 && c > 31 && c < 127) {
-        obfuscated += '\\x' + c.toString(16).padStart(2, '0');
-      } else {
-        obfuscated += char;
-      }
+    // 正規表現(REGEX) や テンプレート(TMPL) は絶対にいじらない
+    if (type === 'REGEX' || type === 'TMPL') {
+      return original;
     }
-    return quote + obfuscated + quote;
+
+    // 文字列(STR) の場合
+    if (type === 'STR' && doStringEscape) {
+      const quote = original[0];
+      const content = original.slice(1, -1);
+      let out = "";
+      for (let i = 0; i < content.length; i++) {
+        const c = content.charCodeAt(i);
+        const ch = content[i];
+        if (ch === '\\') {
+           // エスケープシーケンス (\n, \", \\) はそのまま維持
+           out += ch + (content[i+1] || '');
+           i++;
+           continue;
+        }
+        // ASCII範囲の安全な文字だけHex化
+        if (Math.random() > 0.5 && c > 31 && c < 127) {
+          out += '\\x' + c.toString(16).padStart(2, '0');
+        } else {
+          out += ch;
+        }
+      }
+      return quote + out + quote;
+    }
+
+    return original;
   });
 
-  // ----------------------------------------------------------
-  // 5. Eval圧縮 (JSON.stringifyで安全化)
-  // ----------------------------------------------------------
+  // Step 5: Eval圧縮
   if (document.getElementById('wrapEval').checked) {
     code = `eval(${JSON.stringify(code)})`;
   }
@@ -193,11 +282,12 @@ function obfuscateOnce(sourceCode) {
 
 function processObfuscation() {
   const input = document.getElementById('input').value;
-  if (!input.trim()) return alert("コードを入れてください");
+  if (!input.trim()) return alert("コードを入力してください");
   
   const status = document.getElementById('statusText');
   status.textContent = "処理中...";
-  
+  status.style.color = "#ff0";
+
   setTimeout(() => {
     try {
       let c = input;
@@ -205,42 +295,35 @@ function processObfuscation() {
       for(let i=0; i<layers; i++) {
         c = obfuscateOnce(c);
       }
-      
       finalCode = c;
       document.getElementById('output').textContent = finalCode;
       status.textContent = "✅ 完了";
       status.style.color = "#0f0";
     } catch(e) {
-      alert("エラー: " + e);
-      status.textContent = "❌ エラー発生";
+      console.error(e);
+      status.textContent = "❌ エラー: " + e.message;
       status.style.color = "#f55";
     }
-  }, 50);
+  }, 20);
 }
 
 function runTest() {
   if(!finalCode) return;
   try {
-    // ログ乗っ取り
-    const originalLog = console.log;
-    let logs = "";
-    console.log = (...a) => { logs += a.join(' ') + "\n"; originalLog.apply(console, a); };
+    const log = console.log;
+    let output = "";
+    console.log = (...args) => { output += args.join(' ') + "\n"; log(...args); };
     
-    // 実行
     new Function(finalCode)();
     
-    console.log = originalLog;
-    
-    if (logs) alert("実行成功！ログ:\n" + logs);
-    else alert("実行成功！（ログ出力なし）");
-    
+    console.log = log;
+    alert(output ? "実行成功！ログ:\n" + output : "実行成功！(ログなし)");
   } catch(e) {
-    alert("実行エラー: " + e.message);
+    alert("実行時エラー:\n" + e.message);
   }
 }
 
 function copyToClip() {
-  if(!finalCode) return;
   navigator.clipboard.writeText(finalCode);
   document.getElementById('statusText').textContent = "コピー完了";
 }
