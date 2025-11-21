@@ -1,334 +1,163 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🛑 多層難読化ツール [Parser Edition]</title>
-  <style>
-    body { font-family: 'Consolas', 'Monaco', monospace; background: #101010; color: #0f0; padding: 20px; }
-    .container { max-width: 1000px; margin: auto; background: #000; padding: 20px; border: 1px solid #0f0; border-radius: 8px; box-shadow: 0 0 15px #002200; }
-    h1 { text-align: center; margin-top: 0; color: #fff; text-shadow: 0 0 10px #0f0; }
-    .subtitle { text-align: center; color: #8f8; font-size: 0.85em; margin-bottom: 20px; }
-    textarea, #output { width: 100%; background: #181818; color: #ccc; border: 1px solid #333; padding: 15px; box-sizing: border-box; height: 180px; font-size: 13px; font-family: inherit; }
-    textarea:focus, #output:focus { outline: 2px solid #050; border-color: #0f0; color: #fff; }
-    #output { min-height: 200px; white-space: pre-wrap; word-break: break-all; color: #cfc; }
-    
-    .controls { display: flex; gap: 15px; justify-content: center; margin: 20px 0; }
-    button { padding: 10px 25px; background: #003300; color: #0f0; border: 1px solid #0f0; cursor: pointer; font-weight: bold; font-family: inherit; transition: 0.2s; }
-    button:hover { background: #005500; box-shadow: 0 0 10px #0f0; }
-    
-    .options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; padding: 15px; background: #0a0a0a; border: 1px solid #333; margin-bottom: 15px; }
-    label { display: flex; align-items: center; cursor: pointer; user-select: none; }
-    input[type="checkbox"] { accent-color: #0f0; margin-right: 8px; }
-    
-    #statusText { font-weight: bold; margin-left: 10px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🛑 フル装備 AST難読化ツール</title>
+<style>
+body { font-family: 'Consolas', monospace; background: #101010; color: #0f0; padding: 20px; }
+.container { max-width: 1100px; margin: auto; background: #000; padding: 20px; border: 1px solid #0f0; border-radius: 8px; }
+h1 { text-align:center; color:#fff; text-shadow: 0 0 10px #0f0; }
+textarea, pre { width: 100%; background:#181818; color:#ccc; border:1px solid #333; padding:15px; box-sizing:border-box; font-family:inherit; }
+textarea { min-height:180px; }
+.controls { display:flex; gap:10px; margin:15px 0; justify-content:center; flex-wrap:wrap; }
+button { padding:10px 20px; cursor:pointer; background:#003300; color:#0f0; border:1px solid #0f0; font-weight:bold; transition:0.2s; }
+button:hover { background:#005500; box-shadow:0 0 10px #0f0; }
+.options { display:grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap:10px; padding:10px; border:1px solid #333; margin-bottom:15px; background:#0a0a0a; }
+label { display:flex; align-items:center; cursor:pointer; user-select:none; }
+input[type="checkbox"] { accent-color:#0f0; margin-right:6px; }
+#statusText { font-weight:bold; margin-left:10px; }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>🛑 多層難読化ツール [Parser Edition]</h1>
-    <p class="subtitle">簡易パーサー搭載：正規表現リテラル / 文字列 / 割り算を正確に識別</p>
+<div class="container">
+  <h1>🛑 フル装備 AST難読化ツール</h1>
+  <textarea id="input" placeholder="// JavaScriptコードをここに"></textarea>
 
-    <textarea id="input" placeholder="// コードを入力してください
-const regex = /&quot;/g; // 正規表現内のクォートも安全
-const div = 10 / 2;    // 割り算も安全
-console.log(`Result: ${div}`);">
-// 難読化テスト
-var magic = 10 / 2;
-var reg = /"/g; // クォートを含む正規表現
-var text = 'He said "Hello"';
-
-if (text.match(reg)) {
-  console.log(`Match found! Value: ${magic}`);
-}
-</textarea>
-
-    <div class="options">
-      <div><strong>層数: <input type="range" id="layers" min="1" max="3" value="1"> <span id="layerVal">1</span></strong></div>
-      <label><input type="checkbox" id="renameVars" checked> 変数名リネーム</label>
-      <label><input type="checkbox" id="stringEscape" checked> 文字列難読化 (\xHH)</label>
-      <label><input type="checkbox" id="numberSafe" checked> 数値Hex化</label>
-      <label><input type="checkbox" id="wrapEval" checked> Eval圧縮 (JSON)</label>
-    </div>
-
-    <div class="controls">
-      <button onclick="processObfuscation()">💀 難読化実行</button>
-      <button onclick="copyToClip()">📋 コピー</button>
-      <button onclick="runTest()" style="border-color:#f55; color:#fcc;">🚨 実行テスト</button>
-    </div>
-
-    <div style="text-align:center; color:#888;">ステータス: <span id="statusText">待機中</span></div>
-    <pre id="output"></pre>
+  <div class="options">
+    <label>層数: <input type="range" id="layers" min="1" max="5" value="1"> <span id="layerVal">1</span></label>
+    <label><input type="checkbox" id="renameVars" checked>変数/関数名リネーム</label>
+    <label><input type="checkbox" id="stringBase64" checked>文字列 Base64化</label>
+    <label><input type="checkbox" id="stringHex">文字列 \xHH化</label>
+    <label><input type="checkbox" id="numberHex" checked>数値16進化</label>
+    <label><input type="checkbox" id="removeComments">コメント削除</label>
+    <label><input type="checkbox" id="wrapEval">Eval圧縮/IIFEラップ</label>
   </div>
+
+  <div class="controls">
+    <button onclick="processObfuscation()">💀 難読化</button>
+    <button onclick="copyToClip()">📋 コピー</button>
+    <button onclick="downloadCode()">💾 ダウンロード</button>
+    <button onclick="runTest()" style="border-color:#f55; color:#fcc;">🚨 実行テスト</button>
+  </div>
+
+  <div>ステータス: <span id="statusText">待機中</span></div>
+  <pre id="output"></pre>
+</div>
+
+<!-- ライブラリ -->
+<script src="https://cdn.jsdelivr.net/npm/acorn/dist/acorn.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/estraverse/dist/estraverse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/escodegen/escodegen.browser.js"></script>
 
 <script>
 let finalCode = "";
 
-/**
- * コードを解析し、文字列・正規表現・コメントをマスクする簡易パーサー
- * これにより / / (割り算) と / / (正規表現) を区別し、
- * "文字列" や `テンプレート` を保護します。
- */
-function maskLiterals(code) {
-  let output = "";
-  const store = [];
-  let i = 0;
-  const len = code.length;
+function obfuscateCode(source, options={}) {
+  const { renameIdentifiers=true, stringBase64=true, stringHex=false, numberHex=true, removeComments=false } = options;
+  const ast = acorn.parse(source, { ecmaVersion:'latest', sourceType:'module', locations:true, onComment:removeComments?()=>{}:null });
 
-  // 直前の有効なトークンが何だったか（正規表現vs割り算の判定に使う）
-  // trueなら「値(identifier/number/close-paren)」の直後 -> 次の / は割り算
-  // falseなら「演算子/開始カッコ/キーワード」の直後 -> 次の / は正規表現
-  let lastIsValue = false; 
+  const scopeStack = [];
+  function pushScope(){ scopeStack.push({ nameMap:new Map(), counter:0 }); }
+  function popScope(){ scopeStack.pop(); }
+  function currentScope(){ return scopeStack[scopeStack.length-1]; }
+  function genName(scope){ return `_0x${scope.counter++}`; }
 
-  function addPlaceholder(content, type) {
-    const id = store.length;
-    store.push({ type, content });
-    output += `___TOK_${type}_${id}___`;
-  }
-
-  while (i < len) {
-    const char = code[i];
-    const next = code[i+1] || "";
-
-    // 1. コメントの処理 (削除対象)
-    if (char === '/' && next === '/') {
-      let start = i;
-      i += 2;
-      while (i < len && code[i] !== '\n') i++;
-      // 行コメントは削除 (改行は残す)
-      output += "\n"; 
-      lastIsValue = false; // 改行後はリセット
-      continue;
-    }
-    if (char === '/' && next === '*') {
-      i += 2;
-      while (i < len && !(code[i] === '*' && code[i+1] === '/')) i++;
-      i += 2;
-      // ブロックコメント削除
-      output += " ";
-      continue;
-    }
-
-    // 2. 文字列リテラル (' " `)
-    if (char === '"' || char === "'" || char === '`') {
-      const quote = char;
-      let start = i;
-      i++;
-      while (i < len) {
-        if (code[i] === '\\') {
-          i += 2; // エスケープスキップ
-          continue;
-        }
-        if (code[i] === quote) {
-          i++;
-          break;
-        }
-        i++;
-      }
-      const content = code.slice(start, i);
-      // テンプレートリテラル(`)か通常文字列(STR)か
-      const type = (quote === '`') ? 'TMPL' : 'STR';
-      addPlaceholder(content, type);
-      lastIsValue = true; // 文字列は値扱い
-      continue;
-    }
-
-    // 3. 正規表現リテラル vs 割り算
-    if (char === '/') {
-      // 直前が値(変数や数字)なら、これは割り算(演算子)
-      if (lastIsValue) {
-        output += char;
-        i++;
-        lastIsValue = false; // 演算子の後は値ではない
-        continue;
-      } else {
-        // 直前が演算子や区切り文字なら、これは正規表現リテラルの開始
-        let start = i;
-        i++;
-        let inClass = false; // [...] の中かどうか
-        while (i < len) {
-          if (code[i] === '\\') {
-            i += 2;
-            continue;
-          }
-          if (code[i] === '[') {
-            inClass = true;
-          } else if (code[i] === ']') {
-            inClass = false;
-          } else if (code[i] === '/' && !inClass) {
-            i++;
-            // フラグ (g, i, m...) を読み飛ばす
-            while (i < len && /^[gimsuy]/.test(code[i])) {
-              i++;
+  estraverse.replace(ast, {
+    enter(node, parent) {
+      if(node.type==='Program'||node.type==='FunctionDeclaration'||node.type==='FunctionExpression'||node.type==='ArrowFunctionExpression'){
+        pushScope();
+        if(node.params){
+          for(const param of node.params){
+            if(param.type==='Identifier'){
+              const newName=genName(currentScope());
+              currentScope().nameMap.set(param.name,newName);
+              param.name=newName;
             }
-            break;
           }
-          i++;
         }
-        const regex = code.slice(start, i);
-        addPlaceholder(regex, 'REGEX');
-        lastIsValue = true; // 正規表現リテラルは値扱い
-        continue;
-      }
-    }
-
-    // 4. 通常のコード文字
-    // 空白は無視して状態維持、それ以外は状態更新
-    if (/\s/.test(char)) {
-      output += char;
-      i++;
-      // lastIsValueは変更しない（空白またぎで判定するため）
-    } else {
-      output += char;
-      i++;
-      // 識別子(変数名・数字)、閉じ括弧 ) ] } の後は「値」とみなす
-      if (/[a-zA-Z0-9_$\]\)]/.test(char)) {
-        lastIsValue = true;
-      } else {
-        // ( [ { = + - * , ; : ? ! < > 等の後は「値ではない」
-        lastIsValue = false;
-      }
-    }
-  }
-
-  return { output, store };
-}
-
-function obfuscateOnce(sourceCode) {
-  // Step 1: パーサーでリテラル類を全て退避
-  const { output: maskedCode, store } = maskLiterals(sourceCode);
-  let code = maskedCode;
-
-  // Step 2: 変数名リネーム
-  if (document.getElementById('renameVars').checked) {
-    const varMap = {};
-    let varCount = 0;
-    const exclude = ['window', 'document', 'console', 'alert', 'eval', 'JSON', 'Math', 'parseInt', 'setTimeout', 'setInterval', 'location'];
-
-    code = code.replace(/\b(var|let|const|function)\s+([a-zA-Z_$][\w$]*)/g, (m, type, name) => {
-      if (exclude.includes(name)) return m;
-      if (!varMap[name]) {
-        varMap[name] = `_0x${Math.floor(Math.random()*0xffff).toString(16)}_${varCount++}`;
-      }
-      return `${type} ${varMap[name]}`;
-    });
-
-    for (const [orig, neo] of Object.entries(varMap)) {
-      // トークンプレースホルダ (TOK_STR_0等) を壊さないよう注意
-      const re = new RegExp(`(?<!\\.|[a-zA-Z0-9_$])${orig}\\b(?!\\s*:)`, 'g');
-      code = code.replace(re, neo);
-    }
-  }
-
-  // Step 3: 数値Hex化
-  if (document.getElementById('numberSafe').checked) {
-    code = code.replace(/\b(\d+)\b/g, (match) => {
-      // プレースホルダ内の数字(TOK_STR_123)を巻き込まないチェック
-      if (maskedCode.includes(`_${match}_`)) return match; 
-      const n = parseInt(match, 10);
-      if (isNaN(n) || n < 10) return match;
-      return `0x${n.toString(16)}`;
-    });
-  }
-
-  // Step 4: リテラルの復元
-  // ここで文字列だけ難読化し、正規表現やテンプレートリテラルはそのまま戻す
-  const doStringEscape = document.getElementById('stringEscape').checked;
-
-  // 正規表現でプレースホルダを探して置換
-  code = code.replace(/___TOK_([A-Z]+)_(\d+)___/g, (match, type, id) => {
-    const item = store[parseInt(id)];
-    const original = item.content;
-
-    // 正規表現(REGEX) や テンプレート(TMPL) は絶対にいじらない
-    if (type === 'REGEX' || type === 'TMPL') {
-      return original;
-    }
-
-    // 文字列(STR) の場合
-    if (type === 'STR' && doStringEscape) {
-      const quote = original[0];
-      const content = original.slice(1, -1);
-      let out = "";
-      for (let i = 0; i < content.length; i++) {
-        const c = content.charCodeAt(i);
-        const ch = content[i];
-        if (ch === '\\') {
-           // エスケープシーケンス (\n, \", \\) はそのまま維持
-           out += ch + (content[i+1] || '');
-           i++;
-           continue;
-        }
-        // ASCII範囲の安全な文字だけHex化
-        if (Math.random() > 0.5 && c > 31 && c < 127) {
-          out += '\\x' + c.toString(16).padStart(2, '0');
-        } else {
-          out += ch;
+        if(node.type==='FunctionDeclaration' && node.id){
+          const newName=genName(currentScope());
+          currentScope().nameMap.set(node.id.name,newName);
+          node.id.name=newName;
         }
       }
-      return quote + out + quote;
-    }
 
-    return original;
+      if(renameIdentifiers && node.type==='VariableDeclarator' && node.id.type==='Identifier'){
+        const newName=genName(currentScope());
+        currentScope().nameMap.set(node.id.name,newName);
+        node.id.name=newName;
+      }
+
+      if(renameIdentifiers && node.type==='Identifier'){
+        const name=node.name;
+        for(let i=scopeStack.length-1;i>=0;i--){
+          const scope=scopeStack[i];
+          if(scope.nameMap.has(name)){ node.name=scope.nameMap.get(name); break; }
+        }
+      }
+
+      if(node.type==='Literal'){
+        if(typeof node.value==='string'){
+          if(stringBase64){ node.value=btoa(node.value); node.raw=`"${btoa(node.value)}"`; }
+          else if(stringHex){ 
+            let out=''; for(let i=0;i<node.value.length;i++){ out+='\\x'+node.value.charCodeAt(i).toString(16).padStart(2,'0'); }
+            node.value=out; node.raw=`"${out}"`;
+          }
+        } else if(typeof node.value==='number' && numberHex){
+          node.raw='0x'+node.value.toString(16);
+        }
+      }
+    },
+    leave(node){
+      if(node.type==='Program'||node.type==='FunctionDeclaration'||node.type==='FunctionExpression'||node.type==='ArrowFunctionExpression'){
+        popScope();
+      }
+    }
   });
 
-  // Step 5: Eval圧縮
-  if (document.getElementById('wrapEval').checked) {
-    code = `eval(${JSON.stringify(code)})`;
-  }
-
+  let code = escodegen.generate(ast,{format:{indent:{style:'  '},semicolons:true}});
+  if(options.wrapEval) code = `eval(${JSON.stringify(code)})`;
   return code;
 }
 
-function processObfuscation() {
-  const input = document.getElementById('input').value;
-  if (!input.trim()) return alert("コードを入力してください");
-  
-  const status = document.getElementById('statusText');
-  status.textContent = "処理中...";
-  status.style.color = "#ff0";
+function multiLayerObfuscate(source, layers=1, options={}) {
+  let code=source;
+  for(let i=0;i<layers;i++){ code=obfuscateCode(code, options); }
+  return code;
+}
 
-  setTimeout(() => {
-    try {
-      let c = input;
-      const layers = parseInt(document.getElementById('layers').value);
-      for(let i=0; i<layers; i++) {
-        c = obfuscateOnce(c);
-      }
-      finalCode = c;
-      document.getElementById('output').textContent = finalCode;
-      status.textContent = "✅ 完了";
-      status.style.color = "#0f0";
-    } catch(e) {
+function processObfuscation(){
+  const input=document.getElementById('input').value;
+  if(!input.trim()) return alert("コードを入力してください");
+  const layers=parseInt(document.getElementById('layers').value);
+  const options = {
+    renameIdentifiers:document.getElementById('renameVars').checked,
+    stringBase64:document.getElementById('stringBase64').checked,
+    stringHex:document.getElementById('stringHex').checked,
+    numberHex:document.getElementById('numberHex').checked,
+    removeComments:document.getElementById('removeComments').checked,
+    wrapEval:document.getElementById('wrapEval').checked
+  };
+  const status=document.getElementById('statusText');
+  status.textContent="処理中..."; status.style.color="#ff0";
+  setTimeout(()=>{
+    try{
+      finalCode=multiLayerObfuscate(input,layers,options);
+      document.getElementById('output').textContent=finalCode;
+      status.textContent="✅ 完了"; status.style.color="#0f0";
+    }catch(e){
       console.error(e);
-      status.textContent = "❌ エラー: " + e.message;
-      status.style.color = "#f55";
+      status.textContent="❌ エラー:"+e.message; status.style.color="#f55";
     }
-  }, 20);
+  },20);
 }
 
-function runTest() {
-  if(!finalCode) return;
-  try {
-    const log = console.log;
-    let output = "";
-    console.log = (...args) => { output += args.join(' ') + "\n"; log(...args); };
-    
-    new Function(finalCode)();
-    
-    console.log = log;
-    alert(output ? "実行成功！ログ:\n" + output : "実行成功！(ログなし)");
-  } catch(e) {
-    alert("実行時エラー:\n" + e.message);
-  }
-}
+function copyToClip(){navigator.clipboard.writeText(finalCode);document.getElementById('statusText').textContent="コピー完了";}
+function downloadCode(){ const blob=new Blob([finalCode],{type:'text/javascript'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='obfuscated.js'; a.click(); }
+function runTest(){ if(!finalCode) return; try{ const log=console.log; let output=""; console.log=(...args)=>{output+=args.join(" ")+"\n";log(...args)}; new Function(finalCode)(); console.log=log; alert(output?"実行成功！\n"+output:"実行成功！(ログなし)"); }catch(e){alert("実行時エラー:\n"+e.message);} }
 
-function copyToClip() {
-  navigator.clipboard.writeText(finalCode);
-  document.getElementById('statusText').textContent = "コピー完了";
-}
-
-document.getElementById('layers').addEventListener('input', e => document.getElementById('layerVal').textContent = e.target.value);
+document.getElementById('layers').addEventListener('input', e=>document.getElementById('layerVal').textContent=e.target.value);
 </script>
 </body>
 </html>
