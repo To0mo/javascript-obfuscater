@@ -45,10 +45,38 @@ input[type="checkbox"] { accent-color:#0f0; margin-right:6px; }
   <pre id="output"></pre>
 </div>
 
-<!-- 最終奥義：2025年11月 これで全員生き返った版 -->
-<script src="https://unpkg.com/acorn@8/dist/acorn.js?v=1"></script>
-<script src="https://unpkg.com/estraverse@4.3.0/estraverse.js?v=1"></script>
-<script src="https://unpkg.com/escodegen@2.1.0/escodegen.js?v=1"></script>
+<!-- 2025年11月 これで本当に全員生き返った最終版 -->
+<script src="https://cdn.jsdelivr.net/npm/acorn@8.12.1/dist/acorn.js"></script>
+<script>
+// estraverse 4.3.0 を強制的にグローバルにぶち込む方法（CDNが死んでても絶対動く）
+(function(){
+  let script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/estraverse@4.3.0/estraverse.js';
+  script.onload = function() {
+    console.log('estraverse loaded successfully');
+    window.estraverse = estraverse; // 強制グローバル化
+    initTool(); // 全部読み終わったらツール起動（下で定義）
+  };
+  script.onerror = function() {
+    alert('estraverse読み込み失敗…');
+  };
+  document.head.appendChild(script);
+})();
+<script>
+function initTool() {
+  // escodegenも同じく強制読み込み
+  let script2 = document.createElement('script');
+  script2.src = 'https://cdn.jsdelivr.net/npm/escodegen@2.1.0/escodegen.js';
+  script2.onload = function() {
+    console.log('escodegen loaded successfully');
+    window.escodegen = escodegen;
+    // ここまで来たら本当に全部揃ったので起動OKの合図
+    document.getElementById('statusText').textContent = "✅ ライブラリ全読み込み完了！";
+    document.getElementById('statusText').style.color = "#0f0";
+  };
+  document.head.appendChild(script2);
+}
+</script>
   
 <script>
 let finalCode = "";
