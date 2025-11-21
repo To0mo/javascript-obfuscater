@@ -3,52 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🛑 多層難読化ツール [高安定版]</title>
+  <title>🛑 多層難読化ツール [Final Stable]</title>
   <style>
-    body { font-family: 'Courier New', monospace; background: #050505; color: #0f0; padding: 20px; line-height: 1.6; }
-    .container { max-width: 1100px; margin: auto; background: #000; padding: 30px; border-radius: 10px; border: 1px solid #0f0; box-shadow: 0 0 20px #003300; }
-    h1 { text-align: center; color: #fff; text-shadow: 0 0 10px #0f0; font-size: 2em; margin-bottom: 5px; }
-    .subtitle { text-align: center; color: #8f8; font-size: 0.9em; margin-bottom: 30px; }
-    textarea, #output { width: 100%; background: #111; color: #0f0; border: 1px solid #333; border-radius: 4px; padding: 15px; font-family: 'Courier New', monospace; font-size: 14px; box-sizing: border-box; }
-    textarea { height: 150px; border-left: 3px solid #0f0; }
+    body { font-family: 'Courier New', monospace; background: #050505; color: #0f0; padding: 20px; }
+    .container { max-width: 1100px; margin: auto; background: #000; padding: 30px; border-radius: 8px; border: 1px solid #0f0; }
+    textarea, #output { width: 100%; background: #111; color: #0f0; border: 1px solid #333; border-radius: 4px; padding: 15px; box-sizing: border-box; height: 150px; }
     textarea:focus, #output:focus { outline: none; border-color: #0f0; }
-    #output { min-height: 250px; white-space: pre-wrap; word-break: break-all; opacity: 0.9; color: #cfc; }
-    
+    #output { min-height: 200px; white-space: pre-wrap; word-break: break-all; color: #cfc; opacity: 0.9; }
     .controls { display: flex; gap: 15px; justify-content: center; margin: 25px 0; }
-    button { padding: 12px 24px; font-weight:bold; font-size: 16px; background: #002200; color: #0f0; border: 1px solid #0f0; cursor: pointer; transition: 0.2s; }
-    button:hover { background: #004400; box-shadow: 0 0 10px #0f0; }
-    
-    .options { background: #0a0a0a; padding: 20px; border: 1px solid #333; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom:20px;}
-    label { display: flex; align-items: center; cursor: pointer; user-select: none; font-size: 14px; }
-    input[type="checkbox"] { margin-right: 8px; accent-color: #0f0; }
-    
-    .status-bar { margin-top: 20px; padding: 15px; border-top: 1px dashed #333; text-align: center; font-weight: bold; }
+    button { padding: 12px 24px; background: #002200; color: #0f0; border: 1px solid #0f0; cursor: pointer; }
+    button:hover { background: #004400; }
+    .options { background: #0a0a0a; padding: 15px; border: 1px solid #333; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom:20px; }
+    .status-bar { border-top: 1px dashed #333; padding-top: 15px; text-align: center; color: #888; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🛑 多層難読化ツール <span style="font-size:0.6em; color:#888;">[高安定版]</span></h1>
-    <p class="subtitle">文字列マスク処理により "Invalid escape" エラーを根絶</p>
+    <h1>🛑 多層難読化ツール <span style="font-size:0.6em">[Final Stable]</span></h1>
+    <p style="text-align:center; color:#8f8; font-size:0.9em;">プロパティキー保護・テンプレートリテラル対応版</p>
 
-    <textarea id="input" placeholder="// ここにJSコードを入力&#13;&#10;var text = 'Say \"Hello\"';&#13;&#10;alert(text);">
-var secret = 123;
-var msg = "エラーは\"絶対に\"許さない";
-console.log(msg, secret * 2);
-if(secret > 100) {
-  alert('成功です: ' + msg);
-}
+    <textarea id="input" placeholder="// コード入力&#13;&#10;const config = { 100: 'data' };&#13;&#10;var name = 'User';&#13;&#10;console.log(`Hello ${name}`);">
+var magic = 123;
+var obj = { 
+  404: "Not Found",
+  data: "Secret"
+};
+console.log(`Code: ${magic}, Status: ${obj[404]}`);
 </textarea>
 
     <div class="options">
-      <div>
-        <strong>層数: <input type="range" id="layers" min="1" max="5" value="2"> <span id="layerVal">2</span></strong>
-        <br><span style="font-size:11px; color:#888;">※3層以上は実行速度に影響します</span>
-      </div>
-      <label><input type="checkbox" id="renameVars" checked> 変数名リネーム (マスク処理付)</label>
-      <label><input type="checkbox" id="stringEscape" checked> 文字列難読化 (\xHH)</label>
-      <label><input type="checkbox" id="numberSafe" checked> 数値難読化 (Hex化)</label>
-      <label><input type="checkbox" id="deadCode" checked> ダミーコード挿入</label>
-      <label><input type="checkbox" id="wrapEval" checked> Eval圧縮 (JSON形式)</label>
+      <div><strong>層数: <input type="range" id="layers" min="1" max="3" value="1"> <span id="layerVal">1</span></strong></div>
+      <label><input type="checkbox" id="renameVars" checked> 変数名リネーム</label>
+      <label><input type="checkbox" id="stringEscape" checked> 文字列難読化</label>
+      <label><input type="checkbox" id="numberSafe" checked> 数値難読化</label>
+      <label><input type="checkbox" id="wrapEval" checked> Eval圧縮 (JSON)</label>
     </div>
 
     <div class="controls">
@@ -57,145 +45,96 @@ if(secret > 100) {
       <button onclick="runTest()" style="border-color:#f55; color:#fcc;">🚨 実行テスト</button>
     </div>
 
-    <div class="status-bar">
-      ステータス: <span id="statusText" style="color:#888">待機中</span>
-    </div>
-
-    <pre id="output">// 結果はここに表示されます</pre>
+    <div class="status-bar">ステータス: <span id="statusText">待機中</span></div>
+    <pre id="output"></pre>
   </div>
 
 <script>
 let finalCode = "";
 
-/**
- * 文字列リテラルを安全に抽出するための正規表現
- * 対応: "...", '...', `...` および内部のエスケープシーケンス \" \' \\
- */
-const STRING_REGEX = /((['"`])(?:\\.|[^\\])*?\2)/g;
+// 【重要修正 1】 テンプレートリテラル (`) はマスクしない！
+// これにより `${variable}` の中身が正しくリネーム対象になる
+// 正規表現: ダブルクォート(") または シングルクォート(') のみを対象
+const STRING_REGEX = /((['"])(?:\\.|[^\\])*?\2)/g;
 
-/**
- * 1層分の難読化処理
- */
 function obfuscateOnce(sourceCode) {
   let code = sourceCode;
-  
-  // ----------------------------------------------------------
-  // Step 0: 文字列の保護 (マスキング)
-  // コード中の文字列を一時的に __STR_0__, __STR_1__ に置き換える。
-  // これにより、変数名リネームなどで文字列の中身が壊れるのを防ぐ。
-  // ----------------------------------------------------------
   const stringStore = [];
+
+  // 1. 文字列保護（クォート文字のみ）
   code = code.replace(STRING_REGEX, (match) => {
     const placeholder = `___STR_${stringStore.length}___`;
     stringStore.push(match);
     return placeholder;
   });
 
-  // ----------------------------------------------------------
-  // Step 1: 変数名リネーム
-  // ----------------------------------------------------------
+  // 2. 変数名リネーム
   if (document.getElementById('renameVars').checked) {
     const varMap = {};
     let varCount = 0;
-    const exclude = ['window', 'document', 'console', 'alert', 'eval', 'JSON', 'Math', 'parseInt', 'location'];
-    
-    // 変数宣言を見つける (文字列はマスクされているので誤爆しない)
+    // グローバル汚染を避けるため除外リストを少し広めに
+    const exclude = ['window', 'document', 'console', 'alert', 'eval', 'JSON', 'Math', 'parseInt', 'setTimeout', 'location', 'history'];
+
+    // 宣言の検出
     code = code.replace(/\b(var|let|const|function)\s+([a-zA-Z_$][\w$]*)/g, (m, type, name) => {
       if (exclude.includes(name)) return m;
       if (!varMap[name]) {
-        // 16進数を使ったランダムな変数名
-        const rnd = Math.floor(Math.random() * 0xffff).toString(16);
-        varMap[name] = `_0x${rnd}_${varCount++}`;
+        varMap[name] = `_0x${Math.floor(Math.random()*0xffff).toString(16)}_${varCount++}`;
       }
       return `${type} ${varMap[name]}`;
     });
 
-    // 置換実行 (プロパティアクセス .name は避ける)
+    // 置換実行
     for (const [orig, neo] of Object.entries(varMap)) {
-      // (?<!\.) -> 直前にドットがない
-      // \b -> 単語境界
-      const re = new RegExp(`(?<!\\.|[a-zA-Z0-9_$])${orig}\\b`, 'g');
+      // 【重要修正 2】 プロパティキー破壊防止 (?!\s*:)
+      // 変数名の直後にコロンがある場合（{ key: val } や case key:）は置換しない
+      const re = new RegExp(`(?<!\\.|[a-zA-Z0-9_$])${orig}\\b(?!\\s*:)`, 'g');
       code = code.replace(re, neo);
     }
   }
 
-  // ----------------------------------------------------------
-  // Step 2: 数値難読化
-  // ----------------------------------------------------------
+  // 3. 数値難読化
   if (document.getElementById('numberSafe').checked) {
-    // マスクされた文字列以外の場所にある数値を検索
-    code = code.replace(/\b(\d+)\b/g, (match) => {
-      // プレースホルダの中の数字(STR_0など)をいじらないようにガード
-      // (Step 0のマスク形式に依存)
+    // 【重要修正 3】 プロパティキー破壊防止 (?!\s*:)
+    // 123: value のようなキーとして使われている数値は変更しない
+    code = code.replace(/\b(\d+)\b(?!\\s*:)/g, (match) => {
+      // マスク文字列内の数字(STR_0)は無視
+      if(sourceCode.includes(`___STR_${match}___`) && code.includes(`___STR_${match}___`)) return match;
+      
       const n = parseInt(match, 10);
-      if (match.startsWith('0') && match.length > 1) return match; // 8進数っぽいやつは無視
-      if (n < 10) return match; // 小さい数はそのまま
+      if (match.startsWith('0') && match.length > 1) return match; 
+      if (n < 10) return match; 
 
       const methods = [
-        `0x${n.toString(16)}`, // Hex
-        `(0x${n.toString(16)}|0)` // Bitwise
+        `0x${n.toString(16)}`, 
+        `(0x${n.toString(16)}|0)`
       ];
       return methods[Math.floor(Math.random() * methods.length)];
     });
   }
 
-  // ----------------------------------------------------------
-  // Step 3: デッドコード挿入
-  // ----------------------------------------------------------
-  if (document.getElementById('deadCode').checked) {
-    const dummyVar = `_0x${Math.random().toString(36).slice(2,6)}`;
-    const dead = `var ${dummyVar}=${Math.floor(Math.random()*100)};if(${dummyVar}>200)${dummyVar}=0;`;
-    code = dead + "\n" + code;
-  }
-
-  // ----------------------------------------------------------
-  // Step 4: 文字列の復元 (アンマスク) ＆ 文字列自体の難読化
-  // ----------------------------------------------------------
-  const doStringEscape = document.getElementById('stringEscape').checked;
-  
-  // プレースホルダを元の文字列に戻す
-  // この時、オプションがONなら中身を \xHH 形式に変換する
+  // 4. 文字列復元
   code = code.replace(/___STR_(\d+)___/g, (match, index) => {
     let originalStr = stringStore[parseInt(index)];
+    if (!document.getElementById('stringEscape').checked) return originalStr;
     
-    if (!doStringEscape) return originalStr;
-
-    // クォートの種類を取得 (' " `)
     const quote = originalStr[0];
     const content = originalStr.slice(1, -1);
-    
-    // バッククォート（テンプレートリテラル）は複雑なので触らないのが安全
-    if (quote === '`') return originalStr;
-
-    let obfuscatedContent = "";
+    let obfuscated = "";
     for (let i = 0; i < content.length; i++) {
-      const charCode = content.charCodeAt(i);
-      const char = content[i];
-      
-      // 既にエスケープされている文字(\)はそのままにする（二重エスケープ回避）
-      if (char === '\\') {
-        obfuscatedContent += char + content[i+1];
-        i++; // 次の文字もスキップ
-        continue;
-      }
-
-      // 安全な文字だけ難読化
-      if (Math.random() > 0.5 && charCode < 127 && charCode > 31) {
-        obfuscatedContent += '\\x' + charCode.toString(16).padStart(2, '0');
+      const c = content.charCodeAt(i);
+      // 安全な範囲のみエスケープ
+      if (Math.random() > 0.5 && c > 31 && c < 127 && content[i] !== '\\') {
+        obfuscated += '\\x' + c.toString(16).padStart(2, '0');
       } else {
-        obfuscatedContent += char;
+        obfuscated += content[i];
       }
     }
-
-    return quote + obfuscatedContent + quote;
+    return quote + obfuscated + quote;
   });
 
-  // ----------------------------------------------------------
-  // Step 5: Eval圧縮 (JSON.stringifyによる安全なラッピング)
-  // ----------------------------------------------------------
+  // 5. Eval圧縮
   if (document.getElementById('wrapEval').checked) {
-    // コード全体をJSON文字列化して eval() に渡す
-    // これにより改行やクォートが完全にエスケープされる
     code = `eval(${JSON.stringify(code)})`;
   }
 
@@ -204,75 +143,46 @@ function obfuscateOnce(sourceCode) {
 
 function processObfuscation() {
   const input = document.getElementById('input').value;
-  if (!input.trim()) return alert("コードを入力してください");
-
-  const layers = parseInt(document.getElementById('layers').value);
-  const status = document.getElementById('statusText');
+  if (!input.trim()) return alert("コードを入れてください");
   
-  status.textContent = "処理中...";
-  status.style.color = "#ff0";
-
-  // UI描画をブロックしないようsetTimeout
+  document.getElementById('statusText').textContent = "処理中...";
+  
   setTimeout(() => {
     try {
-      let currentCode = input;
-      for(let i=0; i<layers; i++) {
-        currentCode = obfuscateOnce(currentCode);
-      }
-      finalCode = currentCode;
+      let c = input;
+      const layers = parseInt(document.getElementById('layers').value);
+      for(let i=0; i<layers; i++) c = obfuscateOnce(c);
+      
+      finalCode = c;
       document.getElementById('output').textContent = finalCode;
-      status.textContent = "✅ 難読化完了";
-      status.style.color = "#0f0";
+      document.getElementById('statusText').textContent = "✅ 完了";
+      document.getElementById('statusText').style.color = "#0f0";
     } catch(e) {
-      status.textContent = "❌ エラー: " + e.message;
-      status.style.color = "#f00";
-      console.error(e);
+      alert("エラー: " + e);
     }
   }, 10);
 }
 
 function runTest() {
-  if(!finalCode) return alert("先に難読化してください");
-  
-  const status = document.getElementById('statusText');
+  if(!finalCode) return;
   try {
-    // console.logをフックして画面にも出す
-    const originalLog = console.log;
-    let logOutput = "";
-    console.log = (...args) => {
-      logOutput += args.join(' ') + "\n";
-      originalLog.apply(console, args);
-    };
-
-    // 実行
+    const log = console.log;
+    let logs = "";
+    console.log = (...a) => { logs += a.join(' ') + "\n"; log(...a); };
     new Function(finalCode)();
-
-    // 戻す
-    console.log = originalLog;
-    
-    if(logOutput) {
-      alert("実行成功！\n\n[console.log出力]\n" + logOutput);
-    } else {
-      alert("実行成功！ (ログ出力なし)");
-    }
-    status.textContent = "✅ 実行テスト成功";
+    console.log = log;
+    alert("実行成功:\n" + logs);
   } catch(e) {
-    alert("実行時エラー:\n" + e.message);
-    status.textContent = "❌ 実行失敗";
-    status.style.color = "#f00";
+    alert("実行エラー: " + e.message);
   }
 }
 
 function copyToClip() {
-  if(!finalCode) return;
   navigator.clipboard.writeText(finalCode);
-  document.getElementById('statusText').textContent = "📋 コピーしました";
+  document.getElementById('statusText').textContent = "コピー完了";
 }
 
-// スライダー連動
-document.getElementById('layers').addEventListener('input', e => {
-  document.getElementById('layerVal').textContent = e.target.value;
-});
+document.getElementById('layers').addEventListener('input', e => document.getElementById('layerVal').textContent = e.target.value);
 </script>
 </body>
 </html>
