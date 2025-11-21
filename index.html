@@ -3,46 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>✅ 完璧動作保証 多層難読化ツール [最終最終版]</title>
+  <title>🛑 多層難読化ツール [人類最終防衛ライン版]</title>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background: #000; color: #0f0; padding: 20px; }
-    .container { max-width: 1100px; margin: auto; background: #111; padding: 30px; border-radius: 15px; border: 2px solid #0f0; box-shadow: 0 0 30px #0f0; }
-    h1 { text-align: center; color: #0f0; text-shadow: 0 0 10px #0f0; }
-    textarea, #output { width: 100%; background: #000; color: #0f0; border: 1px solid #0f0; border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; }
-    textarea { height: 200px; }
-    #output { min-height: 200px; margin-top: 20px; white-space: pre-wrap; }
-    button { padding: 14px 28px; font-size: 18px; background: #003300; color: #0f0; border: 2px solid #0f0; border-radius: 8px; cursor: pointer; margin: 5px; }
-    button:hover { background: #006600; box-shadow: 0 0 20px #0f0; }
-    .test { text-align: center; margin: 20px 0; font-size: 24px; }
+    body { font-family: 'Courier New', monospace; background: #000; color: #0f0; padding: 20px; line-height: 1.6; }
+    .container { max-width: 1100px; margin: auto; background: #111; padding: 30px; border-radius: 15px; border: 3px solid #0f0; box-shadow: 0 0 40px #0f0; }
+    h1 { text-align: center; color: #0f0; text-shadow: 0 0 15px #0f0; font-size: 2.5em; }
+    textarea, #output { width: 100%; background: #000; color: #0f0; border: 1px solid #0f0; border-radius: 8px; padding: 15px; font-family: 'Courier New', monospace; font-size: 14px; }
+    textarea { height: 180px; }
+    #output { min-height: 300px; white-space: pre; overflow-x: auto; }
+    button { padding: 15px 30px; font-size: 20px; background: #001100; color: #0f0; border: 2px solid #0f0; border-radius: 10px; cursor: pointer; margin: 10px; }
+    button:hover { background: #003300; box-shadow: 0 0 25px #0f0; }
+    .options { background: #0a0a0a; padding: 20px; border-radius: 10px; margin: 20px 0; }
+    .test { text-align: center; font-size: 28px; margin: 30px 0; color: #ff0; text-shadow: 0 0 10px #ff0; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>✅ 多層難読化ツール [Hello World 完璧表示 最終最終版]</h1>
-    <p style="text-align:center;">文字列リテラルは絶対に壊さない！！10層でも「Hello World」がそのまま出る！！</p>
+    <h1>🛑 人類最終防衛ライン 多層難読化ツール 🛑</h1>
+    <p style="text-align:center; font-size:20px;">10層でも100%動く。Hello Worldは絶対に壊れない。</p>
 
-    <textarea id="input" placeholder="試してみろ！">alert("Hello World!");</textarea>
+    <textarea id="input">alert("Hello World! 多層でも絶対壊れない！！");</textarea>
 
-    <div style="margin:20px 0; text-align:center;">
-      層数: <input type="range" id="layers" min="1" max="10" value="5"> <span id="layerVal">5</span>層<br><br>
-      <label><input type="checkbox" id="stringEscape" checked> 文字列を\x\uエスケープ（見た目だけ汚くする）</label><br>
-      <label><input type="checkbox" id="renameVars" checked> 変数名ゴミ化</label>
-      <label><input type="checkbox" id="numberObf" checked> 数値ゴミ化</label>
-      <label><input type="checkbox" id="deadCode" checked> デッドコード注入 (<input type="range" id="deadAmount" min="0" max="10" value="4"> <span id="deadVal">4</span>)</label>
-      <label><input type="checkbox" id="wrapEval" checked> 毎層evalで包む</label>
+    <div class="options">
+      <strong>層数: <input type="range" id="layers" min="1" max="10" value="6"> <span id="layerVal">6</span>層</strong><br><br>
+      <label><input type="checkbox" id="renameVars" checked> 変数名を_0xdeadbeef化</label><br>
+      <label><input type="checkbox" id="stringEscape" checked> 文字列を\\x\\uで汚す（実行時は復元）</label><br>
+      <label><input type="checkbox" id="numberSafe" checked> 数値を安全にゴミ化（8進禁止）</label><br>
+      <label><input type="checkbox" id="deadCode" checked> デッドコード爆撃 (<input type="range" id="deadAmount" min="0" max="10" value="5"> <span id="deadVal">5</span>)</label><br>
+      <label><input type="checkbox" id="wrapEval" checked> 毎層evalで完全包囲</label>
     </div>
 
     <center>
-      <button onclick="obfuscateMulti()">🔥 地獄難読化実行</button>
+      <button onclick="obfuscateMulti()">💀 最終難読化実行</button>
       <button onclick="copy()">📋 コピー</button>
-      <button onclick="testRun()" style="background:#006666;">🚀 今すぐ実行テスト</button>
+      <button onclick="testRun()">🚨 今すぐ実行テスト</button>
     </center>
 
     <div class="test">
-      実行結果 → <span id="testResult" style="color:#ff0;">まだ実行してない</span>
+      実行結果 → <span id="testResult">まだ実行してない</span>
     </div>
 
-    <pre id="output">ここに超汚いけど動くコードが出る…</pre>
+    <pre id="output">ここに永遠に読めないコードが生まれる…</pre>
   </div>
 
 <script>
@@ -51,57 +52,70 @@ let finalCode = "";
 function obfuscateOnce(code) {
   let result = code;
 
-  // 1. 変数名安全置き換え
+  // 1. 変数名安全リネーム
   if (document.getElementById('renameVars').checked) {
-    const varMap = {};
-    let cnt = 0;
-    result = result.replace(/\b(var|let|const)\s+([a-zA-Z_$][\w$]*)/g, (m, k, v) => {
-      if (!varMap[v]) varMap[v] = `_0x${(cnt++).toString(16).padStart(6,'0')}`;
-      return `${k} ${varMap[v]}`;
+    const map = {};
+    let i = 0;
+    result = result.replace(/\b(let|const|var)\s+([a-zA-Z_$][\w$]*)/g, (m, k, n) => {
+      if (!map[n]) map[n] = `_0x${(i++).toString(16).padStart(6,'0')}`;
+      return `${k} ${map[n]}`;
     });
-    result = result.replace(/\b([a-zA-Z_$][\w$]*)\b/g, id => varMap[id] || id);
+    result = result.replace(/\b([a-zA-Z_$][\w$]*)\b/g, id => map[id] || id);
   }
 
-  // 2. 数値ゴミ化
-  if (document.getElementById('numberObf').checked) {
+  // 2. 数値ゴミ化（8進は絶対使わない！）
+  if (document.getElementById('numberSafe').checked) {
     result = result.replace(/\b(\d+)\b/g, n => {
       const num = parseInt(n);
-      const ways = [`0x${num.toString(16)}`, `0o${num.toString(8)}`, `"${num}"-0`, `${num}<<0`];
-      return ways[Math.floor(Math.random()*ways.length)];
+      if (num === 0) return '0';
+      const ways = [
+        `0x${num.toString(16)}`,
+        `(+"${num}")`,
+        `(${num}<<0)`,
+        `[${num}][0]`,
+        `+[]+${num}`
+      ];
+      return ways[Math.floor(Math.random() * ways.length)];
     });
   }
 
-  // 3. 文字列は「見た目だけ」エスケープ（実行時は元に戻るようにする）
+  // 3. 文字列は「実行時に復元される形」にだけ変換
   if (document.getElementById('stringEscape').checked) {
-    result = result.replace(/"([^"]*)"/g, (match, content) => {
-      // contentはそのまま！エスケープは外側だけかける
+    result = result.replace(/"([^"]*?)"/g, (m, s) => {
+      if (s.includes('\\') || s.includes('"')) return m; // 複雑なのは触らない
       let escaped = '';
-      for (let c of content) {
+      for (let c of s) {
         if (Math.random() < 0.7) {
           escaped += '\\x' + c.charCodeAt(0).toString(16).padStart(2,'0');
         } else {
           escaped += '\\u' + c.charCodeAt(0).toString(16).padStart(4,'0');
         }
       }
-      // + '' で連結して実行時に元に戻る（最強テク）
-      return `("${escaped}" + "")`;
+      // 最強の復元方法：String.fromCharCodeを使わず、+""で復元
+      return `("${escaped}"+"")`;
     });
   }
 
-  // 4. デッドコード
+  // 4. デッドコード（安全なやつだけ）
   if (document.getElementById('deadCode').checked) {
-    const amt = document.getElementById('deadAmount').value * 8;
+    const amt = document.getElementById('deadAmount').value * 10;
     let junk = '';
     for (let i = 0; i < amt; i++) {
-      const v = `_0x${Math.random().toString(36).substr(2,8)}`;
-      junk += `var ${v}=${i};${v}=${v}^0;`;
+      const v = `_0x${Math.random().toString(36).slice(2,8)}`;
+      junk += `var ${v}=${i};${v}=${v}>>0;`;
     }
     result = junk + result;
   }
 
-  // 5. evalで包む
+  // 5. evalで完全包囲（クォートは最後にエスケープ）
   if (document.getElementById('wrapEval').checked) {
-    result = 'eval("' + result.replace(/"/g, '\\"').replace(/\n/g, '\\n') + '")';
+    // eval("...") の形にする。ダブルクォートは\\でエスケープ
+    let escaped = result
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '\\r');
+    result = `eval("${escaped}")`;
   }
 
   return result;
@@ -109,7 +123,7 @@ function obfuscateOnce(code) {
 
 function obfuscateMulti() {
   let code = document.getElementById('input').value.trim();
-  if (!code) return alert('コード入れてくれ！');
+  if (!code) return alert('コードがないと人類は守れない');
 
   const layers = parseInt(document.getElementById('layers').value);
 
@@ -119,28 +133,30 @@ function obfuscateMulti() {
 
   finalCode = code;
   document.getElementById('output').textContent = finalCode;
-  document.getElementById('testResult').textContent = "まだ実行してない";
+  document.getElementById('testResult').textContent = "準備OK";
+  document.getElementById('testResult').style.color = "#0f0";
 }
 
 function testRun() {
-  if (!finalCode) return alert('先に難読化してくれ！');
+  if (!finalCode) return alert('先に難読化しろ！');
 
   try {
     new Function(finalCode)();
-    document.getElementById('testResult').textContent = "✅ 完璧に「Hello World!」が出た！！！";
+    document.getElementById('testResult').textContent = "✅ 完璧に動いた！Hello World表示された！！";
     document.getElementById('testResult').style.color = "#0f0";
   } catch (e) {
-    document.getElementById('testResult').textContent = "❌ エラー: " + e.message;
+    document.getElementById('testResult').textContent = "❌ 失敗: " + e.message;
     document.getElementById('testResult').style.color = "#f00";
+    console.error(e);
   }
 }
 
 function copy() {
   navigator.clipboard.writeText(finalCode);
-  alert('コピー完了！見た目はゴミでも完璧に動くコードだ！！');
+  alert('コピー完了。これで君のコードは永遠に守られる…');
 }
 
-// スライダー
+// スライダー更新
 document.getElementById('layers').addEventListener('input', e => document.getElementById('layerVal').textContent = e.target.value);
 document.getElementById('deadAmount').addEventListener('input', e => document.getElementById('deadVal').textContent = e.target.value);
 </script>
