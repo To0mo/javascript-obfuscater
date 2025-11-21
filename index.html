@@ -3,154 +3,147 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🛑 フル装備 AST難読化ツール</title>
+<title>🛑 ブラウザ完結型 AST難読化ツール</title>
 <style>
 body { font-family: 'Consolas', monospace; background: #101010; color: #0f0; padding: 20px; }
-.container { max-width: 1100px; margin: auto; background: #000; padding: 20px; border: 1px solid #0f0; border-radius: 8px; }
-h1 { text-align:center; color:#fff; text-shadow: 0 0 10px #0f0; }
-textarea, pre { width: 100%; background:#181818; color:#ccc; border:1px solid #333; padding:15px; box-sizing:border-box; font-family:inherit; }
-textarea { min-height:180px; }
-.controls { display:flex; gap:10px; margin:15px 0; justify-content:center; flex-wrap:wrap; }
-button { padding:10px 20px; cursor:pointer; background:#003300; color:#0f0; border:1px solid #0f0; font-weight:bold; transition:0.2s; }
-button:hover { background:#005500; box-shadow:0 0 10px #0f0; }
-.options { display:grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap:10px; padding:10px; border:1px solid #333; margin-bottom:15px; background:#0a0a0a; }
-label { display:flex; align-items:center; cursor:pointer; user-select:none; }
-input[type="checkbox"] { accent-color:#0f0; margin-right:6px; }
-#statusText { font-weight:bold; margin-left:10px; }
+.container { max-width: 1100px; margin:auto; background:#000; padding:20px; border:1px solid #0f0; border-radius:8px;}
+h1 { text-align:center; color:#fff; text-shadow:0 0 10px #0f0;}
+textarea, pre { width:100%; background:#181818; color:#ccc; border:1px solid #333; padding:15px; box-sizing:border-box; font-family:inherit;}
+textarea { min-height:180px;}
+.controls { display:flex; gap:10px; margin:15px 0; justify-content:center; flex-wrap:wrap;}
+button { padding:10px 20px; cursor:pointer; background:#003300; color:#0f0; border:1px solid #0f0; font-weight:bold; transition:0.2s;}
+button:hover { background:#005500; box-shadow:0 0 10px #0f0;}
+.options { display:grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap:10px; padding:10px; border:1px solid #333; margin-bottom:15px; background:#0a0a0a;}
+label { display:flex; align-items:center; cursor:pointer; user-select:none;}
+input[type="checkbox"] { accent-color:#0f0; margin-right:6px;}
+#statusText { font-weight:bold; margin-left:10px;}
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>🛑 フル装備 AST難読化ツール</h1>
-  <textarea id="input" placeholder="// JavaScriptコードをここに"></textarea>
+<h1>🛑 ブラウザ完結型 AST難読化ツール</h1>
+<textarea id="input" placeholder="// JavaScriptコードをここに"></textarea>
 
-  <div class="options">
-    <label>層数: <input type="range" id="layers" min="1" max="5" value="1"> <span id="layerVal">1</span></label>
-    <label><input type="checkbox" id="renameVars" checked>変数/関数名リネーム</label>
-    <label><input type="checkbox" id="stringBase64" checked>文字列 Base64化</label>
-    <label><input type="checkbox" id="stringHex">文字列 \xHH化</label>
-    <label><input type="checkbox" id="numberHex" checked>数値16進化</label>
-    <label><input type="checkbox" id="removeComments">コメント削除</label>
-    <label><input type="checkbox" id="wrapEval">Eval圧縮/IIFEラップ</label>
-  </div>
-
-  <div class="controls">
-    <button onclick="processObfuscation()">💀 難読化</button>
-    <button onclick="copyToClip()">📋 コピー</button>
-    <button onclick="downloadCode()">💾 ダウンロード</button>
-    <button onclick="runTest()" style="border-color:#f55; color:#fcc;">🚨 実行テスト</button>
-  </div>
-
-  <div>ステータス: <span id="statusText">待機中</span></div>
-  <pre id="output"></pre>
+<div class="options">
+<label>層数: <input type="range" id="layers" min="1" max="5" value="1"> <span id="layerVal">1</span></label>
+<label><input type="checkbox" id="renameVars" checked>変数/関数名リネーム</label>
+<label><input type="checkbox" id="stringBase64" checked>文字列 Base64化</label>
+<label><input type="checkbox" id="stringHex">文字列 \xHH化</label>
+<label><input type="checkbox" id="numberHex" checked>数値16進化</label>
+<label><input type="checkbox" id="removeComments">コメント削除</label>
+<label><input type="checkbox" id="wrapEval">Eval圧縮/IIFEラップ</label>
 </div>
 
+<div class="controls">
+<button onclick="processObfuscation()">💀 難読化</button>
+<button onclick="copyToClip()">📋 コピー</button>
+<button onclick="downloadCode()">💾 ダウンロード</button>
+<button onclick="runTest()" style="border-color:#f55; color:#fcc;">🚨 実行テスト</button>
+</div>
+
+<div>ステータス: <span id="statusText">待機中</span></div>
+<pre id="output"></pre>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/acorn/dist/acorn.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/escodegen/escodegen.browser.js"></script>
 
 <script>
-// ===== 1. acorn 8.12.1 を強制グローバル登録 =====
-window.acorn = (function() {
-  !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):(e="object"==typeof globalThis?globalThis:e||self).acorn=e.acorn||{},t(e.acorn)}(this,function(e){"use strict";var t=Object.freeze({}),n=Object.freeze([]);function r(e){return"function"==typeof e}e.Parser=e;function i(e,t){return new e(t)}e.parse=i;function o(e,t){var n=new e(t);return n.parse()}e.parseExpressionAt=function(e,t,n){var r=new this(n,{sourceFile:e});return r.nextToken(),r.start=t,r.pos=t,r.parseExprAtom()},e.tokenizer=function(e,t){return new this(t).getToken};var s=111;function a(e){return e>=48&&e<=57}function c(e){return e>=65&&e<=90||e>=97&&e<=122||95===e}function l(e){return c(e)||e>127}function u(e){return a(e)||c(e)||e>127}function f(e){return!0}function d(e){return f}function h(e,t){this.type=e,this.start=t.pos,this.end=null,this.loc={start:t.curPosition(),end:null,source:t.options.sourceFile||null}}function p(e,t){this.input=e,this.pos=0,this.lineStart=0,this.curLine=1,this.options=t||{},this.raise=this.options.onComment?function(e,t){var n=new Error(t);n.pos=e,n.loc=this.curPosition(),this.options.onComment(!0,this.input.slice(e,this.pos),e,this.pos,n)}:function(e,t){var n=new Error(t);throw n.pos=e,n.loc=this.curPosition(),n};this.keywords=/^(?:do|if|in|for|let|new|try|var|case|else|enum|eval|false|null|this|true|void|with|await|break|catch|class|const|super|throw|while|yield|delete|export|import|return|switch|default|extends|finally|continue|debugger|function|arguments|instanceof|typeof|implements|interface|package|private|protected|public|static)$/;this.sourceFile=this.options.sourceFile||null,this.curPosition=function(){return{line:this.curLine,column:this.pos-this.lineStart,source:this.sourceFile}}}var g=h.prototype;g.type=null,g.start=0,g.end=0,g.value=null,g.loc=null;p.prototype={getToken:function(){for(;;){var e=this.next();if(39===e.type||40===e.type)return e}},next:function(){var e=this.input.charCodeAt(this.pos);if(e===10||e===13){this.curLine++,this.lineStart=this.pos}else if(e>=9&&e<=13||e===32||e===160)this.skipSpace();else if(e===47)this.readComment();else if(e===46)this.readNumber(!0);else if(a(e))this.readNumber(!1);else if(l(e))this.readIdentifier();else if(e===34||e===39)this.readString(e);else if(e===40||e===41||e===59||e===44||e===46||e===58||e===63||e===91||e===93||e===123||e===125)this.finishToken(this.tokTypes[e===40?"(":e===41?")":e===91?"[":e===93?"]":e===123?"{":e===125?"}":e===59?";":e===44?",":e===58?":":e===63?"?":e===46?".":this.tokTypes.braceL]);else if(e===61||e===33||e===43||e===45||e===42||e===37||e===38||e===124||e===60||e===62||e===126)this.readOperator();else if(e===96)this.readTemplate();else if(e===35)this.readHashbang();else this.raise(this.pos,"Unexpected character '"+String.fromCharCode(e)+"'");return this.curToken},skipSpace:function(){loop:for(;;){var e=this.input.charCodeAt(this.pos);switch(e){case 32:case 160:this.pos++;continue;case 13:if(10===this.input.charCodeAt(this.pos+1))this.pos++;case 10:case 8232:case 8233:this.pos++,this.curLine++,this.lineStart=this.pos;continue;default:if(e>8&&e<14||e>=5760&&e in p.spaceChars)this.pos++;else break loop}}},readComment:function(){this.pos+=2;var e=this.input.charCodeAt(this.pos);if(47===e)this.readLineComment();else if(42===e)this.readBlockComment();else this.raise(this.pos-2,"Unexpected token")},readLineComment:function(){for(this.pos++;;){var e=this.input.charCodeAt(this.pos++);if(!e||e===10||e===13||e===8232||e===8233)break}this.finishToken(this.tokTypes.lineComment)},readBlockComment:function(){for(this.pos+=2;;){var e=this.input.charCodeAt(this.pos++);if(!e)this.raise(this.pos-1,"Unterminated comment");if(42===e&&42===this.input.charCodeAt(this.pos))return void this.finishToken(this.tokTypes.blockComment,this.pos+=1)}},readNumber:function(e){var t=this.pos,n=!1;if(e&&46===this.input.charCodeAt(this.pos+1)&&(n=!0,this.pos++),48===this.input.charCodeAt(this.pos)){var r=this.input[this.pos+1];if(r>="a"&&r<="z"||r>="A"&&r<="Z")this.raise(this.pos,"Identifier directly after number")}for(var i=!1,o=!1;;){var s=this.input.charCodeAt(this.pos);if(a(s))this.pos++;else if(46===s){if(n||i)this.break;n=!0,this.pos++}else if(66===s||98===s){if(o)this.raise(this.pos,"Invalid number");o=!0,this.pos++,this.readInt(2)}else if(79===s||111===s){if(o)this.raise(this.pos,"Invalid number");o=!0,this.pos++,this.readInt(8)}else if(88===s||120===s){if(o)this.raise(this.pos,"Invalid number");o=!0,this.pos++,this.readInt(16)}else if(69===s||101===s){if(i)this.raise(this.pos,"Invalid number");i=!0,this.pos++,45===this.input.charCodeAt(this.pos)&&this.pos++,this.readInt(10)}else break}var c=this.input.slice(t,this.pos);this.finishToken(this.tokTypes.num,c)},readInt:function(e){for(var t=this.pos;;){var n=this.input.charCodeAt(this.pos);if(n>=48&&n<48+e)return void(this.pos===t&&this.raise(this.pos,"Invalid number"),this.pos++);if(95!==n)break;if(this.pos===t)this.raise(this.pos,"Invalid number");this.pos++}this.pos===t&&this.raise(this.pos,"Invalid number")},readIdentifier:function(){for(var e=this.pos;;){var t=this.input.charCodeAt(this.pos);if(l(t))this.pos++;else if(92===t)this.readEscapedChar();else break}var n=this.input.slice(e,this.pos);this.finishToken(this.keywords.test(n)?this.tokTypes.name:this.tokTypes.name,n)},readString:function(e){for(var t=this.pos,n="";this.pos++;;){var r=this.input.charCodeAt(this.pos++);if(r===e){this.finishToken(this.tokTypes.string,n);return}if(92===r)n+=this.readEscapedChar();else{if(r===10||r===13||r===8232||r===8233)this.raise(t,"Unterminated string");n+=String.fromCharCode(r)}}},readEscapedChar:function(){var e=this.input.charCodeAt(++this.pos);switch(this.pos++,e){case 110:return"\n";case 114:return"\r";case 116:return"\t";case 98:return"\b";case 118:return"\v";case 102:return"\f";case 120:case 117:return this.readHexEscape(e);default:return a(e)?this.readHexEscape():String.fromCharCode(e)}},readHexEscape:function(e){var t=this.pos,n=117===e?4:2,r=this.readInt(16);return this.pos-t<n&&this.raise(t,"Bad escape sequence"),String.fromCharCode(r)},readOperator:function(){var e=this.input.charCodeAt(this.pos),t=String.fromCharCode(e);if(this.pos++,61===this.input.charCodeAt(this.pos)||62===this.input.charCodeAt(this.pos))t+=this.input[this.pos++];if(61===this.input.charCodeAt(this.pos))t+=this.input[this.pos++];this.finishToken(this.tokTypes[t]||(t+=this.input[this.pos++],this.tokTypes[t])||this.tokTypes.name,t)},finishToken:function(e,t){this.curToken={type:e,start:this.startPos||this.pos,end:this.pos,value:t||null,loc:{start:this.startLoc||this.curPosition(),end:this.curPosition()}}}},p.spaceChars={9:!0,11:!0,12:!0,32:!0,160:!0,65279:!0,8201:!0,8202:!0,8199:!0,8198:!0,8197:!0,8196:!0,8195:!0,8194:!0,8193:!0,8192:!0,5760:!0,6158:!0,8232:!0,8233:!0,8239:!0,8287:!0,12288:!0,8192:!0};var m={};m.num=s,m.string=s,m.name=s,m.eof=1,m.braceL=2,m.braceR=3,m.bracketL=4,m.bracketR=5,m.parenL=6,m.parenR=7,m.semi=8,m.comma=9,m.colon=10,m.dot=11,m.question=12,m.arrow=13,m.ellipsis=14,m.lineComment=15,m.blockComment=16,m.eq=17,m.assign=18,m.incDec=19,m.prefix=20,m.logicalOR=21,m.logicalAND=22,m.bitwiseOR=23,m.bitwiseXOR=24,m.bitwiseAND=25,m.equality=26,m.relational=27,m.bitShift=28,m.plusMin=29,m.modulo=30,m.star=31,m.slash=32,m.starstar=33,m._null=34,m._true=35,m._false=36;m.tokTypes=m;e.version="8.12.1",e.tokTypes=m,e.Parser=p,e.parse=o,e.parseExpressionAt=function(e,t,n){return i(this,n).parseExpressionAt(e,t)},e.tokenizer=function(e,t){return new p(e,t)}}).call(this);
-  return window.acorn;
-})();
+let finalCode="";
 
-// ===== 2. estraverse 4.3.0 を強制グローバル登録 =====
-window.estraverse = (function() {
-  var estraverse={attachComments:function(e,t,n,r){return estraverse.traverse(e,{enter:function(e,t){if("BlockComment"===e.type|| "LineComment"===e.type){var n=t?t:n||[];n.push(e),r(e,t)}}})},traverse:function(e,t){var n=t.enter,r=t.leave,i=0;function o(e,t){n&&n.call(t,e,i++);var s,a,c,l,u=e.type;if(u){if(s=t?t[u]:void 0,a=estraverse.visitorKeys[u]||[],c=a.length,l=0;l<c;++l)u=a[l],e[u]&&Array.isArray(e[u])?e[u].forEach(function(e){e&&o(e,e)}):e[u]&&o(e[u],e[u]);r&&r.call(t,e,i++)}}return o(e,null),e},replace:function(e,t){var n=t.enter,r=t.leave,i=0;function o(e,t){var s,a,c,l,u=e.type;if(u){if(n){var f=n.call(t,e,i++);f!==e&&(t?t[u]=f:e=f)}if(u){s=t?t[u]:void 0,a=estraverse.visitorKeys[u]||[],c=a.length,l=0;l<c;++l)u=a[l],e[u]&&Array.isArray(e[u])?e[u]=e[u].map(function(e){return e&&o(e,e)}):e[u]&&o(e[u],e[u]);r&&r.call(t,e,i++)}}return e}return o(e,null),e},visitorKeys:{Identifier:[],Literal:[],Program:["body"],FunctionDeclaration:["id","params","body"],FunctionExpression:["id","params","body"],ArrowFunctionExpression:["params","body"],SwitchCase:["test","consequent"],CatchClause:["param","body"],VariableDeclarator:["id","init"],VariableDeclaration:["declarations"],ExpressionStatement:["expression"],BlockStatement:["body"],EmptyStatement:[],ReturnStatement:["argument"],LabeledStatement:["body"],IfStatement:["test","consequent","alternate"],SwitchStatement:["discriminant","cases"],WhileStatement:["test","body"],DoWhileStatement:["body","test"],ForStatement:["init","test","update","body"],ForInStatement:["left","right","body"],DebuggerStatement:[],ThisExpression:[],ArrayExpression:["elements"],ObjectExpression:["properties"],Property:["key","value"],SequenceExpression:["expressions"],UnaryExpression:["argument"],BinaryExpression:["left","right"],AssignmentExpression:["left","right"],UpdateExpression:["argument"],LogicalExpression:["left","right"],ConditionalExpression:["test","consequent","alternate"],NewExpression:["callee","arguments"],CallExpression:["callee","arguments"],MemberExpression:["object","property"],WithStatement:["object","body"],ThrowStatement:["argument"],TryStatement:["block","handler","finalizer"],BreakStatement:["label"],ContinueStatement:["label"],ClassDeclaration:["id","superClass","body"],ClassBody:["body"],MethodDefinition:["key","value"],ImportDeclaration:["specifiers"],ExportNamedDeclaration:["declaration","specifiers"],ExportDefaultDeclaration:["declaration"],ExportAllDeclaration:["source"],TaggedTemplateExpression:["tag","quasi"],TemplateLiteral:["quasis","expressions"],TemplateElement:[]}};
-  return estraverse;
-})();
+// --- 自作 AST トラバース ---
+function walkAST(node, enter, leave){
+  if(!node) return;
+  if(enter) enter(node);
+  for(const key in node){
+    if(node.hasOwnProperty(key)){
+      const child = node[key];
+      if(Array.isArray(child)){
+        child.forEach(c=>typeof c==='object' && walkAST(c, enter, leave));
+      } else if(typeof child==='object' && child!==null){
+        walkAST(child, enter, leave);
+      }
+    }
+  }
+  if(leave) leave(node);
+}
 
-// ===== 3. escodegen 2.1.0 を強制グローバル登録 =====
-window.escodegen = (function(){function e(e,t){return{type:e,value:t}}var t={generate:function(t,n){var r=n||{};return new i(r).generate(t)};function i(e){this.options=e||{},this.format=e.format||{indent:{style:"  ",base:0},json:!1,newline:"\n",space:" ",quotes:"auto",parenthesizeExpression:!0}}i.prototype.generate=function(e){return this.visit(e)};var o={Program:"body",BlockStatement:"body",ExpressionStatement:"expression",IfStatement:"test",IfStatement:"consequent",IfStatement:"alternate",LabeledStatement:"body",BreakStatement:"label",ContinueStatement:"label",WithStatement:"object",WithStatement:"body",SwitchStatement:"discriminant",SwitchStatement:"cases",ReturnStatement:"argument",ThrowStatement:"argument",TryStatement:"block",TryStatement:"handler",TryStatement:"finalizer",WhileStatement:"test",WhileStatement:"body",DoWhileStatement:"body",DoWhileStatement:"test",ForStatement:"init",ForStatement:"test",ForStatement:"update",ForStatement:"body",ForInStatement:"left",ForInStatement:"right",ForInStatement:"body",DebuggerStatement:null,VariableDeclaration:"declarations",VariableDeclarator:"id",VariableDeclarator:"init",ThisExpression:null,ArrayExpression:"elements",ObjectExpression:"properties",Property:"key",Property:"value",Literal:null,Identifier:null,FunctionDeclaration:"id",FunctionDeclaration:"params",FunctionDeclaration:"body",FunctionExpression:"id",FunctionExpression:"params",FunctionExpression:"body",UnaryExpression:"operator",UnaryExpression:"argument",UpdateExpression:"operator",UpdateExpression:"argument",BinaryExpression:"left",BinaryExpression:"right",AssignmentExpression:"operator",AssignmentExpression:"left",AssignmentExpression:"right",LogicalExpression:"left",LogicalExpression:"right",MemberExpression:"object",MemberExpression:"property",ConditionalExpression:"test",ConditionalExpression:"consequent",ConditionalExpression:"alternate",CallExpression:"callee",CallExpression:"arguments",NewExpression:"callee",NewExpression:"arguments",SequenceExpression:"expressions",ArrowFunctionExpression:"params",ArrowFunctionExpression:"body",YieldExpression:"argument",TemplateLiteral:"quasis",TemplateLiteral:"expressions",TaggedTemplateExpression:"tag",TaggedTemplateExpression:"quasi",ClassDeclaration:"id",ClassDeclaration:"body",ClassBody:"body",MethodDefinition:"key",MethodDefinition:"value",ImportDeclaration:"specifiers",ExportNamedDeclaration:"declaration",ExportDefaultDeclaration:"declaration",ExportAllDeclaration:"source"};i.prototype.visit=function(e){if(null==e)return"null";var t=e.type;if(!t)throw new Error("Unknown type: "+t);var n=this["visit"+t];if(!n)throw new Error("Unknown visitor: visit"+t);return n.call(this,e)};i.prototype.visitProgram=function(e){return this.visitArray(e.body,"\n")};i.prototype.visitBlockStatement=function(e){return"{"+this.indent(this.visitArray(e.body,";\n"))+"\n"+this.deindent()+"}"};i.prototype.visitExpressionStatement=function(e){return this.visit(e.expression)+";"};i.prototype.visitIfStatement=function(e){var t="if("+this.visit(e.test)+")"+this.visitBlock(e.consequent);return e.alternate&&(t+="else "+this.visit(e.alternate)),t};i.prototype.visitFunctionDeclaration=function(e){return"function"+(e.id?" "+this.visit(e.id):"")+"("+this.visitArray(e.params,", ")+")"+this.visit(e.body)};i.prototype.visitFunctionExpression=i.prototype.visitFunctionDeclaration;i.prototype.visitArrowFunctionExpression=function(e){return"("+this.visitArray(e.params,", ")+")=>"+(e.body.type==="BlockStatement"?"{"+this.visit(e.body)+"}":this.visit(e.body))};i.prototype.visitArrayExpression=function(e){return"["+this.visitArray(e.elements,", ")+"]"};i.prototype.visitObjectExpression=function(e){var t=e.properties.length?"{\n"+this.indent(this.visitArray(e.properties,",\n"))+"\n"+this.deindent()+"}":"{}";return t};i.prototype.visitProperty=function(e){var t=e.kind==="init"?"":e.kind+" ";return t+this.visit(e.key)+(e.computed?"["+this.visit(e.value)+"]":":"+this.visit(e.value))};i.prototype.visitLiteral=function(e){if(null===e.value)return"null";if("string"==typeof e.value){var t=JSON.stringify(e.value);return this.options.format.json&&(t=t.replace(/\u2028/g,"\\u2028").replace(/\u2029/g,"\\u2029")),t}return e.value+""};i.prototype.visitIdentifier=function(e){return e.name};i.prototype.visitBinaryExpression=function(e){return this.visit(e.left)+" "+e.operator+" "+this.visit(e.right)};i.prototype.visitAssignmentExpression=i.prototype.visitBinaryExpression;i.prototype.visitLogicalExpression=i.prototype.visitBinaryExpression;i.prototype.visitMemberExpression=function(e){return this.visit(e.object)+(e.computed?"["+this.visit(e.property)+"]":"."+this.visit(e.property))};i.prototype.visitCallExpression=function(e){return this.visit(e.callee)+"("+this.visitArray(e.arguments,", ")+")"};i.prototype.visitArray=function(e,t){if(!e||!e.length)return"";var n=this.options.format.indent.style,r=this.options.format.base,i="";this.options.format.base+=2;for(var o=0;o<e.length;o++)i+=this.visit(e[o]),o<e.length-1&&(i+=t||" ");return this.options.format.base=r,i};i.prototype.indent=function(){return this.options.format.base+=2,this};i.prototype.deindent=function(){return this.options.format.base-=2,this};i.prototype.visitBlock=function(e){return"{"+this.indent(this.visitArray(e.body,";\n"))+"\n"+this.deindent()+"}"};return t}()).generate;
-})();
-
-// ===== 読み込み完了通知 =====
-console.log("✅ acorn, estraverse, escodegen 全てグローバル登録完了！");
-document.getElementById('statusText').textContent = "ライブラリ読み込み完了！難読化準備OK";
-document.getElementById('statusText').style.color = "#0f0";
-</script>
-  
-<script>
-let finalCode = "";
-
-function obfuscateCode(source, options={}) {
+// --- 難読化 ---
+function obfuscateCode(source, options={}){
   const { renameIdentifiers=true, stringBase64=true, stringHex=false, numberHex=true, removeComments=false } = options;
-  const ast = acorn.parse(source, { ecmaVersion:'latest', sourceType:'module', locations:true, onComment:removeComments?()=>{}:null });
-
-  const scopeStack = [];
+  const ast = acorn.parse(source,{ecmaVersion:'latest', sourceType:'module', onComment: removeComments?()=>{}:null});
+  
+  const scopeStack=[];
   function pushScope(){ scopeStack.push({ nameMap:new Map(), counter:0 }); }
   function popScope(){ scopeStack.pop(); }
   function currentScope(){ return scopeStack[scopeStack.length-1]; }
   function genName(scope){ return `_0x${scope.counter++}`; }
-
-  estraverse.replace(ast, {
-    enter(node, parent) {
-      if(node.type==='Program'||node.type==='FunctionDeclaration'||node.type==='FunctionExpression'||node.type==='ArrowFunctionExpression'){
-        pushScope();
-        if(node.params){
-          for(const param of node.params){
-            if(param.type==='Identifier'){
-              const newName=genName(currentScope());
-              currentScope().nameMap.set(param.name,newName);
-              param.name=newName;
-            }
+  
+  walkAST(ast, node=>{
+    if(node.type==='Program'||node.type==='FunctionDeclaration'||node.type==='FunctionExpression'||node.type==='ArrowFunctionExpression'){
+      pushScope();
+      if(node.params){
+        for(const param of node.params){
+          if(param.type==='Identifier'){
+            const newName=genName(currentScope());
+            currentScope().nameMap.set(param.name,newName);
+            param.name=newName;
           }
         }
-        if(node.type==='FunctionDeclaration' && node.id){
-          const newName=genName(currentScope());
-          currentScope().nameMap.set(node.id.name,newName);
-          node.id.name=newName;
-        }
       }
-
-      if(renameIdentifiers && node.type==='VariableDeclarator' && node.id.type==='Identifier'){
+      if(node.type==='FunctionDeclaration' && node.id){
         const newName=genName(currentScope());
         currentScope().nameMap.set(node.id.name,newName);
         node.id.name=newName;
       }
+    }
 
-      if(renameIdentifiers && node.type==='Identifier'){
-        const name=node.name;
-        for(let i=scopeStack.length-1;i>=0;i--){
-          const scope=scopeStack[i];
-          if(scope.nameMap.has(name)){ node.name=scope.nameMap.get(name); break; }
-        }
-      }
+    if(renameIdentifiers && node.type==='VariableDeclarator' && node.id.type==='Identifier'){
+      const newName=genName(currentScope());
+      currentScope().nameMap.set(node.id.name,newName);
+      node.id.name=newName;
+    }
 
-      if(node.type==='Literal'){
-        if(typeof node.value==='string'){
-          if(stringBase64){ node.value=btoa(node.value); node.raw=`"${btoa(node.value)}"`; }
-          else if(stringHex){ 
-            let out=''; for(let i=0;i<node.value.length;i++){ out+='\\x'+node.value.charCodeAt(i).toString(16).padStart(2,'0'); }
-            node.value=out; node.raw=`"${out}"`;
-          }
-        } else if(typeof node.value==='number' && numberHex){
-          node.raw='0x'+node.value.toString(16);
-        }
+    if(renameIdentifiers && node.type==='Identifier'){
+      const name=node.name;
+      for(let i=scopeStack.length-1;i>=0;i--){
+        const scope=scopeStack[i];
+        if(scope.nameMap.has(name)){ node.name=scope.nameMap.get(name); break; }
       }
-    },
-    leave(node){
-      if(node.type==='Program'||node.type==='FunctionDeclaration'||node.type==='FunctionExpression'||node.type==='ArrowFunctionExpression'){
-        popScope();
+    }
+
+    if(node.type==='Literal'){
+      if(typeof node.value==='string'){
+        if(stringBase64){ node.raw='"'+btoa(node.value)+'"'; node.value=btoa(node.value);}
+        else if(stringHex){ let out=''; for(let i=0;i<node.value.length;i++){ out+='\\x'+node.value.charCodeAt(i).toString(16).padStart(2,'0'); } node.value=out; node.raw='"'+out+'"';}
+      } else if(typeof node.value==='number' && numberHex){
+        node.raw='0x'+node.value.toString(16);
       }
+    }
+  }, node=>{
+    if(node.type==='Program'||node.type==='FunctionDeclaration'||node.type==='FunctionExpression'||node.type==='ArrowFunctionExpression'){
+      popScope();
     }
   });
 
   let code = escodegen.generate(ast,{format:{indent:{style:'  '},semicolons:true}});
-  if(options.wrapEval) code = `eval(${JSON.stringify(code)})`;
+  if(options.wrapEval) code=`eval(${JSON.stringify(code)})`;
   return code;
 }
 
-function multiLayerObfuscate(source, layers=1, options={}) {
+// --- 多層難読化 ---
+function multiLayerObfuscate(source,layers=1,options={}){
   let code=source;
-  for(let i=0;i<layers;i++){ code=obfuscateCode(code, options); }
+  for(let i=0;i<layers;i++) code=obfuscateCode(code,options);
   return code;
 }
 
+// --- UI操作 ---
 function processObfuscation(){
   const input=document.getElementById('input').value;
   if(!input.trim()) return alert("コードを入力してください");
   const layers=parseInt(document.getElementById('layers').value);
-  const options = {
+  const options={
     renameIdentifiers:document.getElementById('renameVars').checked,
     stringBase64:document.getElementById('stringBase64').checked,
     stringHex:document.getElementById('stringHex').checked,
@@ -172,9 +165,32 @@ function processObfuscation(){
   },20);
 }
 
-function copyToClip(){navigator.clipboard.writeText(finalCode);document.getElementById('statusText').textContent="コピー完了";}
-function downloadCode(){ const blob=new Blob([finalCode],{type:'text/javascript'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='obfuscated.js'; a.click(); }
-function runTest(){ if(!finalCode) return; try{ const log=console.log; let output=""; console.log=(...args)=>{output+=args.join(" ")+"\n";log(...args)}; new Function(finalCode)(); console.log=log; alert(output?"実行成功！\n"+output:"実行成功！(ログなし)"); }catch(e){alert("実行時エラー:\n"+e.message);} }
+function copyToClip(){
+  navigator.clipboard.writeText(finalCode);
+  document.getElementById('statusText').textContent="コピー完了";
+}
+
+function downloadCode(){
+  const blob=new Blob([finalCode],{type:'text/javascript'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='obfuscated.js';
+  a.click();
+}
+
+function runTest(){
+  if(!finalCode) return;
+  try{
+    const log=console.log;
+    let output="";
+    console.log=(...args)=>{ output+=args.join(" ")+"\n"; log(...args);}
+    new Function(finalCode)();
+    console.log=log;
+    alert(output ? "実行成功！\n"+output : "実行成功！(ログなし)");
+  }catch(e){
+    alert("実行時エラー:\n"+e.message);
+  }
+}
 
 document.getElementById('layers').addEventListener('input', e=>document.getElementById('layerVal').textContent=e.target.value);
 </script>
