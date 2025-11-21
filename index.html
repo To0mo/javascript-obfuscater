@@ -45,7 +45,7 @@ input[type="checkbox"] { accent-color:#0f0; margin-right:6px; }
   <pre id="output"></pre>
 </div>
 
-<!-- ========== 最終完全無欠オフライン版（acorn + estraverse + escodegen）2025年11月22日 ==========
+
 <script>
 // ===== 1. acorn 8.12.1 を強制グローバル登録 =====
 window.acorn = (function() {
@@ -68,7 +68,6 @@ console.log("✅ acorn, estraverse, escodegen 全てグローバル登録完了�
 document.getElementById('statusText').textContent = "ライブラリ読み込み完了！難読化準備OK";
 document.getElementById('statusText').style.color = "#0f0";
 </script>
-<!-- ========== これで本当に終わりだ！！ ========== -->
   
 <script>
 let finalCode = "";
