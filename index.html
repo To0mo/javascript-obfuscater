@@ -3,259 +3,276 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🛑 多層難読化ツール [真・人類最終防衛ライン版]</title>
+  <title>🛑 多層難読化ツール [高安定版]</title>
   <style>
-    body { font-family: 'Courier New', monospace; background: #000; color: #0f0; padding: 20px; line-height: 1.6; }
-    .container { max-width: 1100px; margin: auto; background: #050505; padding: 30px; border-radius: 15px; border: 3px solid #0f0; box-shadow: 0 0 40px #005500; }
-    h1 { text-align: center; color: #0f0; text-shadow: 0 0 15px #0f0; font-size: 2.2em; margin-bottom: 5px; }
+    body { font-family: 'Courier New', monospace; background: #050505; color: #0f0; padding: 20px; line-height: 1.6; }
+    .container { max-width: 1100px; margin: auto; background: #000; padding: 30px; border-radius: 10px; border: 1px solid #0f0; box-shadow: 0 0 20px #003300; }
+    h1 { text-align: center; color: #fff; text-shadow: 0 0 10px #0f0; font-size: 2em; margin-bottom: 5px; }
     .subtitle { text-align: center; color: #8f8; font-size: 0.9em; margin-bottom: 30px; }
-    textarea, #output { width: 100%; background: #000; color: #0f0; border: 1px solid #333; border-left: 4px solid #0f0; border-radius: 4px; padding: 15px; font-family: 'Courier New', monospace; font-size: 14px; box-sizing: border-box; }
-    textarea { height: 150px; }
-    textarea:focus, #output:focus { outline: none; border-color: #0f0; box-shadow: 0 0 10px #030; }
-    #output { min-height: 250px; white-space: pre-wrap; word-break: break-all; overflow-y: auto; opacity: 0.8; }
+    textarea, #output { width: 100%; background: #111; color: #0f0; border: 1px solid #333; border-radius: 4px; padding: 15px; font-family: 'Courier New', monospace; font-size: 14px; box-sizing: border-box; }
+    textarea { height: 150px; border-left: 3px solid #0f0; }
+    textarea:focus, #output:focus { outline: none; border-color: #0f0; }
+    #output { min-height: 250px; white-space: pre-wrap; word-break: break-all; opacity: 0.9; color: #cfc; }
     
-    .controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 20px 0; }
-    button { padding: 12px 25px; font-size: 18px; background: #002200; color: #0f0; border: 1px solid #0f0; border-radius: 5px; cursor: pointer; transition: 0.2s; }
-    button:hover { background: #004400; box-shadow: 0 0 15px #0f0; transform: scale(1.05); }
-    button:active { transform: scale(0.95); }
+    .controls { display: flex; gap: 15px; justify-content: center; margin: 25px 0; }
+    button { padding: 12px 24px; font-weight:bold; font-size: 16px; background: #002200; color: #0f0; border: 1px solid #0f0; cursor: pointer; transition: 0.2s; }
+    button:hover { background: #004400; box-shadow: 0 0 10px #0f0; }
     
-    .options { background: #0a0a0a; padding: 20px; border-radius: 8px; border: 1px solid #222; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
-    label { display: flex; align-items: center; cursor: pointer; user-select: none; }
-    input[type="checkbox"] { margin-right: 10px; transform: scale(1.2); accent-color: #0f0; }
-    input[type="range"] { accent-color: #0f0; width: 100px; margin: 0 10px; }
+    .options { background: #0a0a0a; padding: 20px; border: 1px solid #333; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom:20px;}
+    label { display: flex; align-items: center; cursor: pointer; user-select: none; font-size: 14px; }
+    input[type="checkbox"] { margin-right: 8px; accent-color: #0f0; }
     
-    .test-area { margin-top: 30px; padding: 20px; border-top: 1px dashed #333; text-align: center; }
-    #testResult { font-weight: bold; font-size: 1.2em; display: block; margin-top: 10px; }
+    .status-bar { margin-top: 20px; padding: 15px; border-top: 1px dashed #333; text-align: center; font-weight: bold; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🛑 多層難読化ツール <br><span style="font-size:0.6em">[真・人類最終防衛ライン版]</span></h1>
-    <p class="subtitle">バグ修正済み：プロパティ破壊防止 / 数値型維持 / JSONエスケープ実装</p>
+    <h1>🛑 多層難読化ツール <span style="font-size:0.6em; color:#888;">[高安定版]</span></h1>
+    <p class="subtitle">文字列マスク処理により "Invalid escape" エラーを根絶</p>
 
-    <textarea id="input" placeholder="ここにコードを入力...">
-// テスト用コード
+    <textarea id="input" placeholder="// ここにJSコードを入力&#13;&#10;var text = 'Say \"Hello\"';&#13;&#10;alert(text);">
 var secret = 123;
-var msg = "Hello World";
-console.log(msg, secret + 100);
-alert(msg + ": " + (secret * 2));
+var msg = "エラーは\"絶対に\"許さない";
+console.log(msg, secret * 2);
+if(secret > 100) {
+  alert('成功です: ' + msg);
+}
 </textarea>
 
     <div class="options">
       <div>
-        <strong>層数: <input type="range" id="layers" min="1" max="10" value="3"> <span id="layerVal">3</span>層</strong><br>
-        <small style="color:#666">※多いほど起動が遅くなります</small>
+        <strong>層数: <input type="range" id="layers" min="1" max="5" value="2"> <span id="layerVal">2</span></strong>
+        <br><span style="font-size:11px; color:#888;">※3層以上は実行速度に影響します</span>
       </div>
-      <label title="変数を_0x...に変えます。プロパティ(.logなど)は無視します"><input type="checkbox" id="renameVars" checked> 変数名リネーム (安全版)</label>
-      <label title="数値を16進数や計算式にします"><input type="checkbox" id="numberSafe" checked> 数値の難読化 (型維持)</label>
-      <label title="文字列を\xHHなどに変換します"><input type="checkbox" id="stringEscape" checked> 文字列エスケープ</label>
-      <label title="無意味な計算を挿入します"><input type="checkbox" id="deadCode" checked> デッドコード爆撃</label>
-      <label title="コード全体をeval()で囲みます"><input type="checkbox" id="wrapEval" checked> Eval包囲 (JSON圧縮)</label>
+      <label><input type="checkbox" id="renameVars" checked> 変数名リネーム (マスク処理付)</label>
+      <label><input type="checkbox" id="stringEscape" checked> 文字列難読化 (\xHH)</label>
+      <label><input type="checkbox" id="numberSafe" checked> 数値難読化 (Hex化)</label>
+      <label><input type="checkbox" id="deadCode" checked> ダミーコード挿入</label>
+      <label><input type="checkbox" id="wrapEval" checked> Eval圧縮 (JSON形式)</label>
     </div>
 
     <div class="controls">
-      <button onclick="obfuscateMulti()">💀 難読化実行</button>
-      <button onclick="copy()" style="border-color:#0aa">📋 コピー</button>
-      <button onclick="testRun()" style="border-color:#f55; color:#f55">🚨 実行テスト</button>
+      <button onclick="processObfuscation()">💀 難読化実行</button>
+      <button onclick="copyToClip()">📋 コピー</button>
+      <button onclick="runTest()" style="border-color:#f55; color:#fcc;">🚨 実行テスト</button>
     </div>
 
-    <div class="test-area">
-      ステータス: <span id="testResult" style="color:#666">待機中...</span>
+    <div class="status-bar">
+      ステータス: <span id="statusText" style="color:#888">待機中</span>
     </div>
 
-    <pre id="output">ここに永遠に読めないコードが生まれる…</pre>
+    <pre id="output">// 結果はここに表示されます</pre>
   </div>
 
 <script>
 let finalCode = "";
 
 /**
+ * 文字列リテラルを安全に抽出するための正規表現
+ * 対応: "...", '...', `...` および内部のエスケープシーケンス \" \' \\
+ */
+const STRING_REGEX = /((['"`])(?:\\.|[^\\])*?\2)/g;
+
+/**
  * 1層分の難読化処理
  */
-function obfuscateOnce(code) {
-  let result = code;
+function obfuscateOnce(sourceCode) {
+  let code = sourceCode;
+  
+  // ----------------------------------------------------------
+  // Step 0: 文字列の保護 (マスキング)
+  // コード中の文字列を一時的に __STR_0__, __STR_1__ に置き換える。
+  // これにより、変数名リネームなどで文字列の中身が壊れるのを防ぐ。
+  // ----------------------------------------------------------
+  const stringStore = [];
+  code = code.replace(STRING_REGEX, (match) => {
+    const placeholder = `___STR_${stringStore.length}___`;
+    stringStore.push(match);
+    return placeholder;
+  });
 
-  // -------------------------------------------------------
-  // 1. 変数名安全リネーム (ASTを使わない正規表現の限界に挑む)
-  // -------------------------------------------------------
+  // ----------------------------------------------------------
+  // Step 1: 変数名リネーム
+  // ----------------------------------------------------------
   if (document.getElementById('renameVars').checked) {
-    const map = {};
-    let varCounter = 0;
+    const varMap = {};
+    let varCount = 0;
+    const exclude = ['window', 'document', 'console', 'alert', 'eval', 'JSON', 'Math', 'parseInt', 'location'];
     
-    // 宣言を探してマッピングを作成 (var/let/const/function の直後)
-    // 除外リスト: window, document, console 等の組み込み系は壊れるので触らない
-    const exclude = ['window', 'document', 'console', 'alert', 'eval', 'setTimeout', 'setInterval', 'location', 'history', 'navigator'];
-    
-    result = result.replace(/\b(var|let|const|function)\s+([a-zA-Z_$][\w$]*)/g, (match, keyword, name) => {
-      if (exclude.includes(name)) return match; // 除外リストならスルー
-      if (!map[name]) {
-        // ランダムかつユニークな変数名を生成
-        map[name] = `_0x${Math.floor(Math.random() * 100000).toString(16)}_${(varCounter++).toString(16)}`;
+    // 変数宣言を見つける (文字列はマスクされているので誤爆しない)
+    code = code.replace(/\b(var|let|const|function)\s+([a-zA-Z_$][\w$]*)/g, (m, type, name) => {
+      if (exclude.includes(name)) return m;
+      if (!varMap[name]) {
+        // 16進数を使ったランダムな変数名
+        const rnd = Math.floor(Math.random() * 0xffff).toString(16);
+        varMap[name] = `_0x${rnd}_${varCount++}`;
       }
-      return `${keyword} ${map[name]}`;
+      return `${type} ${varMap[name]}`;
     });
 
-    // 作成したマップに基づいて置換
-    // 【修正点】 (?<!\.) を使い、"obj.name" のようなプロパティアクセスは置換しないようにする
-    // これにより console.log の log が変数 log と被っても置換されなくなる
-    for (const [original, obfuscated] of Object.entries(map)) {
-      const regex = new RegExp(`(?<!\\.|["'])\\b${original}\\b(?!["'])`, 'g');
-      result = result.replace(regex, obfuscated);
+    // 置換実行 (プロパティアクセス .name は避ける)
+    for (const [orig, neo] of Object.entries(varMap)) {
+      // (?<!\.) -> 直前にドットがない
+      // \b -> 単語境界
+      const re = new RegExp(`(?<!\\.|[a-zA-Z0-9_$])${orig}\\b`, 'g');
+      code = code.replace(re, neo);
     }
   }
 
-  // -------------------------------------------------------
-  // 2. 数値難読化 (型が変わる変換は排除)
-  // -------------------------------------------------------
+  // ----------------------------------------------------------
+  // Step 2: 数値難読化
+  // ----------------------------------------------------------
   if (document.getElementById('numberSafe').checked) {
-    result = result.replace(/\b(\d+)\b/g, (match) => {
-      // 文字列中の数字や、すでに変換済みの数字を避けるのは簡易正規表現では限界があるが、
-      // 基本的に単語境界の数字のみを対象とする
-      const num = parseInt(match);
-      if (isNaN(num) || num < 10) return match; // 小さい数字はいじらない方が安全
+    // マスクされた文字列以外の場所にある数値を検索
+    code = code.replace(/\b(\d+)\b/g, (match) => {
+      // プレースホルダの中の数字(STR_0など)をいじらないようにガード
+      // (Step 0のマスク形式に依存)
+      const n = parseInt(match, 10);
+      if (match.startsWith('0') && match.length > 1) return match; // 8進数っぽいやつは無視
+      if (n < 10) return match; // 小さい数はそのまま
 
-      const ways = [
-        `0x${num.toString(16)}`,           // 16進数 (安全)
-        `(${num + 1}-1)`,                  // 計算式 (安全)
-        `(0x${(num).toString(16)}<<0)`,    // ビットシフト (安全)
-        `0b${num.toString(2)}`             // 2進数 (ES6以降)
+      const methods = [
+        `0x${n.toString(16)}`, // Hex
+        `(0x${n.toString(16)}|0)` // Bitwise
       ];
-      // ※ +[]+num (文字列化) や [num][0] (undefinedリスク) は削除しました
-      return ways[Math.floor(Math.random() * ways.length)];
+      return methods[Math.floor(Math.random() * methods.length)];
     });
   }
 
-  // -------------------------------------------------------
-  // 3. 文字列エスケープ (復元可能な形式)
-  // -------------------------------------------------------
-  if (document.getElementById('stringEscape').checked) {
-    // シングルクォートとダブルクォート両対応
-    result = result.replace(/(["'])(.*?)\1/g, (match, quote, inner) => {
-      if (inner.length < 2) return match; // 短すぎるのは無視
-      if (inner.includes('\\')) return match; // 既にエスケープがあるなら触らない(安全策)
-
-      let escaped = '';
-      for (let i = 0; i < inner.length; i++) {
-        const code = inner.charCodeAt(i);
-        // 確率でhex化、unicode化、そのまま
-        const r = Math.random();
-        if (r < 0.5) {
-          escaped += '\\x' + code.toString(16).padStart(2, '0');
-        } else if (r < 0.8) {
-          escaped += '\\u' + code.toString(16).padStart(4, '0');
-        } else {
-          escaped += inner[i];
-        }
-      }
-      // 実行時に文字列として結合して復元
-      // 例: "A" -> ("\x41")
-      return `("${escaped}")`;
-    });
-  }
-
-  // -------------------------------------------------------
-  // 4. デッドコード爆撃 (安全な位置に)
-  // -------------------------------------------------------
+  // ----------------------------------------------------------
+  // Step 3: デッドコード挿入
+  // ----------------------------------------------------------
   if (document.getElementById('deadCode').checked) {
-    const junkVars = [];
-    for(let i=0; i<3; i++) {
-      junkVars.push(`_0x${Math.random().toString(36).substring(2,7)}`);
+    const dummyVar = `_0x${Math.random().toString(36).slice(2,6)}`;
+    const dead = `var ${dummyVar}=${Math.floor(Math.random()*100)};if(${dummyVar}>200)${dummyVar}=0;`;
+    code = dead + "\n" + code;
+  }
+
+  // ----------------------------------------------------------
+  // Step 4: 文字列の復元 (アンマスク) ＆ 文字列自体の難読化
+  // ----------------------------------------------------------
+  const doStringEscape = document.getElementById('stringEscape').checked;
+  
+  // プレースホルダを元の文字列に戻す
+  // この時、オプションがONなら中身を \xHH 形式に変換する
+  code = code.replace(/___STR_(\d+)___/g, (match, index) => {
+    let originalStr = stringStore[parseInt(index)];
+    
+    if (!doStringEscape) return originalStr;
+
+    // クォートの種類を取得 (' " `)
+    const quote = originalStr[0];
+    const content = originalStr.slice(1, -1);
+    
+    // バッククォート（テンプレートリテラル）は複雑なので触らないのが安全
+    if (quote === '`') return originalStr;
+
+    let obfuscatedContent = "";
+    for (let i = 0; i < content.length; i++) {
+      const charCode = content.charCodeAt(i);
+      const char = content[i];
+      
+      // 既にエスケープされている文字(\)はそのままにする（二重エスケープ回避）
+      if (char === '\\') {
+        obfuscatedContent += char + content[i+1];
+        i++; // 次の文字もスキップ
+        continue;
+      }
+
+      // 安全な文字だけ難読化
+      if (Math.random() > 0.5 && charCode < 127 && charCode > 31) {
+        obfuscatedContent += '\\x' + charCode.toString(16).padStart(2, '0');
+      } else {
+        obfuscatedContent += char;
+      }
     }
-    // 先頭に変数を宣言するが、改行をつけて既存コードと分離する
-    let junk = junkVars.map(v => `var ${v}=${Math.floor(Math.random()*100)};`).join('');
-    result = junk + "\n" + result;
-  }
 
-  // -------------------------------------------------------
-  // 5. Evalによる完全包囲 (JSON.stringifyによる最強エスケープ)
-  // -------------------------------------------------------
+    return quote + obfuscatedContent + quote;
+  });
+
+  // ----------------------------------------------------------
+  // Step 5: Eval圧縮 (JSON.stringifyによる安全なラッピング)
+  // ----------------------------------------------------------
   if (document.getElementById('wrapEval').checked) {
-    // 【修正点】手動replaceではなく、JSON.stringifyを使うことで
-    // 引用符、改行、特殊文字を完璧にエスケープして文字列化する。
-    // これにより eval("...") の中に安全に収まる。
-    // 例: eval("console.log(\"hello\")")
-    result = `eval(${JSON.stringify(result)})`;
+    // コード全体をJSON文字列化して eval() に渡す
+    // これにより改行やクォートが完全にエスケープされる
+    code = `eval(${JSON.stringify(code)})`;
   }
 
-  return result;
+  return code;
 }
 
-/**
- * メイン処理
- */
-function obfuscateMulti() {
-  let code = document.getElementById('input').value.trim();
-  if (!code) {
-    alert('コードを入力してください');
-    return;
-  }
+function processObfuscation() {
+  const input = document.getElementById('input').value;
+  if (!input.trim()) return alert("コードを入力してください");
 
   const layers = parseInt(document.getElementById('layers').value);
+  const status = document.getElementById('statusText');
   
-  // プログレス表示など入れたいが、同期処理なので一瞬で終わる
-  try {
-    for (let i = 0; i < layers; i++) {
-      code = obfuscateOnce(code);
+  status.textContent = "処理中...";
+  status.style.color = "#ff0";
+
+  // UI描画をブロックしないようsetTimeout
+  setTimeout(() => {
+    try {
+      let currentCode = input;
+      for(let i=0; i<layers; i++) {
+        currentCode = obfuscateOnce(currentCode);
+      }
+      finalCode = currentCode;
+      document.getElementById('output').textContent = finalCode;
+      status.textContent = "✅ 難読化完了";
+      status.style.color = "#0f0";
+    } catch(e) {
+      status.textContent = "❌ エラー: " + e.message;
+      status.style.color = "#f00";
+      console.error(e);
     }
-    
-    finalCode = code;
-    document.getElementById('output').textContent = finalCode;
-    
-    const resDiv = document.getElementById('testResult');
-    resDiv.textContent = "難読化完了。実行準備OK";
-    resDiv.style.color = "#0f0";
-    
-  } catch (e) {
-    alert("難読化処理中にエラー: " + e.message);
-  }
+  }, 10);
 }
 
-/**
- * テスト実行
- */
-function testRun() {
-  if (!finalCode) return alert('先に難読化してください');
-
-  const resDiv = document.getElementById('testResult');
-  resDiv.textContent = "実行中...";
+function runTest() {
+  if(!finalCode) return alert("先に難読化してください");
   
+  const status = document.getElementById('statusText');
   try {
-    // console.logを一時的に乗っ取って画面に表示させる（デモ用）
+    // console.logをフックして画面にも出す
     const originalLog = console.log;
-    let logs = [];
+    let logOutput = "";
     console.log = (...args) => {
-      logs.push(args.join(' '));
+      logOutput += args.join(' ') + "\n";
       originalLog.apply(console, args);
     };
 
-    // 実行！
-    const runFunc = new Function(finalCode);
-    runFunc();
-    
-    // 復元
-    console.log = originalLog;
+    // 実行
+    new Function(finalCode)();
 
-    resDiv.innerHTML = "✅ 実行成功！<br>ログ出力:<br>" + (logs.length ? logs.join('<br>') : '(ログ出力なし)');
-    resDiv.style.color = "#0f0";
+    // 戻す
+    console.log = originalLog;
     
-  } catch (e) {
-    console.error(e);
-    resDiv.textContent = "❌ 実行時エラー: " + e.message;
-    resDiv.style.color = "#f55";
+    if(logOutput) {
+      alert("実行成功！\n\n[console.log出力]\n" + logOutput);
+    } else {
+      alert("実行成功！ (ログ出力なし)");
+    }
+    status.textContent = "✅ 実行テスト成功";
+  } catch(e) {
+    alert("実行時エラー:\n" + e.message);
+    status.textContent = "❌ 実行失敗";
+    status.style.color = "#f00";
   }
 }
 
-function copy() {
+function copyToClip() {
   if(!finalCode) return;
   navigator.clipboard.writeText(finalCode);
-  const btn = event.target;
-  const origText = btn.textContent;
-  btn.textContent = "コピー完了!";
-  setTimeout(() => btn.textContent = origText, 2000);
+  document.getElementById('statusText').textContent = "📋 コピーしました";
 }
 
-// UIイベント
-document.getElementById('layers').addEventListener('input', e => document.getElementById('layerVal').textContent = e.target.value);
+// スライダー連動
+document.getElementById('layers').addEventListener('input', e => {
+  document.getElementById('layerVal').textContent = e.target.value;
+});
 </script>
 </body>
 </html>
