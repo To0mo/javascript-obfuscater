@@ -3,155 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Layered JS Obfuscator (High Security)</title>
+    <title>Ultimate JS Obfuscator (All-in-One)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #0d1117; color: #c9d1d9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .container { max-width: 1000px; margin-top: 50px; }
-        textarea { background-color: #161b22; color: #79c0ff; border: 1px solid #30363d; font-family: 'Consolas', monospace; font-size: 14px; }
-        textarea:focus { background-color: #1f2428; color: #79c0ff; border-color: #58a6ff; outline: none; box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3); }
-        .btn-primary { background-color: #238636; border: none; }
-        .btn-primary:hover { background-color: #2ea043; }
-        .card { background-color: #161b22; border: 1px solid #30363d; }
-        h2 { border-bottom: 1px solid #30363d; padding-bottom: 15px; margin-bottom: 20px; }
-        .badge-layer { font-size: 0.8em; margin-left: 10px; vertical-align: middle; }
+        body { background-color: #050505; color: #00ff41; font-family: 'Courier New', Courier, monospace; }
+        textarea { background-color: #000; color: #0f0; border: 1px solid #333; }
+        textarea:focus { background-color: #111; color: #0f0; outline: none; border-color: #00ff41; }
+        .btn-matrix { background-color: #003b00; color: #00ff41; border: 1px solid #00ff41; }
+        .btn-matrix:hover { background-color: #00ff41; color: #000; }
+        h2, h5 { text-transform: uppercase; letter-spacing: 2px; }
+        .spinner-border { width: 1rem; height: 1rem; display: none; }
     </style>
 </head>
-<body class="pb-5">
+<body class="p-4">
 
 <div class="container">
-    <h2>
-        🛡️ Dual-Layer Obfuscator
-        <span class="badge bg-secondary badge-layer">Core: JS-Obfuscator</span>
-        <span class="badge bg-info text-dark badge-layer">Shell: LZ-String</span>
-    </h2>
-    <p class="text-secondary mb-4">
-        有名な難読化ライブラリに加え、圧縮ライブラリによる「カプセル化」を行い、自動解析ツール(Deobfuscator)を無効化します。
-    </p>
+    <h2 class="mb-4 text-center">☢️ Ultimate Obfuscator</h2>
     
     <div class="row">
         <div class="col-md-6 mb-3">
-            <label class="form-label fw-bold">入力コード (Source)</label>
-            <textarea id="inputCode" class="form-control" rows="15" placeholder="const secret = 'my_api_key'; console.log(secret);"></textarea>
+            <h5>1. Input Source</h5>
+            <textarea id="inputCode" class="form-control" rows="12" placeholder="// Paste your JavaScript here..."></textarea>
         </div>
         <div class="col-md-6 mb-3">
-            <label class="form-label fw-bold">難読化済みコード (Output)</label>
-            <textarea id="outputCode" class="form-control" rows="15" readonly></textarea>
+            <h5>2. Obfuscated Payload (One-Liner)</h5>
+            <textarea id="outputCode" class="form-control" rows="12" readonly onclick="this.select()"></textarea>
         </div>
     </div>
 
-    <div class="card p-3 mb-4">
-        <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="enableLzString" checked>
-            <label class="form-check-label" for="enableLzString">
-                <strong>LZ-String圧縮レイヤーを適用 (推奨)</strong><br>
-                <small class="text-muted">コードを不可読な文字列に圧縮し、実行時に展開します。静的解析ツールに対して非常に強力です。</small>
-            </label>
-        </div>
-        <hr class="border-secondary">
-        <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="enableAntiDebug">
-            <label class="form-check-label" for="enableAntiDebug">
-                <strong>アンチデバッグ (Debug Protection)</strong><br>
-                <small class="text-muted">開発者ツールを開くとブラウザを停止させます（強力ですが嫌われる場合もあります）。</small>
-            </label>
-        </div>
+    <div class="d-flex justify-content-center gap-3">
+        <button id="obfuscateBtn" class="btn btn-matrix btn-lg px-5">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" id="loadingSpinner"></span>
+            EXECUTE ENCRYPTION
+        </button>
     </div>
-
-    <div class="d-grid">
-        <button id="obfuscateBtn" class="btn btn-primary btn-lg">🔒 難読化を実行 (Execute)</button>
+    
+    <div class="mt-4 text-secondary small">
+        <strong>Process:</strong> Minify (Terser) ➔ Obfuscate (Core) ➔ Compress (LZ) ➔ Embed LZ Lib ➔ Obfuscate (Loader) ➔ One-Liner
     </div>
 </div>
 
-<!-- 1. 難読化ライブラリ -->
+<!-- 必要なライブラリ群 -->
+<!-- 1. Terser (Minify用) -->
+<script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
+<!-- 2. JavaScript Obfuscator -->
 <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
-<!-- 2. 圧縮ライブラリ (LZ-String) -->
+<!-- 3. LZ-String (圧縮用) -->
 <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 
 <script>
-    document.getElementById('obfuscateBtn').addEventListener('click', () => {
+    // LZ-Stringのライブラリ自体を埋め込むためのソースコード（v1.5.0 minified base）
+    // これを出力コードの中に混ぜ込むことで、外部読み込み(CDN)を排除します。
+    const LZSTRING_LIB_SOURCE = `var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",n="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",e={};function t(r,o){if(!e[r]){e[r]={};for(var n=0;n<r.length;n++)e[r][r.charAt(n)]=n}return e[r][o]}var i={compressToBase64:function(r){if(null==r)return"";var o=i._compress(r,6,function(r){return"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".charAt(r)});switch(o.length%4){case 0:return o;case 1:return o+"===";case 2:return o+"==";case 3:return o+"="}},decompressFromBase64:function(o){return null==o?"":""==o?null:i._decompress(o.length,32,function(n){return t("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",o.charAt(n))})},_compress:function(r,o,n){if(null==r)return"";var e,t,i,a,u,c,f,s,l,p=0,h=0,d="",v="",m=2,g=3;for(i=0;i<r.length;i+=1)if(d=r.charAt(i),Object.prototype.hasOwnProperty.call(e={},d)||(e[d]=g++,t={}),v=d,Object.prototype.hasOwnProperty.call(e,d)){if(256>d.charCodeAt(0)){for(e=0;m>e;e++)p<<=1,h==o-1?(h=0,d+=n(p),p=0):h++;for(f=d.charCodeAt(0),e=0;8>e;e++)p=p<<1|1&f,h==o-1?(h=0,d+=n(p),p=0):h++,f>>=1}else{for(f=1,e=0;m>e;e++)p=p<<1|f,h==o-1?(h=0,d+=n(p),p=0):h++,f=0;for(f=d.charCodeAt(0),e=0;16>e;e++)p=p<<1|1&f,h==o-1?(h=0,d+=n(p),p=0):h++,f>>=1}m--,0==m&&(m=Math.pow(2,a),a++),delete e[d]}else for(f=e[v],e=0;a>e;e++)p=p<<1|1&f,h==o-1?(h=0,d+=n(p),p=0):h++,f>>=1;for(m--,0==m&&(m=Math.pow(2,a),a++),f=2,e=0;a>e;e++)p=p<<1|1&f,h==o-1?(h=0,d+=n(p),p=0):h++,f>>=1;for(;;){if(p<<=1,h==o-1){d+=n(p);break}h++}return d},_decompress:function(o,n,e){var t,i,a,u,c,f,s,l,p=[],h=4,d=4,v=3,m="",g=[],C={val:e(0),position:n,index:1};for(i=0;3>i;i+=1)p[i]=i;for(a=0,c=Math.pow(2,2),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;switch(a){case 0:for(a=0,c=Math.pow(2,8),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;l=r(a);break;case 1:for(a=0,c=Math.pow(2,16),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;l=r(a);break;case 2:return""}for(p[3]=l,u=l,g.push(l);;){if(C.index>o)return"";for(a=0,c=Math.pow(2,v),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;switch(l=a){case 0:for(a=0,c=Math.pow(2,8),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;p[d++]=r(a),l=d-1,h--;break;case 1:for(a=0,c=Math.pow(2,16),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;p[d++]=r(a),l=d-1,h--;break;case 2:return g.join("")}if(0==h&&(h=Math.pow(2,v),v++),p[l])m=p[l];else{if(l!==d)return null;m=u+u.charAt(0)}g.push(m),p[d++]=u+m.charAt(0),h--,u=m,0==h&&(h=Math.pow(2,v),v++)}}};return i}();`;
+
+    document.getElementById('obfuscateBtn').addEventListener('click', async () => {
         const input = document.getElementById('inputCode').value;
-        const useLzString = document.getElementById('enableLzString').checked;
-        const useAntiDebug = document.getElementById('enableAntiDebug').checked;
         const outputArea = document.getElementById('outputCode');
+        const spinner = document.getElementById('loadingSpinner');
 
         if (!input.trim()) {
             alert("コードを入力してください");
             return;
         }
 
+        spinner.style.display = 'inline-block';
+        outputArea.value = "Processing...";
+
+        // UIの描画更新を待つための短い待機
+        await new Promise(r => setTimeout(r, 100));
+
         try {
-            // --- 第1段階: JavaScript Obfuscatorによる論理的難読化 ---
-            const obfuscationResult = JavaScriptObfuscator.obfuscate(input, {
+            // --- Step 1: Minify (Terser) ---
+            // コードサイズを減らし、変数名をa,b,c等にする
+            const minifiedResult = await Terser.minify(input, {
+                mangle: true,
+                compress: true
+            });
+            if (minifiedResult.error) throw minifiedResult.error;
+            const minifiedCode = minifiedResult.code;
+
+            // --- Step 2: Core Obfuscation (JS-Obfuscator) ---
+            // ロジックそのものを難読化
+            const innerObfuscation = JavaScriptObfuscator.obfuscate(minifiedCode, {
                 compact: true,
                 controlFlowFlattening: true,
                 controlFlowFlatteningThreshold: 1,
                 numbersToExpressions: true,
                 simplify: true,
                 stringArray: true,
-                stringArrayEncoding: ['rc4'], // Base64より強力なRC4を使用
+                stringArrayThreshold: 1
+            }).getObfuscatedCode();
+
+            // --- Step 3: Compression (LZ-String) ---
+            // 難読化されたコードを圧縮文字列に変換
+            const compressedPayload = LZString.compressToBase64(innerObfuscation);
+
+            // --- Step 4: Wrapper Construction ---
+            // LZ-Stringライブラリ + 展開ロジック + ペイロード を結合した新しいJSを作る
+            // 注意: evalを使いますが、Indirect Eval (0, eval) パターンでスコープ汚染を最小限にします
+            const wrapperCode = `
+                ${LZSTRING_LIB_SOURCE}
+                var payload = "${compressedPayload}";
+                var decompressed = LZString.decompressFromBase64(payload);
+                (0, eval)(decompressed);
+            `;
+
+            // --- Step 5: Wrapper Obfuscation (Final Layer) ---
+            // 展開ロジック自体をさらに難読化し、LZ-Stringの存在を隠蔽する
+            // ここで「外部ライブラリが見えない」「ワンライナー」を実現
+            const finalObfuscation = JavaScriptObfuscator.obfuscate(wrapperCode, {
+                compact: true,              // 完全なワンライナー化
+                identifierNamesGenerator: 'mangled', // 変数名を短く
+                renameGlobals: false,       // evalを使うためGlobalは触らない
+                unicodeEscapeSequence: true,// 文字列を \x23... 形式にして可読性を下げる
+                stringArray: true,
+                stringArrayEncoding: ['rc4'], // 文字列を暗号化して隠す
                 stringArrayThreshold: 1,
-                splitStrings: true,
-                splitStringsChunkLength: 5,
-                
-                // アンチデバッグ設定
-                debugProtection: useAntiDebug,
-                debugProtectionInterval: useAntiDebug ? 4000 : 0,
-                disableConsoleOutput: useAntiDebug,
-                
-                // 自己防衛（コードが整形されると動かなくなる）
-                selfDefending: true, 
-            });
+                splitStrings: true,         // 長い文字列を分割
+                disableConsoleOutput: true, // console系を無効化
+                selfDefending: true         // コード整形対策
+            }).getObfuscatedCode();
 
-            let finalCode = obfuscationResult.getObfuscatedCode();
-
-            // --- 第2段階: LZ-Stringによる圧縮カプセル化 (Shell Layer) ---
-            if (useLzString) {
-                finalCode = applyLzStringWrapper(finalCode);
-            }
-
-            outputArea.value = finalCode;
+            outputArea.value = finalObfuscation;
 
         } catch (error) {
             console.error(error);
             outputArea.value = "エラーが発生しました:\n" + error.message;
+        } finally {
+            spinner.style.display = 'none';
         }
     });
-
-    /**
-     * LZ-Stringを使ってコード全体を圧縮し、実行時に展開するラッパーを作成する
-     * これにより、Webcrack等のAST解析ツールは「ただの文字列」としか認識できなくなる
-     */
-    function applyLzStringWrapper(code) {
-        // 1. コードを圧縮
-        const compressed = LZString.compressToBase64(code);
-
-        // 2. ランダムな変数名を生成（解析を少しでも遅らせるため）
-        const varName = '_x' + Math.random().toString(36).substring(7);
-        
-        // 3. 実行用テンプレート (LZStringの解凍ロジックを含む)
-        // 注意: 実行される環境にはLZStringライブラリが必要ないように、
-        // 必要なデコード関数(decompressFromBase64の軽量版)をここに埋め込むか、
-        // 簡易的にCDNから読み込む構成にします。
-        // 今回は「単体で動く」ことを重視し、evalで実行する構成にします。
-
-        return `
-/* Protected by Dual-Layer Obfuscator */
-(function(){
-    // LZ-Stringの簡易展開ロジックを埋め込むためのCDNロード（または埋め込み）
-    // 実際の攻撃コードっぽく見えないように、動的にスクリプトタグを作る手法を採用
-    var s = document.createElement('script');
-    s.src = "https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js";
-    s.onload = function() {
-        var ${varName} = "${compressed}";
-        var decoded = LZString.decompressFromBase64(${varName});
-        // グローバル汚染を防ぎつつ実行 (Indirect Eval)
-        (1,eval)(decoded);
-    };
-    document.head.appendChild(s);
-})();
-`.trim();
-    }
 </script>
 
 </body>
