@@ -1,22 +1,233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obfuscator Pro / Stable Edition</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --bg-color: #0f1115;
+            --card-bg: #161b22;
+            --border-color: #30363d;
+            --accent-primary: #2f81f7;
+            --accent-hover: #58a6ff;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --code-bg: #0d1117;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+        }
+
+        .code-editor {
+            background-color: var(--code-bg);
+            color: #e6edf3;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            resize: none;
+        }
+        .code-editor:focus {
+            border-color: var(--accent-primary);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(47, 129, 247, 0.4);
+            color: #e6edf3;
+            background-color: var(--code-bg);
+        }
+
+        .btn-primary-custom {
+            background-color: #238636;
+            border: 1px solid rgba(240,246,252,0.1);
+            color: white;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .btn-primary-custom:hover {
+            background-color: #2ea043;
+        }
+
+        .btn-outline-custom {
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            background: var(--card-bg);
+            transition: all 0.2s;
+        }
+        .btn-outline-custom:hover {
+            border-color: var(--text-secondary);
+            color: var(--text-primary);
+            background-color: #21262d;
+        }
+
+        .spinner-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(13, 17, 23, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            backdrop-filter: blur(2px);
+            border-radius: 6px;
+        }
+
+        .form-check-input {
+            background-color: #21262d;
+            border-color: #30363d;
+            cursor: pointer;
+        }
+        .form-check-input:checked {
+            background-color: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+    </style>
+</head>
+<body class="py-4">
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold m-0">🛡️ Obfuscator <span style="color: var(--accent-primary)">Stable</span></h3>
+            <small class="text-secondary">Multi-Layer Protection (Minify + Logic + Compression)</small>
+        </div>
+        <div>
+             <a href="https://github.com/" target="_blank" class="btn btn-outline-custom btn-sm"><i class="bi bi-github"></i></a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Settings Panel -->
+        <div class="col-12">
+            <div class="glass-card pt-3 pb-2">
+                <div class="row g-3">
+                    <div class="col-md-3 col-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="optAntiDebug" checked>
+                            <label class="form-check-label small" for="optAntiDebug">Anti-Debug</label>
+                            <div class="text-secondary" style="font-size: 0.7rem;">DevTools対策</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="optSelfDefending" checked>
+                            <label class="form-check-label small" for="optSelfDefending">Self-Defending</label>
+                            <div class="text-secondary" style="font-size: 0.7rem;">コード整形対策</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="optDisableConsole">
+                            <label class="form-check-label small" for="optDisableConsole">No Console</label>
+                            <div class="text-secondary" style="font-size: 0.7rem;">ログ出力を削除</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="optDomainLock">
+                            <label class="form-check-label small" for="optDomainLock">Domain Lock</label>
+                        </div>
+                        <input type="text" id="domainName" class="form-control form-control-sm mt-1 bg-dark text-light border-secondary" placeholder="example.com" style="display:none;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="col-lg-6">
+            <div class="d-flex justify-content-between mb-2">
+                <label class="fw-bold small text-secondary"><i class="bi bi-code-slash me-1"></i> Source Code</label>
+            </div>
+            <textarea id="inputCode" class="form-control code-editor" rows="16" placeholder="// ここにJavaScriptコードを入力してください..."></textarea>
+        </div>
+
+        <!-- Output Area -->
+        <div class="col-lg-6 position-relative">
+            <div id="processingOverlay" class="spinner-overlay" style="display: none;">
+                <div class="text-center">
+                    <div class="spinner-border text-primary mb-2" role="status"></div>
+                    <div class="small text-light">Encryping Logic...</div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mb-2">
+                <label class="fw-bold small text-secondary"><i class="bi bi-box-seam me-1"></i> Obfuscated Result</label>
+            </div>
+            <textarea id="outputCode" class="form-control code-editor" rows="16" readonly onclick="this.select()"></textarea>
+            
+            <div class="mt-3 d-flex gap-2">
+                <button id="copyBtn" class="btn btn-outline-custom flex-grow-1 btn-sm">
+                    <i class="bi bi-clipboard me-1"></i> Copy
+                </button>
+                <button id="testBtn" class="btn btn-outline-custom flex-grow-1 btn-sm">
+                    <i class="bi bi-play-fill me-1"></i> Test Run
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Execute Button -->
+    <div class="text-center mt-5 mb-5">
+        <button id="obfuscateBtn" class="btn btn-primary-custom btn-lg px-5 shadow-lg rounded-pill">
+            <i class="bi bi-shield-lock-fill me-2"></i> Execute Protection
+        </button>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 99">
+    <div id="liveToast" class="toast align-items-center text-white bg-success border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body small">
+                <i class="bi bi-check-circle-fill me-2"></i> Copied to clipboard!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<!-- Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+
 <script>
-    // UI: Domain Lock
+    // UI: Domain Lock Input Toggle
     document.getElementById('optDomainLock').addEventListener('change', function(e) {
         document.getElementById('domainName').style.display = e.target.checked ? 'block' : 'none';
     });
 
-    // --- 修正ポイント 1 ---
-    // LZ-Stringライブラリの変数名を 'LZString' から '_lz' に変更して定義
-    // これにより、ツール本体がCDNから読み込んでいる 'window.LZString' との衝突（汚染）を防ぎます。
-    // また、ReferenceErrorを防ぐため、このライブラリ部分には難読化除外タグを適用する設計にします。
+    // --- 埋め込み用ライブラリ定義 ---
+    // 外部依存を排除するため、LZStringライブラリのソースコードそのものを埋め込みます。
+    // 【重要】変数名を 'LZString' から '_lz' に変更しています。
+    // これにより、テスト実行時にCDN版の window.LZString を汚染するのを防ぎ、再実行時のバグを解消します。
     const LZ_LIB_VAR_NAME = "_lz"; 
     const LZSTRING_LIB_SOURCE = `var ${LZ_LIB_VAR_NAME}=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",n="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",e={};function t(r,o){if(!e[r]){e[r]={};for(var n=0;n<r.length;n++)e[r][r.charAt(n)]=n}return e[r][o]}var i={compressToBase64:function(r){if(null==r)return"";var o=i._compress(r,6,function(r){return"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".charAt(r)});switch(o.length%4){case 0:return o;case 1:return o+"===";case 2:return o+"==";case 3:return o+"="}},decompressFromBase64:function(o){return null==o?"":""==o?null:i._decompress(o.length,32,function(n){return t("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",o.charAt(n))})},_compress:function(r,o,n){if(null==r)return"";var e,t,i,a,u,c,f,s,l,p=0,h=0,d="",v="",m=2,g=3;for(i=0;i<r.length;i+=1)if(d=r.charAt(i),Object.prototype.hasOwnProperty.call(e={},d)||(e[d]=g++,t={}),v=d,Object.prototype.hasOwnProperty.call(e,d)){if(256>d.charCodeAt(0)){for(e=0;m>e;e++)p<<=1,h==o-1?(h=0,d+=n(p),p=0):h++;for(f=d.charCodeAt(0),e=0;8>e;e++)p=p<<1|1&f,h==o-1?(h=0,d+=n(p),p=0):h++,f>>=1}else{for(f=1,e=0;m>e;e++)p=p<<1|f,h==o-1?(h=0,d+=n(p),p=0):h++,f=0;for(f=d.charCodeAt(0),e=0;16>e;e++)p=p<<1|1&f,h==o-1?(h=0,d+=n(p),p=0):h++,f>>=1}m--,0==m&&(m=Math.pow(2,a),a++),delete e[d]}else for(f=e[v],e=0;a>e;e++)p=p<<1|1&f,h==o-1?(h=0,d+=n(p),p=0):h++,f>>=1;for(m--,0==m&&(m=Math.pow(2,a),a++),f=2,e=0;a>e;e++)p=p<<1|1&f,h==o-1?(h=0,d+=n(p),p=0):h++,f>>=1;for(;;){if(p<<=1,h==o-1){d+=n(p);break}h++}return d},_decompress:function(o,n,e){var t,i,a,u,c,f,s,l,p=[],h=4,d=4,v=3,m="",g=[],C={val:e(0),position:n,index:1};for(i=0;3>i;i+=1)p[i]=i;for(a=0,c=Math.pow(2,2),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;switch(a){case 0:for(a=0,c=Math.pow(2,8),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;l=r(a);break;case 1:for(a=0,c=Math.pow(2,16),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;l=r(a);break;case 2:return""}for(p[3]=l,u=l,g.push(l);;){if(C.index>o)return"";for(a=0,c=Math.pow(2,v),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;switch(l=a){case 0:for(a=0,c=Math.pow(2,8),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;p[d++]=r(a),l=d-1,h--;break;case 1:for(a=0,c=Math.pow(2,16),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;p[d++]=r(a),l=d-1,h--;break;case 2:return g.join("")}if(0==h&&(h=Math.pow(2,v),v++),p[l])m=p[l];else{if(l!==d)return null;m=u+u.charAt(0)}g.push(m),p[d++]=u+m.charAt(0),h--,u=m,0==h&&(h=Math.pow(2,v),v++)}}};return i}();`;
 
+    // --- Main Logic ---
     document.getElementById('obfuscateBtn').addEventListener('click', async () => {
         const input = document.getElementById('inputCode').value;
         const outputArea = document.getElementById('outputCode');
         const overlay = document.getElementById('processingOverlay');
         
-        // Settings
+        // Get Settings
         const s_antiDebug = document.getElementById('optAntiDebug').checked;
         const s_selfDefending = document.getElementById('optSelfDefending').checked;
         const s_disableConsole = document.getElementById('optDisableConsole').checked;
@@ -30,28 +241,30 @@
 
         overlay.style.display = 'flex';
         outputArea.value = "";
-        // UI更新のためのウェイト
+        
+        // Allow UI to render the spinner
         await new Promise(r => setTimeout(r, 100));
 
         try {
-            // --- Step 0: Pre-process ---
+            // 0. Pre-process (Domain Lock Injection)
             let codeToProcess = input;
             if (s_domainLock && val_domainName) {
                 codeToProcess = `if(location.hostname!=="${val_domainName}"){throw "Unauthorized";}\n` + codeToProcess;
             }
 
-            // --- Step 1: Minify (Terser) ---
+            // 1. Minify (Terser)
+            // 'passes: 1' に留めることで圧縮しすぎによるロジック破壊を防ぐ
             const minifiedResult = await Terser.minify(codeToProcess, {
                 mangle: true,
                 compress: {
-                    passes: 1, 
+                    passes: 1,
                     drop_console: s_disableConsole
                 }
             });
             if (minifiedResult.error) throw minifiedResult.error;
             const minifiedCode = minifiedResult.code;
 
-            // --- Step 2: Core Obfuscation (Inner Layer) ---
+            // 2. Inner Obfuscation (Core Logic)
             const coreObfuscation = JavaScriptObfuscator.obfuscate(minifiedCode, {
                 compact: true,
                 controlFlowFlattening: true,
@@ -68,12 +281,13 @@
                 selfDefending: s_selfDefending
             }).getObfuscatedCode();
 
-            // --- Step 3: Compression (Using Tool's Safe LZString) ---
-            // ツールが持っている window.LZString を使って圧縮
+            // 3. Compression (LZ-String)
+            // ここでは CDNから読み込まれた window.LZString (ツール用) を使用して圧縮
             const compressedPayload = LZString.compressToBase64(coreObfuscation);
 
-            // --- Step 4: Wrapper Construction ---
-            // 変数名を _lz に変えたライブラリソースを埋め込む
+            // 4. Wrapper Construction (The Shell)
+            // 【重要】 'javascript-obfuscator:disable' タグで埋め込みライブラリを保護
+            // これにより ReferenceError を回避
             const wrapperCode = `
                 /* javascript-obfuscator:disable */
                 ${LZSTRING_LIB_SOURCE}
@@ -81,34 +295,38 @@
 
                 var payload = "${compressedPayload}";
                 
-                // 変数名を変更した _lz を使用して展開
+                // 定義済みのユニーク変数(_lz)を使って展開
                 var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
                 
+                // グローバルスコープで実行
                 (0, eval)(decompressed);
             `;
 
-            // --- Step 5: Wrapper Obfuscation (Outer Shell) ---
+            // 5. Outer Obfuscation (Loader)
             const finalResult = JavaScriptObfuscator.obfuscate(wrapperCode, {
                 compact: true,
                 identifierNamesGenerator: 'mangled',
-                renameGlobals: false, 
+                renameGlobals: false, // evalのため必須
                 unicodeEscapeSequence: true,
                 stringArray: true,
                 stringArrayThreshold: 1,
-                splitStrings: true
+                splitStrings: true,
+                splitStringsChunkLength: 10
             }).getObfuscatedCode();
 
             outputArea.value = finalResult;
 
         } catch (error) {
             console.error(error);
-            outputArea.value = "Error: " + error.message;
+            outputArea.value = "Error 발생: " + error.message;
         } finally {
             overlay.style.display = 'none';
         }
     });
 
-    // Clipboard
+    // --- Helper Functions ---
+
+    // Clipboard Copy
     const toast = new bootstrap.Toast(document.getElementById('liveToast'));
     document.getElementById('copyBtn').addEventListener('click', () => {
         const val = document.getElementById('outputCode').value;
@@ -120,14 +338,20 @@
         const code = document.getElementById('outputCode').value;
         if(!code) return;
         
-        if(confirm("実行しますか？\n(無限ループ等に注意してください)")) {
-            try { 
-                // 実行はグローバルスコープで行うが、
-                // 埋め込まれた _lz 変数が window.LZString を上書きしないため安全
-                (0, eval)(code); 
-            } catch(e) { 
-                alert("Runtime Error: " + e); 
+        if(confirm("⚠️ 注意:\nコードをこのブラウザタブ上で直接実行します。\n無限ループなどが含まれる場合、タブが応答しなくなる可能性があります。\n\n実行しますか？")) {
+            try {
+                console.log(">>> Test Run Start");
+                // 実行されたコード内で _lz が定義されるが、
+                // ツール本体が使う window.LZString とは名前が違うため干渉しない
+                (0, eval)(code);
+                console.log(">>> Test Run End");
+            } catch(e) {
+                alert("Runtime Error: " + e);
+                console.error(e);
             }
         }
     });
 </script>
+
+</body>
+</html>
