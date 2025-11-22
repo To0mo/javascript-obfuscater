@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Obfuscator Pro</title>
+    <title>JS-Obfuscator Pro</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -89,7 +89,6 @@
             position: relative;
             z-index: 1;
         }
-        /* Borders fix for group */
         .preset-btn-group .btn-preset:first-of-type { border-radius: 8px 0 0 8px; }
         .preset-btn-group .btn-preset:last-of-type { border-radius: 0 8px 8px 0; }
         .preset-btn-group .btn-preset:not(:last-child) { border-right: none; }
@@ -107,14 +106,12 @@
             z-index: 3;
         }
         
-        /* Lite Button Specific */
+        /* Preset Specific Colors */
         #presetLite:checked + .btn-preset {
             background-color: #10b981; /* Emerald */
             border-color: #10b981;
             box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
         }
-
-        /* Extreme Button Specific */
         #presetExtreme:checked + .btn-preset {
             background-color: #ef4444; /* Red */
             border-color: #ef4444;
@@ -196,7 +193,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold m-0 text-white">⚡ Obfuscator <span style="color: var(--accent-primary)">Pro</span></h3>
-            <small class="text-secondary">GitHub Pages Ready / Multi-Layer Protection</small>
+            <small class="text-secondary">Fixed Edition: Lite Mode Error Resolved</small>
         </div>
         <a href="https://github.com/" target="_blank" class="btn btn-outline-custom btn-sm">
             <i class="bi bi-github"></i> GitHub
@@ -351,7 +348,6 @@
                 codeToProcess = `if(location.hostname!=="${config.domainName}"){throw "Unauthorized";}\n` + codeToProcess;
             }
 
-            // Minify
             const minifiedResult = await Terser.minify(codeToProcess, {
                 mangle: true,
                 compress: { passes: 1, drop_console: config.disableConsole }
@@ -361,24 +357,19 @@
             postMessage({ type: 'status', text: 'Obfuscating Logic...' });
 
             // Core Obfuscation
-            // Liteモードの場合は stringArray を false にして容量を削減する
             const coreObfuscation = JavaScriptObfuscator.obfuscate(minifiedResult.code, {
                 compact: true,
-                // Flattening
                 controlFlowFlattening: config.potency > 0,
                 controlFlowFlatteningThreshold: config.potency, 
-                // Dead Code
                 deadCodeInjection: config.deadCode,
                 deadCodeInjectionThreshold: config.deadCode ? (config.potency * 0.4) : 0,
-                // String Array (Liteモード(=potency0)なら無効化)
                 stringArray: config.stringArray,
                 stringArrayEncoding: config.stringArray ? ['rc4'] : [],
                 stringArrayThreshold: config.stringArray ? 0.75 : 0,
-                // Misc
-                numbersToExpressions: config.potency > 0.5, // Medium以上で有効化
+                numbersToExpressions: config.potency > 0.5,
                 simplify: true,
                 splitStrings: config.splitStrings,
-                splitStringsChunkLength: 10,
+                splitStringsChunkLength: 10, // ここは常に10 (固定)
                 debugProtection: config.antiDebug,
                 debugProtectionInterval: config.antiDebug ? 4000 : 0,
                 disableConsoleOutput: config.disableConsole,
@@ -399,17 +390,22 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
             `;
 
             // Final Shell Obfuscation
-            // Liteモードでも外殻は少し難読化するが、サイズ重視設定にする
+            // 【修正ポイント】
+            // splitStrings が false の場合でも、chunkLength が 0 だとエラーになる場合があるため
+            // 安全策として chunkLength は常に有効な整数(15)を入れる。
             const finalResult = JavaScriptObfuscator.obfuscate(wrapperCode, {
                 compact: true,
                 identifierNamesGenerator: 'mangled',
                 renameGlobals: false,
-                unicodeEscapeSequence: config.potency > 0, // LiteならOFFでサイズ節約
+                unicodeEscapeSequence: config.potency > 0,
                 stringArray: config.stringArray,
                 stringArrayEncoding: config.stringArray ? ['rc4'] : [],
                 stringArrayThreshold: config.stringArray ? 1 : 0,
-                splitStrings: true,
-                splitStringsChunkLength: config.potency > 0 ? 15 : 0
+                
+                // Liteモード(potency=0)なら splitStrings は false
+                splitStrings: config.potency > 0,
+                // 0だとバリデーションエラーになるため、splitStringsがfalseでも値をセットしておく
+                splitStringsChunkLength: 15 
             }).getObfuscatedCode();
 
             postMessage({ type: 'success', result: finalResult });
@@ -467,12 +463,10 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
 
     let currentConfig = { ...PRESETS.medium };
 
-    // Apply Preset Logic
     function applyPreset(presetName) {
         const p = PRESETS[presetName];
         if (!p) return;
 
-        // Update UI
         document.getElementById('optAntiDebug').checked = p.antiDebug;
         document.getElementById('optSelfDefending').checked = p.selfDefending;
         document.getElementById('optDeadCode').checked = p.deadCode;
@@ -480,11 +474,9 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
         document.getElementById('optDisableConsole').checked = p.disableConsole;
         document.getElementById('presetDesc').innerText = p.desc;
         
-        // Store Config
         currentConfig = { ...p };
     }
 
-    // Event Listeners for Preset Buttons
     document.querySelectorAll('input[name="preset"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
             const presetKey = e.target.id.replace('preset', '').toLowerCase();
@@ -495,7 +487,6 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
     // Initialize
     applyPreset('medium');
 
-    // UI Logic
     document.getElementById('optDomainLock').addEventListener('change', function(e) {
         document.getElementById('domainName').style.display = e.target.checked ? 'block' : 'none';
     });
@@ -527,10 +518,9 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
         const statusText = document.getElementById('statusText');
         const statsBadge = document.getElementById('sizeStats');
 
-        // 実行時の設定値収集（UIの現在の状態を優先）
         const runConfig = {
             potency: currentConfig.potency,
-            stringArray: currentConfig.stringArray, // プリセットから取得
+            stringArray: currentConfig.stringArray, 
             antiDebug: document.getElementById('optAntiDebug').checked,
             selfDefending: document.getElementById('optSelfDefending').checked,
             domainLock: document.getElementById('optDomainLock').checked,
@@ -572,13 +562,12 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
                 document.getElementById('sizeObfuscated').innerText = formatBytes(resultSize);
                 
                 const diffElem = document.getElementById('sizeDiff');
-                // Liteモード等はマイナスになる可能性もあるため色分け
                 if (resultSize > originalSize) {
                     diffElem.innerText = `(+${diffPercent}%)`;
                     diffElem.style.color = '#ef4444';
                 } else {
                     diffElem.innerText = `(${diffPercent}%)`;
-                    diffElem.style.color = '#10b981'; // Emerald for shrink
+                    diffElem.style.color = '#10b981';
                 }
                 statsBadge.classList.add('visible');
 
