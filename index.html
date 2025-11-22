@@ -50,7 +50,7 @@
             transition: color 0.2s;
         }
 
-        /* Editor Style Fix */
+        /* Editor */
         .code-editor {
             background-color: var(--code-bg) !important; 
             color: #e2e8f0 !important;
@@ -62,8 +62,6 @@
             transition: border-color 0.2s, box-shadow 0.2s;
         }
         .code-editor:focus {
-            background-color: var(--code-bg) !important;
-            color: #e2e8f0 !important;
             border-color: var(--accent-primary);
             outline: none;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
@@ -77,7 +75,7 @@
         /* Preset Buttons */
         .preset-btn-group {
             display: flex;
-            gap: 0.5rem;
+            gap: 0;
         }
         .btn-check + .btn-preset {
             border: 1px solid var(--border-color);
@@ -86,25 +84,41 @@
             flex-grow: 1;
             font-size: 0.85rem;
             font-weight: 600;
-            padding: 0.5rem;
+            padding: 0.6rem 0.5rem;
             transition: all 0.2s;
+            position: relative;
+            z-index: 1;
         }
+        /* Borders fix for group */
+        .preset-btn-group .btn-preset:first-of-type { border-radius: 8px 0 0 8px; }
+        .preset-btn-group .btn-preset:last-of-type { border-radius: 0 8px 8px 0; }
+        .preset-btn-group .btn-preset:not(:last-child) { border-right: none; }
+
         .btn-check:checked + .btn-preset {
             background-color: var(--accent-primary);
             color: white;
             border-color: var(--accent-primary);
-            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+            z-index: 2;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
         }
         .btn-check + .btn-preset:hover {
             background-color: #30363d;
             color: white;
+            z-index: 3;
         }
         
-        /* Extreme Preset Specific */
+        /* Lite Button Specific */
+        #presetLite:checked + .btn-preset {
+            background-color: #10b981; /* Emerald */
+            border-color: #10b981;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Extreme Button Specific */
         #presetExtreme:checked + .btn-preset {
-            background-color: #dc2626; /* Red */
-            border-color: #dc2626;
-            box-shadow: 0 0 10px rgba(220, 38, 38, 0.4);
+            background-color: #ef4444; /* Red */
+            border-color: #ef4444;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
         }
 
         .btn-primary-custom {
@@ -112,7 +126,7 @@
             border: none;
             color: white;
             font-weight: 600;
-            padding: 0.8rem 2rem;
+            padding: 0.8rem 3rem;
             border-radius: 50px;
             transition: all 0.2s;
             box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
@@ -148,9 +162,9 @@
         }
 
         .section-title {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.1em;
             color: #64748b;
             font-weight: 700;
             margin-bottom: 1rem;
@@ -160,7 +174,7 @@
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.75rem;
             background: #1e293b;
-            padding: 4px 10px;
+            padding: 4px 12px;
             border-radius: 4px;
             color: #94a3b8;
             border: 1px solid #334155;
@@ -181,11 +195,11 @@
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h3 class="fw-bold m-0 text-white">⚡ Obfuscator <span style="color: var(--accent-primary)">Preset</span></h3>
-            <small class="text-secondary">Auto-Configured Protection Levels</small>
+            <h3 class="fw-bold m-0 text-white">⚡ Obfuscator <span style="color: var(--accent-primary)">Pro</span></h3>
+            <small class="text-secondary">GitHub Pages Ready / Multi-Layer Protection</small>
         </div>
         <a href="https://github.com/" target="_blank" class="btn btn-outline-custom btn-sm">
-            <i class="bi bi-github"></i>
+            <i class="bi bi-github"></i> GitHub
         </a>
     </div>
 
@@ -196,10 +210,10 @@
                 <div class="row">
                     <!-- Presets Column -->
                     <div class="col-md-4 mb-3">
-                        <div class="section-title"><i class="bi bi-sliders me-1"></i> Select Preset</div>
+                        <div class="section-title"><i class="bi bi-sliders me-1"></i> Preset Mode</div>
                         <div class="preset-btn-group mb-2">
-                            <input type="radio" class="btn-check" name="preset" id="presetLow" autocomplete="off">
-                            <label class="btn btn-preset rounded-start" for="presetLow">Low</label>
+                            <input type="radio" class="btn-check" name="preset" id="presetLite" autocomplete="off">
+                            <label class="btn btn-preset" for="presetLite">Lite</label>
 
                             <input type="radio" class="btn-check" name="preset" id="presetMedium" autocomplete="off" checked>
                             <label class="btn btn-preset" for="presetMedium">Medium</label>
@@ -208,45 +222,49 @@
                             <label class="btn btn-preset" for="presetHigh">High</label>
 
                             <input type="radio" class="btn-check" name="preset" id="presetExtreme" autocomplete="off">
-                            <label class="btn btn-preset rounded-end" for="presetExtreme">Extreme</label>
+                            <label class="btn btn-preset" for="presetExtreme">Extreme</label>
                         </div>
-                        <div class="small text-secondary mt-2" id="presetDesc">
-                            Balanced protection. Good for general use.
+                        <div class="small text-secondary mt-2" id="presetDesc" style="min-height: 2.5em;">
+                            <!-- Description auto-filled via JS -->
                         </div>
                     </div>
 
-                    <!-- Protection Settings (Auto-toggled by preset) -->
+                    <!-- Protection Settings -->
                     <div class="col-md-4 mb-3">
-                        <div class="section-title"><i class="bi bi-shield-check me-1"></i> Security Options</div>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="optAntiDebug">
-                            <label class="form-check-label" for="optAntiDebug">Anti-Debug</label>
+                        <div class="section-title"><i class="bi bi-shield-check me-1"></i> Security</div>
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="optAntiDebug">
+                                <label class="form-check-label" for="optAntiDebug">Anti-Debug</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="optSelfDefending">
+                                <label class="form-check-label" for="optSelfDefending">Self-Defending</label>
+                            </div>
+                            <div class="form-check form-switch w-100">
+                                <input class="form-check-input" type="checkbox" id="optDomainLock">
+                                <label class="form-check-label" for="optDomainLock">Domain Lock</label>
+                                <input type="text" id="domainName" class="form-control form-control-sm mt-2 bg-dark text-light border-secondary" placeholder="example.com" style="display:none;">
+                            </div>
                         </div>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="optSelfDefending">
-                            <label class="form-check-label" for="optSelfDefending">Self-Defending</label>
-                        </div>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="optDomainLock">
-                            <label class="form-check-label" for="optDomainLock">Domain Lock</label>
-                        </div>
-                        <input type="text" id="domainName" class="form-control form-control-sm mt-2 bg-dark text-light border-secondary" placeholder="ex: mysite.com" style="display:none;">
                     </div>
 
-                    <!-- Complexity Settings (Auto-toggled by preset) -->
+                    <!-- Complexity Settings -->
                     <div class="col-md-4 mb-3">
-                        <div class="section-title"><i class="bi bi-code-square me-1"></i> Complexity Options</div>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="optDeadCode">
-                            <label class="form-check-label" for="optDeadCode">Dead Code Injection</label>
-                        </div>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="optSplitStrings">
-                            <label class="form-check-label" for="optSplitStrings">Split Strings</label>
-                        </div>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="optDisableConsole">
-                            <label class="form-check-label" for="optDisableConsole">Remove Console</label>
+                        <div class="section-title"><i class="bi bi-code-square me-1"></i> Complexity</div>
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="optDeadCode">
+                                <label class="form-check-label" for="optDeadCode">Dead Code</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="optSplitStrings">
+                                <label class="form-check-label" for="optSplitStrings">Split Strings</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="optDisableConsole">
+                                <label class="form-check-label" for="optDisableConsole">No Console</label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -259,7 +277,7 @@
                 <label class="fw-bold small text-secondary">Input Source</label>
                 <span class="badge bg-secondary bg-opacity-25 text-secondary border border-secondary">JavaScript</span>
             </div>
-            <textarea id="inputCode" class="form-control code-editor" rows="16" placeholder="// Paste your code here..."></textarea>
+            <textarea id="inputCode" class="form-control code-editor" rows="16" placeholder="// Paste your long code here..."></textarea>
         </div>
 
         <!-- Output Area -->
@@ -267,7 +285,7 @@
             <div id="processingOverlay" class="spinner-overlay" style="display: none;">
                 <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
                 <h5 class="text-white fw-bold">Processing...</h5>
-                <p class="text-secondary small" id="statusText">Starting Worker...</p>
+                <p class="text-secondary small" id="statusText">Initializing Worker...</p>
             </div>
 
             <div class="d-flex justify-content-between mb-2 align-items-center">
@@ -343,18 +361,22 @@
             postMessage({ type: 'status', text: 'Obfuscating Logic...' });
 
             // Core Obfuscation
-            // プリセットの値(config.potency)に基づき、詳細設定を動的に変更
+            // Liteモードの場合は stringArray を false にして容量を削減する
             const coreObfuscation = JavaScriptObfuscator.obfuscate(minifiedResult.code, {
                 compact: true,
-                controlFlowFlattening: true,
+                // Flattening
+                controlFlowFlattening: config.potency > 0,
                 controlFlowFlatteningThreshold: config.potency, 
+                // Dead Code
                 deadCodeInjection: config.deadCode,
                 deadCodeInjectionThreshold: config.deadCode ? (config.potency * 0.4) : 0,
-                numbersToExpressions: true,
+                // String Array (Liteモード(=potency0)なら無効化)
+                stringArray: config.stringArray,
+                stringArrayEncoding: config.stringArray ? ['rc4'] : [],
+                stringArrayThreshold: config.stringArray ? 0.75 : 0,
+                // Misc
+                numbersToExpressions: config.potency > 0.5, // Medium以上で有効化
                 simplify: true,
-                stringArray: true,
-                stringArrayEncoding: ['rc4'],
-                stringArrayThreshold: 0.75,
                 splitStrings: config.splitStrings,
                 splitStringsChunkLength: 10,
                 debugProtection: config.antiDebug,
@@ -377,16 +399,17 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
             `;
 
             // Final Shell Obfuscation
+            // Liteモードでも外殻は少し難読化するが、サイズ重視設定にする
             const finalResult = JavaScriptObfuscator.obfuscate(wrapperCode, {
                 compact: true,
                 identifierNamesGenerator: 'mangled',
                 renameGlobals: false,
-                unicodeEscapeSequence: true,
-                stringArray: true,
-                stringArrayEncoding: ['rc4'],
-                stringArrayThreshold: 1,
+                unicodeEscapeSequence: config.potency > 0, // LiteならOFFでサイズ節約
+                stringArray: config.stringArray,
+                stringArrayEncoding: config.stringArray ? ['rc4'] : [],
+                stringArrayThreshold: config.stringArray ? 1 : 0,
                 splitStrings: true,
-                splitStringsChunkLength: 15
+                splitStringsChunkLength: config.potency > 0 ? 15 : 0
             }).getObfuscatedCode();
 
             postMessage({ type: 'success', result: finalResult });
@@ -399,53 +422,57 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
 
 <script>
     // --- Presets Configuration ---
-    // 各プリセットの設定定義
     const PRESETS = {
-        low: {
-            potency: 0,
+        lite: {
+            potency: 0,            // Flattening OFF
+            stringArray: false,    // String Array OFF (Size Saver)
             antiDebug: false,
             selfDefending: false,
             deadCode: false,
             splitStrings: false,
             disableConsole: false,
-            desc: "Minimal protection. Fastest execution, smallest size."
+            desc: "Lite Mode: Minify + Compression only. Best for large files. (Size: ~1.0x-1.3x)"
         },
         medium: {
             potency: 0.4,
+            stringArray: true,
             antiDebug: true,
             selfDefending: true,
             deadCode: false,
             splitStrings: false,
             disableConsole: true,
-            desc: "Balanced protection. Good for general use."
+            desc: "Medium Mode: Balanced obfuscation. Good for general use."
         },
         high: {
             potency: 0.75,
+            stringArray: true,
             antiDebug: true,
             selfDefending: true,
             deadCode: true,
             splitStrings: true,
             disableConsole: true,
-            desc: "Strong protection. Larger file size, harder to reverse."
+            desc: "High Mode: Strong protection with dead code injection."
         },
         extreme: {
             potency: 1.0,
+            stringArray: true,
             antiDebug: true,
             selfDefending: true,
             deadCode: true,
             splitStrings: true,
             disableConsole: true,
-            desc: "Paranoid mode. Maximum complexity, may impact performance."
+            desc: "Extreme Mode: Max complexity. May impact performance."
         }
     };
 
-    let currentPotency = PRESETS.medium.potency;
+    let currentConfig = { ...PRESETS.medium };
 
     // Apply Preset Logic
     function applyPreset(presetName) {
         const p = PRESETS[presetName];
         if (!p) return;
 
+        // Update UI
         document.getElementById('optAntiDebug').checked = p.antiDebug;
         document.getElementById('optSelfDefending').checked = p.selfDefending;
         document.getElementById('optDeadCode').checked = p.deadCode;
@@ -453,7 +480,8 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
         document.getElementById('optDisableConsole').checked = p.disableConsole;
         document.getElementById('presetDesc').innerText = p.desc;
         
-        currentPotency = p.potency;
+        // Store Config
+        currentConfig = { ...p };
     }
 
     // Event Listeners for Preset Buttons
@@ -464,7 +492,7 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
         });
     });
 
-    // Initialize with Medium
+    // Initialize
     applyPreset('medium');
 
     // UI Logic
@@ -499,8 +527,10 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
         const statusText = document.getElementById('statusText');
         const statsBadge = document.getElementById('sizeStats');
 
-        // 設定値の収集（プリセットで切り替わったチェックボックスの状態を取得）
-        const config = {
+        // 実行時の設定値収集（UIの現在の状態を優先）
+        const runConfig = {
+            potency: currentConfig.potency,
+            stringArray: currentConfig.stringArray, // プリセットから取得
             antiDebug: document.getElementById('optAntiDebug').checked,
             selfDefending: document.getElementById('optSelfDefending').checked,
             domainLock: document.getElementById('optDomainLock').checked,
@@ -508,7 +538,6 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
             deadCode: document.getElementById('optDeadCode').checked,
             splitStrings: document.getElementById('optSplitStrings').checked,
             disableConsole: document.getElementById('optDisableConsole').checked,
-            potency: currentPotency // プリセットによる強度値
         };
 
         if (!input.trim()) {
@@ -524,7 +553,7 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
         if (worker) worker.terminate();
         worker = createWorker();
 
-        worker.postMessage({ code: input, config: config });
+        worker.postMessage({ code: input, config: runConfig });
 
         worker.onmessage = function(e) {
             const data = e.data;
@@ -543,12 +572,13 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
                 document.getElementById('sizeObfuscated').innerText = formatBytes(resultSize);
                 
                 const diffElem = document.getElementById('sizeDiff');
+                // Liteモード等はマイナスになる可能性もあるため色分け
                 if (resultSize > originalSize) {
                     diffElem.innerText = `(+${diffPercent}%)`;
                     diffElem.style.color = '#ef4444';
                 } else {
                     diffElem.innerText = `(${diffPercent}%)`;
-                    diffElem.style.color = '#22c55e';
+                    diffElem.style.color = '#10b981'; // Emerald for shrink
                 }
                 statsBadge.classList.add('visible');
 
