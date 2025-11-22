@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Obfuscator Pro / Analytics Edition</title>
+    <title>Obfuscator Pro</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -28,7 +28,6 @@
             min-height: 100vh;
         }
 
-        /* Glass Card UI */
         .glass-card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -37,7 +36,7 @@
             padding: 1.5rem;
         }
 
-        /* Controls */
+        /* Switches */
         .form-switch .form-check-input {
             background-color: #334155;
             border-color: #475569;
@@ -47,33 +46,67 @@
             background-color: var(--accent-primary);
             border-color: var(--accent-primary);
         }
-        
-        .form-range::-webkit-slider-runnable-track {
-            background: #334155;
-            border-radius: 4px;
-        }
-        .form-range::-webkit-slider-thumb {
-            background: var(--accent-primary);
+        .form-check-label {
+            transition: color 0.2s;
         }
 
-        /* Editor */
+        /* Editor Style Fix */
         .code-editor {
-            background-color: var(--code-bg);
-            color: #e2e8f0;
+            background-color: var(--code-bg) !important; 
+            color: #e2e8f0 !important;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.85rem;
             resize: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         .code-editor:focus {
+            background-color: var(--code-bg) !important;
+            color: #e2e8f0 !important;
             border-color: var(--accent-primary);
             outline: none;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
         }
+        .code-editor[readonly] {
+            background-color: #050505 !important;
+            color: #a3e635 !important;
+            opacity: 1;
+        }
 
-        /* Buttons */
+        /* Preset Buttons */
+        .preset-btn-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn-check + .btn-preset {
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            background-color: #21262d;
+            flex-grow: 1;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.5rem;
+            transition: all 0.2s;
+        }
+        .btn-check:checked + .btn-preset {
+            background-color: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+        .btn-check + .btn-preset:hover {
+            background-color: #30363d;
+            color: white;
+        }
+        
+        /* Extreme Preset Specific */
+        #presetExtreme:checked + .btn-preset {
+            background-color: #dc2626; /* Red */
+            border-color: #dc2626;
+            box-shadow: 0 0 10px rgba(220, 38, 38, 0.4);
+        }
+
         .btn-primary-custom {
             background: linear-gradient(135deg, var(--accent-primary), #2563eb);
             border: none;
@@ -101,7 +134,6 @@
             background: #1e293b;
         }
 
-        /* Overlay */
         .spinner-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -124,7 +156,6 @@
             margin-bottom: 1rem;
         }
 
-        /* Stats Badge */
         .stats-badge {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.75rem;
@@ -133,7 +164,7 @@
             border-radius: 4px;
             color: #94a3b8;
             border: 1px solid #334155;
-            opacity: 0; /* hidden by default */
+            opacity: 0;
             transition: opacity 0.3s;
         }
         .stats-badge.visible {
@@ -143,20 +174,15 @@
             color: #60a5fa;
             font-weight: bold;
         }
-        .stats-arrow {
-            color: #64748b;
-            margin: 0 6px;
-        }
     </style>
 </head>
 <body class="py-4">
 
 <div class="container">
-    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h3 class="fw-bold m-0 text-white">⚡ Obfuscator <span style="color: var(--accent-primary)">Worker</span></h3>
-            <small class="text-secondary">Multi-Threaded Protection with Analytics</small>
+            <h3 class="fw-bold m-0 text-white">⚡ Obfuscator <span style="color: var(--accent-primary)">Preset</span></h3>
+            <small class="text-secondary">Auto-Configured Protection Levels</small>
         </div>
         <a href="https://github.com/" target="_blank" class="btn btn-outline-custom btn-sm">
             <i class="bi bi-github"></i>
@@ -164,55 +190,63 @@
     </div>
 
     <div class="row g-4">
-        <!-- Advanced Settings Panel -->
+        <!-- Configuration Panel -->
         <div class="col-12">
             <div class="glass-card pb-2">
                 <div class="row">
-                    <!-- Protection -->
+                    <!-- Presets Column -->
                     <div class="col-md-4 mb-3">
-                        <div class="section-title"><i class="bi bi-shield-check me-1"></i> Protection</div>
+                        <div class="section-title"><i class="bi bi-sliders me-1"></i> Select Preset</div>
+                        <div class="preset-btn-group mb-2">
+                            <input type="radio" class="btn-check" name="preset" id="presetLow" autocomplete="off">
+                            <label class="btn btn-preset rounded-start" for="presetLow">Low</label>
+
+                            <input type="radio" class="btn-check" name="preset" id="presetMedium" autocomplete="off" checked>
+                            <label class="btn btn-preset" for="presetMedium">Medium</label>
+
+                            <input type="radio" class="btn-check" name="preset" id="presetHigh" autocomplete="off">
+                            <label class="btn btn-preset" for="presetHigh">High</label>
+
+                            <input type="radio" class="btn-check" name="preset" id="presetExtreme" autocomplete="off">
+                            <label class="btn btn-preset rounded-end" for="presetExtreme">Extreme</label>
+                        </div>
+                        <div class="small text-secondary mt-2" id="presetDesc">
+                            Balanced protection. Good for general use.
+                        </div>
+                    </div>
+
+                    <!-- Protection Settings (Auto-toggled by preset) -->
+                    <div class="col-md-4 mb-3">
+                        <div class="section-title"><i class="bi bi-shield-check me-1"></i> Security Options</div>
                         <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="optAntiDebug" checked>
-                            <label class="form-check-label" for="optAntiDebug">Anti-Debug (DevTools対策)</label>
+                            <input class="form-check-input" type="checkbox" id="optAntiDebug">
+                            <label class="form-check-label" for="optAntiDebug">Anti-Debug</label>
                         </div>
                         <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="optSelfDefending" checked>
-                            <label class="form-check-label" for="optSelfDefending">Self-Defending (改ざん検知)</label>
+                            <input class="form-check-input" type="checkbox" id="optSelfDefending">
+                            <label class="form-check-label" for="optSelfDefending">Self-Defending</label>
                         </div>
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="optDomainLock">
-                            <label class="form-check-label" for="optDomainLock">Domain Lock (ドメイン制限)</label>
+                            <label class="form-check-label" for="optDomainLock">Domain Lock</label>
                         </div>
                         <input type="text" id="domainName" class="form-control form-control-sm mt-2 bg-dark text-light border-secondary" placeholder="ex: mysite.com" style="display:none;">
                     </div>
 
-                    <!-- Complexity -->
+                    <!-- Complexity Settings (Auto-toggled by preset) -->
                     <div class="col-md-4 mb-3">
-                        <div class="section-title"><i class="bi bi-code-square me-1"></i> Complexity</div>
+                        <div class="section-title"><i class="bi bi-code-square me-1"></i> Complexity Options</div>
                         <div class="form-check form-switch mb-2">
                             <input class="form-check-input" type="checkbox" id="optDeadCode">
-                            <label class="form-check-label" for="optDeadCode">Dead Code Injection (ダミー混入)</label>
+                            <label class="form-check-label" for="optDeadCode">Dead Code Injection</label>
                         </div>
                         <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="optSplitStrings" checked>
-                            <label class="form-check-label" for="optSplitStrings">Split Strings (文字列分割)</label>
+                            <input class="form-check-input" type="checkbox" id="optSplitStrings">
+                            <label class="form-check-label" for="optSplitStrings">Split Strings</label>
                         </div>
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="optDisableConsole">
-                            <label class="form-check-label" for="optDisableConsole">Remove Console (ログ削除)</label>
-                        </div>
-                    </div>
-
-                    <!-- Potency Slider -->
-                    <div class="col-md-4 mb-3">
-                        <div class="section-title"><i class="bi bi-speedometer2 me-1"></i> Intensity</div>
-                        <label for="optPotency" class="form-label d-flex justify-content-between small text-secondary">
-                            <span>Performance</span>
-                            <span>Security</span>
-                        </label>
-                        <input type="range" class="form-range" min="0" max="1" step="0.1" id="optPotency" value="0.5">
-                        <div class="text-center small text-secondary mt-1">
-                            Flattening: <span id="potencyVal">50%</span>
+                            <label class="form-check-label" for="optDisableConsole">Remove Console</label>
                         </div>
                     </div>
                 </div>
@@ -230,7 +264,6 @@
 
         <!-- Output Area -->
         <div class="col-lg-6 position-relative">
-            <!-- Loading Overlay -->
             <div id="processingOverlay" class="spinner-overlay" style="display: none;">
                 <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
                 <h5 class="text-white fw-bold">Processing...</h5>
@@ -239,11 +272,9 @@
 
             <div class="d-flex justify-content-between mb-2 align-items-center">
                 <label class="fw-bold small text-secondary">Obfuscated Output</label>
-                
-                <!-- === ここに容量変化を表示するバッジを追加 === -->
                 <div id="sizeStats" class="stats-badge">
                     <span id="sizeOriginal">0 B</span>
-                    <i class="bi bi-arrow-right stats-arrow"></i>
+                    <i class="bi bi-arrow-right mx-2" style="color: #64748b;"></i>
                     <span id="sizeObfuscated" class="stats-highlight">0 B</span>
                     <span class="ms-2" id="sizeDiff">(+0%)</span>
                 </div>
@@ -261,15 +292,13 @@
         </div>
     </div>
 
-    <!-- Main Execute -->
     <div class="text-center mt-5 mb-5">
         <button id="obfuscateBtn" class="btn btn-primary-custom btn-lg">
-            <i class="bi bi-cpu-fill me-2"></i> Execute in Background
+            <i class="bi bi-cpu-fill me-2"></i> Execute Obfuscation
         </button>
     </div>
 </div>
 
-<!-- Notification -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 99">
     <div id="liveToast" class="toast align-items-center text-white bg-success border-0" role="alert">
         <div class="d-flex">
@@ -283,7 +312,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Worker Script (Blob URL化して使用) -->
+<!-- Worker Script -->
 <script id="worker-script" type="javascript/worker">
     importScripts(
         'https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js',
@@ -299,13 +328,12 @@
         try {
             postMessage({ type: 'status', text: 'Minifying...' });
 
-            // 0. Pre-process
             let codeToProcess = code;
             if (config.domainLock && config.domainName) {
                 codeToProcess = `if(location.hostname!=="${config.domainName}"){throw "Unauthorized";}\n` + codeToProcess;
             }
 
-            // 1. Minify
+            // Minify
             const minifiedResult = await Terser.minify(codeToProcess, {
                 mangle: true,
                 compress: { passes: 1, drop_console: config.disableConsole }
@@ -314,19 +342,21 @@
             
             postMessage({ type: 'status', text: 'Obfuscating Logic...' });
 
-            // 2. Core Obfuscation
+            // Core Obfuscation
+            // プリセットの値(config.potency)に基づき、詳細設定を動的に変更
             const coreObfuscation = JavaScriptObfuscator.obfuscate(minifiedResult.code, {
                 compact: true,
                 controlFlowFlattening: true,
                 controlFlowFlatteningThreshold: config.potency, 
                 deadCodeInjection: config.deadCode,
-                deadCodeInjectionThreshold: config.deadCode ? (config.potency * 0.5) : 0,
+                deadCodeInjectionThreshold: config.deadCode ? (config.potency * 0.4) : 0,
                 numbersToExpressions: true,
                 simplify: true,
                 stringArray: true,
                 stringArrayEncoding: ['rc4'],
                 stringArrayThreshold: 0.75,
                 splitStrings: config.splitStrings,
+                splitStringsChunkLength: 10,
                 debugProtection: config.antiDebug,
                 debugProtectionInterval: config.antiDebug ? 4000 : 0,
                 disableConsoleOutput: config.disableConsole,
@@ -335,10 +365,8 @@
 
             postMessage({ type: 'status', text: 'Compressing & Wrapping...' });
 
-            // 3. Compression
             const compressedPayload = LZString.compressToBase64(coreObfuscation);
 
-            // 4. Wrapper
             const wrapperCode = `
 /* javascript-obfuscator:disable */
 ${LZSTRING_LIB_SOURCE}
@@ -348,7 +376,7 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
 (0, eval)(decompressed);
             `;
 
-            // 5. Final Shell Obfuscation
+            // Final Shell Obfuscation
             const finalResult = JavaScriptObfuscator.obfuscate(wrapperCode, {
                 compact: true,
                 identifierNamesGenerator: 'mangled',
@@ -358,7 +386,7 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
                 stringArrayEncoding: ['rc4'],
                 stringArrayThreshold: 1,
                 splitStrings: true,
-                splitStringsChunkLength: 12
+                splitStringsChunkLength: 15
             }).getObfuscatedCode();
 
             postMessage({ type: 'success', result: finalResult });
@@ -370,15 +398,80 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
 </script>
 
 <script>
+    // --- Presets Configuration ---
+    // 各プリセットの設定定義
+    const PRESETS = {
+        low: {
+            potency: 0,
+            antiDebug: false,
+            selfDefending: false,
+            deadCode: false,
+            splitStrings: false,
+            disableConsole: false,
+            desc: "Minimal protection. Fastest execution, smallest size."
+        },
+        medium: {
+            potency: 0.4,
+            antiDebug: true,
+            selfDefending: true,
+            deadCode: false,
+            splitStrings: false,
+            disableConsole: true,
+            desc: "Balanced protection. Good for general use."
+        },
+        high: {
+            potency: 0.75,
+            antiDebug: true,
+            selfDefending: true,
+            deadCode: true,
+            splitStrings: true,
+            disableConsole: true,
+            desc: "Strong protection. Larger file size, harder to reverse."
+        },
+        extreme: {
+            potency: 1.0,
+            antiDebug: true,
+            selfDefending: true,
+            deadCode: true,
+            splitStrings: true,
+            disableConsole: true,
+            desc: "Paranoid mode. Maximum complexity, may impact performance."
+        }
+    };
+
+    let currentPotency = PRESETS.medium.potency;
+
+    // Apply Preset Logic
+    function applyPreset(presetName) {
+        const p = PRESETS[presetName];
+        if (!p) return;
+
+        document.getElementById('optAntiDebug').checked = p.antiDebug;
+        document.getElementById('optSelfDefending').checked = p.selfDefending;
+        document.getElementById('optDeadCode').checked = p.deadCode;
+        document.getElementById('optSplitStrings').checked = p.splitStrings;
+        document.getElementById('optDisableConsole').checked = p.disableConsole;
+        document.getElementById('presetDesc').innerText = p.desc;
+        
+        currentPotency = p.potency;
+    }
+
+    // Event Listeners for Preset Buttons
+    document.querySelectorAll('input[name="preset"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const presetKey = e.target.id.replace('preset', '').toLowerCase();
+            applyPreset(presetKey);
+        });
+    });
+
+    // Initialize with Medium
+    applyPreset('medium');
+
     // UI Logic
     document.getElementById('optDomainLock').addEventListener('change', function(e) {
         document.getElementById('domainName').style.display = e.target.checked ? 'block' : 'none';
     });
-    document.getElementById('optPotency').addEventListener('input', function(e) {
-        document.getElementById('potencyVal').innerText = Math.round(e.target.value * 100) + "%";
-    });
 
-    // --- Helper: Byte Size Formatter ---
     function formatBytes(bytes, decimals = 1) {
         if (bytes === 0) return '0 B';
         const k = 1024;
@@ -388,7 +481,6 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
         return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
     }
 
-    // --- Helper: Get Blob Size (More accurate than string length) ---
     function getByteSize(str) {
         return new Blob([str]).size;
     }
@@ -407,6 +499,7 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
         const statusText = document.getElementById('statusText');
         const statsBadge = document.getElementById('sizeStats');
 
+        // 設定値の収集（プリセットで切り替わったチェックボックスの状態を取得）
         const config = {
             antiDebug: document.getElementById('optAntiDebug').checked,
             selfDefending: document.getElementById('optSelfDefending').checked,
@@ -415,7 +508,7 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
             deadCode: document.getElementById('optDeadCode').checked,
             splitStrings: document.getElementById('optSplitStrings').checked,
             disableConsole: document.getElementById('optDisableConsole').checked,
-            potency: parseFloat(document.getElementById('optPotency').value)
+            potency: currentPotency // プリセットによる強度値
         };
 
         if (!input.trim()) {
@@ -423,11 +516,10 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
             return;
         }
 
-        // UI Reset
         outputArea.value = "";
         overlay.style.display = 'flex';
         statusText.innerText = "Initializing...";
-        statsBadge.classList.remove('visible'); // Hide stats during processing
+        statsBadge.classList.remove('visible');
 
         if (worker) worker.terminate();
         worker = createWorker();
@@ -443,22 +535,20 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
                 outputArea.value = data.result;
                 overlay.style.display = 'none';
                 
-                // --- 容量比較ロジック ---
                 const originalSize = getByteSize(input);
                 const resultSize = getByteSize(data.result);
                 const diffPercent = ((resultSize - originalSize) / originalSize * 100).toFixed(0);
                 
-                // バッジの更新
                 document.getElementById('sizeOriginal').innerText = formatBytes(originalSize);
                 document.getElementById('sizeObfuscated').innerText = formatBytes(resultSize);
                 
                 const diffElem = document.getElementById('sizeDiff');
                 if (resultSize > originalSize) {
                     diffElem.innerText = `(+${diffPercent}%)`;
-                    diffElem.style.color = '#ef4444'; // Red for increase
+                    diffElem.style.color = '#ef4444';
                 } else {
                     diffElem.innerText = `(${diffPercent}%)`;
-                    diffElem.style.color = '#22c55e'; // Green for decrease
+                    diffElem.style.color = '#22c55e';
                 }
                 statsBadge.classList.add('visible');
 
@@ -474,7 +564,6 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
         };
     });
 
-    // Helper Buttons
     const toast = new bootstrap.Toast(document.getElementById('liveToast'));
     document.getElementById('copyBtn').addEventListener('click', () => {
         const val = document.getElementById('outputCode').value;
