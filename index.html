@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS-Obfuscator Pro</title>
+    <title>Obfuscator Pro</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -106,7 +106,6 @@
             z-index: 3;
         }
         
-        /* Preset Specific Colors */
         #presetLite:checked + .btn-preset {
             background-color: #10b981; /* Emerald */
             border-color: #10b981;
@@ -193,7 +192,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold m-0 text-white">⚡ Obfuscator <span style="color: var(--accent-primary)">Pro</span></h3>
-            <small class="text-secondary">Fixed Edition: Lite Mode Error Resolved</small>
+            <small class="text-secondary">Shell-Hardened Lite Mode</small>
         </div>
         <a href="https://github.com/" target="_blank" class="btn btn-outline-custom btn-sm">
             <i class="bi bi-github"></i> GitHub
@@ -356,7 +355,6 @@
             
             postMessage({ type: 'status', text: 'Obfuscating Logic...' });
 
-            // Core Obfuscation
             const coreObfuscation = JavaScriptObfuscator.obfuscate(minifiedResult.code, {
                 compact: true,
                 controlFlowFlattening: config.potency > 0,
@@ -369,7 +367,7 @@
                 numbersToExpressions: config.potency > 0.5,
                 simplify: true,
                 splitStrings: config.splitStrings,
-                splitStringsChunkLength: 10, // ここは常に10 (固定)
+                splitStringsChunkLength: 10,
                 debugProtection: config.antiDebug,
                 debugProtectionInterval: config.antiDebug ? 4000 : 0,
                 disableConsoleOutput: config.disableConsole,
@@ -390,22 +388,21 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
             `;
 
             // Final Shell Obfuscation
-            // 【修正ポイント】
-            // splitStrings が false の場合でも、chunkLength が 0 だとエラーになる場合があるため
-            // 安全策として chunkLength は常に有効な整数(15)を入れる。
+            // Liteモードでも「見た目」は難読化させるための強制設定
+            // 制御フロー等の重い処理はOFFのまま、文字列(変数名等)だけを散らす
             const finalResult = JavaScriptObfuscator.obfuscate(wrapperCode, {
                 compact: true,
                 identifierNamesGenerator: 'mangled',
                 renameGlobals: false,
-                unicodeEscapeSequence: config.potency > 0,
-                stringArray: config.stringArray,
-                stringArrayEncoding: config.stringArray ? ['rc4'] : [],
-                stringArrayThreshold: config.stringArray ? 1 : 0,
                 
-                // Liteモード(potency=0)なら splitStrings は false
-                splitStrings: config.potency > 0,
-                // 0だとバリデーションエラーになるため、splitStringsがfalseでも値をセットしておく
-                splitStringsChunkLength: 15 
+                // LiteモードでもUnicodeエスケープはせずとも、
+                // 文字列配列化(StringArray)と分割(SplitStrings)を強制適用する
+                stringArray: true,                  // 強制ON
+                stringArrayEncoding: ['rc4'],       // 強制RC4
+                stringArrayThreshold: 1,            // 全ての文字列を対象
+                
+                splitStrings: true,                 // 強制ON
+                splitStringsChunkLength: 100        // 少し大きめの塊で分割(サイズ膨張を抑える)
             }).getObfuscatedCode();
 
             postMessage({ type: 'success', result: finalResult });
@@ -420,14 +417,14 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
     // --- Presets Configuration ---
     const PRESETS = {
         lite: {
-            potency: 0,            // Flattening OFF
-            stringArray: false,    // String Array OFF (Size Saver)
+            potency: 0,            // Logic Flattening OFF
+            stringArray: false,    // Internal String Array OFF (Size Saver)
             antiDebug: false,
             selfDefending: false,
             deadCode: false,
             splitStrings: false,
             disableConsole: false,
-            desc: "Lite Mode: Minify + Compression only. Best for large files. (Size: ~1.0x-1.3x)"
+            desc: "Lite Mode: Minimized + Compressed. Shell is lightly hardened. (~1.2x size)"
         },
         medium: {
             potency: 0.4,
@@ -562,6 +559,8 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
                 document.getElementById('sizeObfuscated').innerText = formatBytes(resultSize);
                 
                 const diffElem = document.getElementById('sizeDiff');
+                // 微減や微増も含め、Liteモードでは緑色（良い結果）とするケースが多いが
+                // 一般的に増えるはずなので赤系にしておく
                 if (resultSize > originalSize) {
                     diffElem.innerText = `(+${diffPercent}%)`;
                     diffElem.style.color = '#ef4444';
