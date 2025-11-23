@@ -397,7 +397,7 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
                 
                 // 🟢 【重要】Liteモードでもこれらを強制ONにして「Base64の露出」を防ぐ
                 unicodeEscapeSequence: true,    // 全体を\x61...形式に
-                stringArray: true,              // 文字列を配列に格納
+                stringArray: false,              // 文字列を配列に格納
                 stringArrayEncoding: ['rc4'],   // 配列を暗号化
                 stringArrayThreshold: 1,        // 全ての文字列を対象にする
                 
