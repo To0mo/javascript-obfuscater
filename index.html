@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Obfuscator Pro / Lite Secure</title>
+    <title>Obfuscator Pro / Stealth Lite</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -192,7 +192,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold m-0 text-white">⚡ Obfuscator <span style="color: var(--accent-primary)">Pro</span></h3>
-            <small class="text-secondary">Lite Mode with Hex Encoding</small>
+            <small class="text-secondary">Stealth Edition: Hidden Base64</small>
         </div>
         <a href="https://github.com/" target="_blank" class="btn btn-outline-custom btn-sm">
             <i class="bi bi-github"></i> GitHub
@@ -337,6 +337,16 @@
     const LZ_LIB_VAR_NAME = "_lz";
     const LZSTRING_LIB_SOURCE = `var ${LZ_LIB_VAR_NAME}=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",n="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",e={};function t(r,o){if(!e[r]){e[r]={};for(var n=0;n<r.length;n++)e[r][r.charAt(n)]=n}return e[r][o]}var i={compressToBase64:function(r){if(null==r)return"";var o=i._compress(r,6,function(r){return"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".charAt(r)});switch(o.length%4){case 0:return o;case 1:return o+"===";case 2:return o+"==";case 3:return o+"="}},decompressFromBase64:function(o){return null==o?"":""==o?null:i._decompress(o.length,32,function(n){return t("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",o.charAt(n))})},_compress:function(r,o,n){if(null==r)return"";var e,t,i,a,u,c,f,s,l,p=0,h=0,d="",v="",m=2,g=3;for(i=0;i<r.length;i+=1)if(d=r.charAt(i),Object.prototype.hasOwnProperty.call(e={},d)||(e[d]=g++,t={}),v=d,Object.prototype.hasOwnProperty.call(e,d)){if(256>d.charCodeAt(0)){for(e=0;m>e;e++)p<<=1,h==o-1?(h=0,d+=n(p),p=0):h++;for(f=d.charCodeAt(0),e=0;8>e;e++)p=p<<1|1&f,h==o-1?(h=0,d+=n(p),p=0):h++,f>>=1}else{for(f=1,e=0;m>e;e++)p=p<<1|f,h==o-1?(h=0,d+=n(p),p=0):h++,f=0;for(f=d.charCodeAt(0),e=0;16>e;e++)p=p<<1|1&f,h==o-1?(h=0,d+=n(p),p=0):h++,f>>=1}m--,0==m&&(m=Math.pow(2,a),a++),delete e[d]}else for(f=e[v],e=0;a>e;e++)p=p<<1|1&f,h==o-1?(h=0,d+=n(p),p=0):h++,f>>=1;for(m--,0==m&&(m=Math.pow(2,a),a++),f=2,e=0;a>e;e++)p=p<<1|1&f,h==o-1?(h=0,d+=n(p),p=0):h++,f>>=1;for(;;){if(p<<=1,h==o-1){d+=n(p);break}h++}return d},_decompress:function(o,n,e){var t,i,a,u,c,f,s,l,p=[],h=4,d=4,v=3,m="",g=[],C={val:e(0),position:n,index:1};for(i=0;3>i;i+=1)p[i]=i;for(a=0,c=Math.pow(2,2),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;switch(a){case 0:for(a=0,c=Math.pow(2,8),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;l=r(a);break;case 1:for(a=0,c=Math.pow(2,16),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;l=r(a);break;case 2:return""}for(p[3]=l,u=l,g.push(l);;){if(C.index>o)return"";for(a=0,c=Math.pow(2,v),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;switch(l=a){case 0:for(a=0,c=Math.pow(2,8),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;p[d++]=r(a),l=d-1,h--;break;case 1:for(a=0,c=Math.pow(2,16),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;p[d++]=r(a),l=d-1,h--;break;case 2:return g.join("")}if(0==h&&(h=Math.pow(2,v),v++),p[l])m=p[l];else{if(l!==d)return null;m=u+u.charAt(0)}g.push(m),p[d++]=u+m.charAt(0),h--,u=m,0==h&&(h=Math.pow(2,v),v++)}}};return i}();`;
 
+    // Helper to chunk string
+    function chunkString(str, size) {
+        const numChunks = Math.ceil(str.length / size);
+        const chunks = new Array(numChunks);
+        for (let i = 0, o = 0; i < numChunks; ++i, o += size) {
+            chunks[i] = str.substr(o, size);
+        }
+        return chunks;
+    }
+
     self.onmessage = async function(e) {
         const { code, config } = e.data;
         try {
@@ -379,34 +389,37 @@
 
             const compressedPayload = LZString.compressToBase64(coreObfuscation);
 
+            // --- 🟢 修正: Base64文字列を細かく分割して配列として埋め込む ---
+            // これにより、ペイロードが巨大な文字列ブロックとして露出するのを防ぐ
+            // StringArray + RC4 と組み合わせることで、各断片が暗号化された状態で格納される
+            const chunked = chunkString(compressedPayload, 200); // 200文字ごとに分割
+            const payloadArrayStr = JSON.stringify(chunked); // ["part1", "part2"...]
+
             const wrapperCode = `
 /* javascript-obfuscator:disable */
 ${LZSTRING_LIB_SOURCE}
 /* javascript-obfuscator:enable */
-var payload = "${compressedPayload}";
+
+// 分割されたペイロードを結合する方式に変更
+var parts = ${payloadArrayStr};
+var payload = parts.join("");
 var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
 (0, eval)(decompressed);
             `;
 
             // Final Shell Obfuscation
-            // Lite(potency=0)でも見た目を "\x19" のようにする
-            // ただしサイズ増を抑えるため、StringArray(配列化)はOFFにする
-            const isLite = config.potency === 0;
-
             const finalResult = JavaScriptObfuscator.obfuscate(wrapperCode, {
                 compact: true,
                 identifierNamesGenerator: 'mangled',
                 renameGlobals: false,
                 
-                // 【重要】LiteでもUnicodeエスケープはON (見た目は記号化される)
-                unicodeEscapeSequence: true,
-
-                // StringArrayはLiteではOFF (サイズ重視)
-                stringArray: !isLite,
-                stringArrayEncoding: !isLite ? ['rc4'] : [],
-                stringArrayThreshold: !isLite ? 1 : 0,
+                // Liteモードでも以下を有効にして、分割されたパーツを隠蔽する
+                unicodeEscapeSequence: true,   // \x...化 (見た目の難読化)
+                stringArray: true,             // 文字列を配列に退避
+                stringArrayEncoding: ['rc4'],  // 暗号化
+                stringArrayThreshold: 1,       // 全ての文字列を対象
                 
-                // SplitStringsは基本OFF (連結文字回避)
+                // 手動で分割済みなので、ライブラリ側の分割はOFFにしてサイズを節約
                 splitStrings: false,
                 splitStringsChunkLength: 100 
             }).getObfuscatedCode();
@@ -423,14 +436,14 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
     // --- Presets Configuration ---
     const PRESETS = {
         lite: {
-            potency: 0,            // Logic Flattening OFF
-            stringArray: false,    // Internal String Array OFF (Size Saver)
+            potency: 0,            
+            stringArray: false,    
             antiDebug: false,
             selfDefending: false,
             deadCode: false,
             splitStrings: false,
             disableConsole: false,
-            desc: "Lite Mode: Minimized + Compressed. Payload is hex-encoded for stealth."
+            desc: "Lite Mode: Compressed & Hidden. Payload is chunked and encrypted."
         },
         medium: {
             potency: 0.4,
@@ -565,7 +578,6 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
                 document.getElementById('sizeObfuscated').innerText = formatBytes(resultSize);
                 
                 const diffElem = document.getElementById('sizeDiff');
-                // Liteモードなどで減る場合は緑色
                 if (resultSize > originalSize) {
                     diffElem.innerText = `(+${diffPercent}%)`;
                     diffElem.style.color = '#ef4444';
