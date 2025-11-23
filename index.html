@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Obfuscator Pro / Lite Optimized</title>
+    <title>Obfuscator Pro / Final Tuned</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -192,7 +192,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold m-0 text-white">⚡ Obfuscator <span style="color: var(--accent-primary)">Pro</span></h3>
-            <small class="text-secondary">Shell-Optimized Lite Mode</small>
+            <small class="text-secondary">Fixed: Shell String Concatenation Issue</small>
         </div>
         <a href="https://github.com/" target="_blank" class="btn btn-outline-custom btn-sm">
             <i class="bi bi-github"></i> GitHub
@@ -389,7 +389,8 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
             `;
 
             // Final Shell Obfuscation
-            // Liteモード (potency=0) の場合は UnicodeやStringArrayをOFFにしてサイズを優先
+            // Lite(potency=0)の場合はサイズ重視で StringArray/Unicode をOFF
+            // Medium以上は見た目重視で ON、ただし splitStrings はOFFにする(連結+回避)
             const isLite = config.potency === 0;
 
             const finalResult = JavaScriptObfuscator.obfuscate(wrapperCode, {
@@ -397,15 +398,17 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
                 identifierNamesGenerator: 'mangled',
                 renameGlobals: false,
                 
-                // LiteモードならOFF、それ以外ならON
+                // LiteならOFF、それ以外ならON
                 unicodeEscapeSequence: !isLite,
                 stringArray: !isLite,
                 stringArrayEncoding: !isLite ? ['rc4'] : [],
                 stringArrayThreshold: !isLite ? 1 : 0,
                 
-                splitStrings: !isLite,
-                // エラー防止のため、falseの場合でも有効な整数(5)をセットしておく
-                splitStringsChunkLength: !isLite ? 5 : 100 
+                // 【修正】Shell層での文字列分割はOFFにする
+                // これにより 'abc'+'def' のような連結が避けられ、
+                // 代わりにUnicodeエスケープされた配列などが使用される
+                splitStrings: false,
+                splitStringsChunkLength: 100 
             }).getObfuscatedCode();
 
             postMessage({ type: 'success', result: finalResult });
@@ -427,7 +430,7 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
             deadCode: false,
             splitStrings: false,
             disableConsole: false,
-            desc: "Lite Mode: Minimal Obfuscation. Smallest size, fastest execution."
+            desc: "Lite Mode: Minimized + Compressed. Best for large files. (Size: ~1.0x)"
         },
         medium: {
             potency: 0.4,
@@ -562,7 +565,7 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
                 document.getElementById('sizeObfuscated').innerText = formatBytes(resultSize);
                 
                 const diffElem = document.getElementById('sizeDiff');
-                // Liteモード等でサイズが減る場合は緑色
+                // Liteモードなどで減る場合は緑色
                 if (resultSize > originalSize) {
                     diffElem.innerText = `(+${diffPercent}%)`;
                     diffElem.style.color = '#ef4444';
