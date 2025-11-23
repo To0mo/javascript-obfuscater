@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Obfuscator Pro / Stealth Lite</title>
+    <title>Obfuscator Pro / Ultra-Lite</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -192,7 +192,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold m-0 text-white">⚡ Obfuscator <span style="color: var(--accent-primary)">Pro</span></h3>
-            <small class="text-secondary">Stealth Edition: Hidden Base64</small>
+            <small class="text-secondary">Ultra-Lite Edition (No StringArray)</small>
         </div>
         <a href="https://github.com/" target="_blank" class="btn btn-outline-custom btn-sm">
             <i class="bi bi-github"></i> GitHub
@@ -365,7 +365,6 @@
             
             postMessage({ type: 'status', text: 'Obfuscating Logic...' });
 
-            // Core Obfuscation
             const coreObfuscation = JavaScriptObfuscator.obfuscate(minifiedResult.code, {
                 compact: true,
                 controlFlowFlattening: config.potency > 0,
@@ -388,19 +387,14 @@
             postMessage({ type: 'status', text: 'Compressing & Wrapping...' });
 
             const compressedPayload = LZString.compressToBase64(coreObfuscation);
-
-            // --- 🟢 修正: Base64文字列を細かく分割して配列として埋め込む ---
-            // これにより、ペイロードが巨大な文字列ブロックとして露出するのを防ぐ
-            // StringArray + RC4 と組み合わせることで、各断片が暗号化された状態で格納される
-            const chunked = chunkString(compressedPayload, 200); // 200文字ごとに分割
-            const payloadArrayStr = JSON.stringify(chunked); // ["part1", "part2"...]
+            // 分割はするが、StringArrayには入れない(Lite時)
+            const chunked = chunkString(compressedPayload, 200); 
+            const payloadArrayStr = JSON.stringify(chunked);
 
             const wrapperCode = `
 /* javascript-obfuscator:disable */
 ${LZSTRING_LIB_SOURCE}
 /* javascript-obfuscator:enable */
-
-// 分割されたペイロードを結合する方式に変更
 var parts = ${payloadArrayStr};
 var payload = parts.join("");
 var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
@@ -408,19 +402,23 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
             `;
 
             // Final Shell Obfuscation
+            const isLite = config.potency === 0;
+
             const finalResult = JavaScriptObfuscator.obfuscate(wrapperCode, {
                 compact: true,
                 identifierNamesGenerator: 'mangled',
                 renameGlobals: false,
                 
-                // Liteモードでも以下を有効にして、分割されたパーツを隠蔽する
-                unicodeEscapeSequence: true,   // \x...化 (見た目の難読化)
-                stringArray: true,             // 文字列を配列に退避
-                stringArrayEncoding: ['rc4'],  // 暗号化
-                stringArrayThreshold: 1,       // 全ての文字列を対象
+                // Liteモード設定:
+                // 1. unicodeEscapeSequence: true (見た目は \x41...)
+                // 2. stringArray: false (配列にはしない = サイズ最小)
+                unicodeEscapeSequence: true,
                 
-                // 手動で分割済みなので、ライブラリ側の分割はOFFにしてサイズを節約
-                stringArrayEncoding: !isLite,
+                stringArray: !isLite,
+                stringArrayEncoding: !isLite ? ['rc4'] : [],
+                stringArrayThreshold: !isLite ? 1 : 0,
+                
+                splitStrings: false,
                 splitStringsChunkLength: 100 
             }).getObfuscatedCode();
 
@@ -443,7 +441,7 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
             deadCode: false,
             splitStrings: false,
             disableConsole: false,
-            desc: "Lite Mode: Compressed & Hidden. Payload is chunked and encrypted."
+            desc: "Lite Mode: Smallest size. Payload is chunked & hex-encoded (no StringArray)."
         },
         medium: {
             potency: 0.4,
