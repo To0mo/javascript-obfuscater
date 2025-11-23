@@ -398,7 +398,7 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
                 renameGlobals: false,
                 
                 // LiteモードならOFF、それ以外ならON
-                unicodeEscapeSequence: !isLite,
+                unicodeEscapeSequence: true,
                 stringArray: !isLite,
                 stringArrayEncoding: !isLite ? ['rc4'] : [],
                 stringArrayThreshold: !isLite ? 1 : 0,
