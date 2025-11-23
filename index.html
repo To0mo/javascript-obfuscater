@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Obfuscator Pro / Final Secure</title>
+    <title>Obfuscator Pro / Lite Optimized</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -192,7 +192,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold m-0 text-white">⚡ Obfuscator <span style="color: var(--accent-primary)">Pro</span></h3>
-            <small class="text-secondary">Secured Shell Edition (Hidden Payload)</small>
+            <small class="text-secondary">Shell-Optimized Lite Mode</small>
         </div>
         <a href="https://github.com/" target="_blank" class="btn btn-outline-custom btn-sm">
             <i class="bi bi-github"></i> GitHub
@@ -389,22 +389,23 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
             `;
 
             // Final Shell Obfuscation
-            // Liteモード(potency 0)であっても、見た目（外殻）はガチガチにする
+            // Liteモード (potency=0) の場合は UnicodeやStringArrayをOFFにしてサイズを優先
+            const isLite = config.potency === 0;
+
             const finalResult = JavaScriptObfuscator.obfuscate(wrapperCode, {
                 compact: true,
                 identifierNamesGenerator: 'mangled',
                 renameGlobals: false,
                 
-                // 🟢 【重要】Liteモードでもこれらを強制ONにして「Base64の露出」を防ぐ
-                unicodeEscapeSequence: true,    // 全体を\x61...形式に
-                stringArray: false,              // 文字列を配列に格納
-                stringArrayEncoding: ['rc4'],   // 配列を暗号化
-                stringArrayThreshold: 1,        // 全ての文字列を対象にする
+                // LiteモードならOFF、それ以外ならON
+                unicodeEscapeSequence: !isLite,
+                stringArray: !isLite,
+                stringArrayEncoding: !isLite ? ['rc4'] : [],
+                stringArrayThreshold: !isLite ? 1 : 0,
                 
-                splitStrings: true,
-                // 🟢 【重要】巨大なBase64をズタズタに切り裂いてString Arrayに押し込む
-                // ChunkLengthを小さく(5)することで、確実に隠蔽される
-                splitStringsChunkLength: 5 
+                splitStrings: !isLite,
+                // エラー防止のため、falseの場合でも有効な整数(5)をセットしておく
+                splitStringsChunkLength: !isLite ? 5 : 100 
             }).getObfuscatedCode();
 
             postMessage({ type: 'success', result: finalResult });
@@ -420,13 +421,13 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
     const PRESETS = {
         lite: {
             potency: 0,            // Logic Flattening OFF
-            stringArray: false,    // Internal String Array OFF (Save Logic Size)
+            stringArray: false,    // Internal String Array OFF (Size Saver)
             antiDebug: false,
             selfDefending: false,
             deadCode: false,
             splitStrings: false,
             disableConsole: false,
-            desc: "Lite Mode: Logic preserved, but Payload HIDDEN & COMPRESSED."
+            desc: "Lite Mode: Minimal Obfuscation. Smallest size, fastest execution."
         },
         medium: {
             potency: 0.4,
@@ -561,7 +562,7 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
                 document.getElementById('sizeObfuscated').innerText = formatBytes(resultSize);
                 
                 const diffElem = document.getElementById('sizeDiff');
-                // LiteモードでもUnicode化でサイズは増えるはずなので赤
+                // Liteモード等でサイズが減る場合は緑色
                 if (resultSize > originalSize) {
                     diffElem.innerText = `(+${diffPercent}%)`;
                     diffElem.style.color = '#ef4444';
