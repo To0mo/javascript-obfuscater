@@ -403,9 +403,9 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
                 stringArrayEncoding: !isLite ? ['rc4'] : [],
                 stringArrayThreshold: !isLite ? 1 : 0,
                 
-                splitStrings: !isLite,
+                splitStrings: true,
                 // エラー防止のため、falseの場合でも有効な整数(5)をセットしておく
-                splitStringsChunkLength: !isLite ? 5 : 100 
+                splitStringsChunkLength: !isLite ? 5 : 300
             }).getObfuscatedCode();
 
             postMessage({ type: 'success', result: finalResult });
