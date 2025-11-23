@@ -420,7 +420,7 @@ var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
                 stringArrayThreshold: 1,       // 全ての文字列を対象
                 
                 // 手動で分割済みなので、ライブラリ側の分割はOFFにしてサイズを節約
-                splitStrings: false,
+                stringArrayEncoding: !isLite,
                 splitStringsChunkLength: 100 
             }).getObfuscatedCode();
 
