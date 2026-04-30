@@ -3,580 +3,467 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Obfuscator Pro / Preset Edition</title>
+    <title>JS Obfuscator Pro / Advanced Stealth</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/material-darker.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
     <style>
-        :root {
-            --bg-color: #0f1115;
-            --card-bg: #161b22;
-            --border-color: #30363d;
-            --accent-primary: #3b82f6;
-            --accent-hover: #60a5fa;
-            --text-primary: #e2e8f0;
-            --text-secondary: #94a3b8;
-            --code-bg: #0d1117;
+        :root { 
+            --bg: #0d1117; --panel: #161b22; --border: #30363d; 
+            --text: #c9d1d9; --text-muted: #8b949e;
+            --accent: #2f81f7; --accent-hover: #1f6feb; 
+            --success: #238636; --success-hover: #2ea043;
+            --error: #f85149; --warning: #d29922;
         }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-        }
-
-        .glass-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-        }
-
-        /* Switches */
-        .form-switch .form-check-input {
-            background-color: #334155;
-            border-color: #475569;
-            cursor: pointer;
-        }
-        .form-switch .form-check-input:checked {
-            background-color: var(--accent-primary);
-            border-color: var(--accent-primary);
-        }
-        .form-check-label {
-            transition: color 0.2s;
-        }
-
-        /* Editor Style Fix */
-        .code-editor {
-            background-color: var(--code-bg) !important; 
-            color: #e2e8f0 !important;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            resize: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .code-editor:focus {
-            background-color: var(--code-bg) !important;
-            color: #e2e8f0 !important;
-            border-color: var(--accent-primary);
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-        }
-        .code-editor[readonly] {
-            background-color: #050505 !important;
-            color: #a3e635 !important;
-            opacity: 1;
-        }
-
-        /* Preset Buttons */
-        .preset-btn-group {
-            display: flex;
-            gap: 0.5rem;
-        }
-        .btn-check + .btn-preset {
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            background-color: #21262d;
-            flex-grow: 1;
-            font-size: 0.85rem;
-            font-weight: 600;
-            padding: 0.5rem;
-            transition: all 0.2s;
-        }
-        .btn-check:checked + .btn-preset {
-            background-color: var(--accent-primary);
-            color: white;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
-        }
-        .btn-check + .btn-preset:hover {
-            background-color: #30363d;
-            color: white;
-        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; height: 100vh; display: flex; flex-direction: column; }
         
-        /* Extreme Preset Specific */
-        #presetExtreme:checked + .btn-preset {
-            background-color: #dc2626; /* Red */
-            border-color: #dc2626;
-            box-shadow: 0 0 10px rgba(220, 38, 38, 0.4);
-        }
+        header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        h1 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
+        
+        .main-container { display: flex; gap: 15px; flex: 1; min-height: 0; flex-direction: row; }
+        
+        .settings-section { width: 280px; flex-shrink: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .option-group { border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+        .option-group:last-child { border-bottom: none; }
+        .option-group h3 { margin: 0 0 10px 0; font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 6px; font-weight: 600; }
+        
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .toggle-label { font-size: 12px; color: var(--text); cursor: pointer; }
+        .toggle-switch { position: relative; width: 32px; height: 18px; display: inline-block; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #21262d; border: 1px solid var(--border); transition: 0.2s; border-radius: 18px; }
+        .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 2px; bottom: 2px; background-color: var(--text-muted); transition: 0.2s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent); border-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(14px); background-color: #fff; }
+        .warning-text { color: var(--warning); font-weight: 600; }
 
-        .btn-primary-custom {
-            background: linear-gradient(135deg, var(--accent-primary), #2563eb);
-            border: none;
-            color: white;
-            font-weight: 600;
-            padding: 0.8rem 2rem;
-            border-radius: 50px;
-            transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-        }
-        .btn-primary-custom:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-            color: white;
-        }
+        .slider-container { display: flex; flex-direction: column; gap: 4px; margin: 4px 0 10px 0; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; }
+        .slider-header { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
+        input[type="range"] { width: 100%; accent-color: var(--accent); height: 4px; outline: none; }
 
-        .btn-outline-custom {
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            background: var(--card-bg);
-        }
-        .btn-outline-custom:hover {
-            border-color: var(--text-secondary);
-            color: var(--text-primary);
-            background: #1e293b;
-        }
+        .btn-group { display: flex; gap: 8px; margin-top: auto; }
+        button { flex: 1; background: var(--accent); color: #fff; border: none; padding: 8px; border-radius: 4px; font-weight: 600; font-size: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Inter', sans-serif; }
+        button:hover:not(:disabled) { background: var(--accent-hover); }
+        button.btn-test { background: var(--success); }
+        button.btn-test:hover:not(:disabled) { background: var(--success-hover); }
+        button:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; opacity: 0.7; }
+        
+        #status { font-size: 11px; text-align: center; margin-top: 8px; min-height: 16px; font-weight: 600; font-family: 'Fira Code', monospace; }
+        
+        .editor-wrapper { flex: 1; min-width: 0; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: var(--panel); }
+        .editor-header { background: var(--panel); padding: 6px 12px; font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; color: var(--text-muted); }
+        .header-title { display: flex; align-items: center; gap: 6px; }
+        .icon-btn { background: transparent; color: var(--text-muted); border: none; padding: 4px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex: none; width: 24px; height: 24px; }
+        .icon-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+        
+        .CodeMirror { flex: 1; height: auto !important; font-family: 'Fira Code', monospace; font-size: 13px; line-height: 1.4; }
+        
+        .log-section { height: 130px; flex-shrink: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; margin-top: 15px; display: flex; flex-direction: column; }
+        .log-header { padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .log-content { flex: 1; padding: 8px 12px; overflow-y: auto; font-family: 'Fira Code', monospace; font-size: 12px; margin: 0; color: var(--text); }
+        .log-msg { border-bottom: 1px dashed rgba(48, 54, 61, 0.5); padding: 3px 0; }
+        .log-warn { color: var(--warning); }
+        .log-error { color: var(--error); }
+        .log-success { color: var(--success); }
+        .clear-log { cursor: pointer; color: var(--text-muted); transition: 0.2s; }
+        .clear-log:hover { color: var(--text); }
 
-        .spinner-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 17, 21, 0.85);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 20;
-            backdrop-filter: blur(4px);
-            border-radius: 8px;
-        }
-
-        .section-title {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #64748b;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-
-        .stats-badge {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            background: #1e293b;
-            padding: 4px 10px;
-            border-radius: 4px;
-            color: #94a3b8;
-            border: 1px solid #334155;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .stats-badge.visible {
-            opacity: 1;
-        }
-        .stats-highlight {
-            color: #60a5fa;
-            font-weight: bold;
-        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
     </style>
 </head>
-<body class="py-4">
+<body>
 
-<div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="fw-bold m-0 text-white">⚡ Obfuscator <span style="color: var(--accent-primary)">Preset</span></h3>
-            <small class="text-secondary">Auto-Configured Protection Levels</small>
+<header>
+    <i class="bi bi-incognito" style="font-size: 22px; color: var(--accent);"></i>
+    <h1>Advanced Stealth JS Obfuscator</h1>
+</header>
+
+<div class="main-container">
+    <div class="settings-section">
+        <div class="option-group">
+            <h3><i class="bi bi-file-zip"></i> Pre-Processing</h3>
+            <div class="toggle-row">
+                <label class="toggle-label" for="preMinify">Terser Minify</label>
+                <label class="toggle-switch"><input type="checkbox" id="preMinify" checked><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+                <label class="toggle-label" for="compact">Compact Output</label>
+                <label class="toggle-switch"><input type="checkbox" id="compact" checked><span class="slider"></span></label>
+            </div>
         </div>
-        <a href="https://github.com/" target="_blank" class="btn btn-outline-custom btn-sm">
-            <i class="bi bi-github"></i>
-        </a>
+
+        <div class="option-group">
+            <h3><i class="bi bi-cpu"></i> Core Obfuscation</h3>
+            <div class="toggle-row">
+                <label class="toggle-label" for="stringArray">String Array Encoding</label>
+                <label class="toggle-switch"><input type="checkbox" id="stringArray" checked><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+                <label class="toggle-label" for="deadCode">Dead Code Injection</label>
+                <label class="toggle-switch"><input type="checkbox" id="deadCode" checked><span class="slider"></span></label>
+            </div>
+            <div class="slider-container">
+                <div class="slider-header"><span>Injection Threshold</span><span id="dcVal">0.4</span></div>
+                <input type="range" id="dcSlider" min="0" max="1" step="0.1" value="0.4" oninput="document.getElementById('dcVal').innerText=this.value">
+            </div>
+        </div>
+
+        <div class="option-group">
+            <h3><i class="bi bi-shield-check"></i> VM Protection</h3>
+            <div class="toggle-row">
+                <label class="toggle-label" for="controlFlow">Control Flow Flattening</label>
+                <label class="toggle-switch"><input type="checkbox" id="controlFlow" checked><span class="slider"></span></label>
+            </div>
+            <div class="slider-container">
+                <div class="slider-header"><span>Flattening Threshold</span><span id="cfVal">0.75</span></div>
+                <input type="range" id="cfSlider" min="0" max="1" step="0.05" value="0.75" oninput="document.getElementById('cfVal').innerText=this.value">
+            </div>
+            <div class="toggle-row">
+                <label class="toggle-label" for="selfDefending">Self Defending (改ざん防止)</label>
+                <label class="toggle-switch"><input type="checkbox" id="selfDefending" checked><span class="slider"></span></label>
+            </div>
+        </div>
+
+        <div class="option-group">
+            <h3><i class="bi bi-mask"></i> Stealth Packers</h3>
+            <div class="toggle-row">
+                <label class="toggle-label" for="rc4">Inner RC4 + Dist. Base64</label>
+                <label class="toggle-switch"><input type="checkbox" id="rc4" checked><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+                <label class="toggle-label warning-text" for="symbolPacker">Chaotic Symbol Packer</label>
+                <label class="toggle-switch"><input type="checkbox" id="symbolPacker" checked><span class="slider"></span></label>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button id="btnObf" onclick="processObfuscation()"><i class="bi bi-shield-lock"></i> Obfuscate</button>
+            <button id="btnTest" class="btn-test" onclick="runTest()"><i class="bi bi-play-fill"></i> Test Run</button>
+        </div>
+        <div id="status">Ready.</div>
     </div>
 
-    <div class="row g-4">
-        <!-- Configuration Panel -->
-        <div class="col-12">
-            <div class="glass-card pb-2">
-                <div class="row">
-                    <!-- Presets Column -->
-                    <div class="col-md-4 mb-3">
-                        <div class="section-title"><i class="bi bi-sliders me-1"></i> Select Preset</div>
-                        <div class="preset-btn-group mb-2">
-                            <input type="radio" class="btn-check" name="preset" id="presetLow" autocomplete="off">
-                            <label class="btn btn-preset rounded-start" for="presetLow">Low</label>
-
-                            <input type="radio" class="btn-check" name="preset" id="presetMedium" autocomplete="off" checked>
-                            <label class="btn btn-preset" for="presetMedium">Medium</label>
-
-                            <input type="radio" class="btn-check" name="preset" id="presetHigh" autocomplete="off">
-                            <label class="btn btn-preset" for="presetHigh">High</label>
-
-                            <input type="radio" class="btn-check" name="preset" id="presetExtreme" autocomplete="off">
-                            <label class="btn btn-preset rounded-end" for="presetExtreme">Extreme</label>
-                        </div>
-                        <div class="small text-secondary mt-2" id="presetDesc">
-                            Balanced protection. Good for general use.
-                        </div>
-                    </div>
-
-                    <!-- Protection Settings (Auto-toggled by preset) -->
-                    <div class="col-md-4 mb-3">
-                        <div class="section-title"><i class="bi bi-shield-check me-1"></i> Security Options</div>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="optAntiDebug">
-                            <label class="form-check-label" for="optAntiDebug">Anti-Debug</label>
-                        </div>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="optSelfDefending">
-                            <label class="form-check-label" for="optSelfDefending">Self-Defending</label>
-                        </div>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="optDomainLock">
-                            <label class="form-check-label" for="optDomainLock">Domain Lock</label>
-                        </div>
-                        <input type="text" id="domainName" class="form-control form-control-sm mt-2 bg-dark text-light border-secondary" placeholder="ex: mysite.com" style="display:none;">
-                    </div>
-
-                    <!-- Complexity Settings (Auto-toggled by preset) -->
-                    <div class="col-md-4 mb-3">
-                        <div class="section-title"><i class="bi bi-code-square me-1"></i> Complexity Options</div>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="optDeadCode">
-                            <label class="form-check-label" for="optDeadCode">Dead Code Injection</label>
-                        </div>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="optSplitStrings">
-                            <label class="form-check-label" for="optSplitStrings">Split Strings</label>
-                        </div>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="optDisableConsole">
-                            <label class="form-check-label" for="optDisableConsole">Remove Console</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="editor-wrapper">
+        <div class="editor-header">
+            <div class="header-title"><i class="bi bi-code-square"></i> Input Source</div>
         </div>
-
-        <!-- Input Area -->
-        <div class="col-lg-6">
-            <div class="d-flex justify-content-between mb-2 align-items-center">
-                <label class="fw-bold small text-secondary">Input Source</label>
-                <span class="badge bg-secondary bg-opacity-25 text-secondary border border-secondary">JavaScript</span>
-            </div>
-            <textarea id="inputCode" class="form-control code-editor" rows="16" placeholder="// Paste your code here..."></textarea>
-        </div>
-
-        <!-- Output Area -->
-        <div class="col-lg-6 position-relative">
-            <div id="processingOverlay" class="spinner-overlay" style="display: none;">
-                <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
-                <h5 class="text-white fw-bold">Processing...</h5>
-                <p class="text-secondary small" id="statusText">Starting Worker...</p>
-            </div>
-
-            <div class="d-flex justify-content-between mb-2 align-items-center">
-                <label class="fw-bold small text-secondary">Obfuscated Output</label>
-                <div id="sizeStats" class="stats-badge">
-                    <span id="sizeOriginal">0 B</span>
-                    <i class="bi bi-arrow-right mx-2" style="color: #64748b;"></i>
-                    <span id="sizeObfuscated" class="stats-highlight">0 B</span>
-                    <span class="ms-2" id="sizeDiff">(+0%)</span>
-                </div>
-            </div>
-            <textarea id="outputCode" class="form-control code-editor" rows="16" readonly onclick="this.select()"></textarea>
-            
-            <div class="mt-3 d-flex gap-2">
-                <button id="copyBtn" class="btn btn-outline-custom flex-grow-1 btn-sm">
-                    <i class="bi bi-clipboard me-1"></i> Copy Result
-                </button>
-                <button id="testBtn" class="btn btn-outline-custom flex-grow-1 btn-sm">
-                    <i class="bi bi-play-fill me-1"></i> Test Run
-                </button>
-            </div>
-        </div>
+        <textarea id="inputCode"></textarea>
     </div>
 
-    <div class="text-center mt-5 mb-5">
-        <button id="obfuscateBtn" class="btn btn-primary-custom btn-lg">
-            <i class="bi bi-cpu-fill me-2"></i> Execute Obfuscation
-        </button>
+    <div class="editor-wrapper">
+        <div class="editor-header">
+            <div class="header-title"><i class="bi bi-file-earmark-lock"></i> Obfuscated Output</div>
+            <button class="icon-btn" onclick="copyOutput()" id="copyBtn" title="Copy Code"><i class="bi bi-clipboard"></i></button>
+        </div>
+        <textarea id="outputCode"></textarea>
     </div>
 </div>
 
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 99">
-    <div id="liveToast" class="toast align-items-center text-white bg-success border-0" role="alert">
-        <div class="d-flex">
-            <div class="toast-body small">
-                <i class="bi bi-check-circle-fill me-2"></i> Copied to clipboard!
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-        </div>
+<div class="log-section">
+    <div class="log-header">
+        <div class="header-title"><i class="bi bi-terminal"></i> Execution Terminal</div>
+        <span class="clear-log" onclick="clearLog()"><i class="bi bi-trash"></i> Clear</span>
     </div>
+    <pre class="log-content" id="logContent"></pre>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- Worker Script -->
-<script id="worker-script" type="javascript/worker">
+<!-- ================= Web Worker のソースコード ================= -->
+<script id="workerCode" type="javascript/worker">
     importScripts(
-        'https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js',
-        'https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js',
-        'https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js'
+        "https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js",
+        "https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"
     );
 
-    const LZ_LIB_VAR_NAME = "_lz";
-    const LZSTRING_LIB_SOURCE = `var ${LZ_LIB_VAR_NAME}=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",n="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",e={};function t(r,o){if(!e[r]){e[r]={};for(var n=0;n<r.length;n++)e[r][r.charAt(n)]=n}return e[r][o]}var i={compressToBase64:function(r){if(null==r)return"";var o=i._compress(r,6,function(r){return"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".charAt(r)});switch(o.length%4){case 0:return o;case 1:return o+"===";case 2:return o+"==";case 3:return o+"="}},decompressFromBase64:function(o){return null==o?"":""==o?null:i._decompress(o.length,32,function(n){return t("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",o.charAt(n))})},_compress:function(r,o,n){if(null==r)return"";var e,t,i,a,u,c,f,s,l,p=0,h=0,d="",v="",m=2,g=3;for(i=0;i<r.length;i+=1)if(d=r.charAt(i),Object.prototype.hasOwnProperty.call(e={},d)||(e[d]=g++,t={}),v=d,Object.prototype.hasOwnProperty.call(e,d)){if(256>d.charCodeAt(0)){for(e=0;m>e;e++)p<<=1,h==o-1?(h=0,d+=n(p),p=0):h++;for(f=d.charCodeAt(0),e=0;8>e;e++)p=p<<1|1&f,h==o-1?(h=0,d+=n(p),p=0):h++,f>>=1}else{for(f=1,e=0;m>e;e++)p=p<<1|f,h==o-1?(h=0,d+=n(p),p=0):h++,f=0;for(f=d.charCodeAt(0),e=0;16>e;e++)p=p<<1|1&f,h==o-1?(h=0,d+=n(p),p=0):h++,f>>=1}m--,0==m&&(m=Math.pow(2,a),a++),delete e[d]}else for(f=e[v],e=0;a>e;e++)p=p<<1|1&f,h==o-1?(h=0,d+=n(p),p=0):h++,f>>=1;for(m--,0==m&&(m=Math.pow(2,a),a++),f=2,e=0;a>e;e++)p=p<<1|1&f,h==o-1?(h=0,d+=n(p),p=0):h++,f>>=1;for(;;){if(p<<=1,h==o-1){d+=n(p);break}h++}return d},_decompress:function(o,n,e){var t,i,a,u,c,f,s,l,p=[],h=4,d=4,v=3,m="",g=[],C={val:e(0),position:n,index:1};for(i=0;3>i;i+=1)p[i]=i;for(a=0,c=Math.pow(2,2),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;switch(a){case 0:for(a=0,c=Math.pow(2,8),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;l=r(a);break;case 1:for(a=0,c=Math.pow(2,16),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;l=r(a);break;case 2:return""}for(p[3]=l,u=l,g.push(l);;){if(C.index>o)return"";for(a=0,c=Math.pow(2,v),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;switch(l=a){case 0:for(a=0,c=Math.pow(2,8),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;p[d++]=r(a),l=d-1,h--;break;case 1:for(a=0,c=Math.pow(2,16),f=1;f!=c;)s=C.val&C.position,C.position>>=1,0==C.position&&(C.position=n,C.val=e(C.index++)),a|=(s>0?1:0)*f,f<<=1;p[d++]=r(a),l=d-1,h--;break;case 2:return g.join("")}if(0==h&&(h=Math.pow(2,v),v++),p[l])m=p[l];else{if(l!==d)return null;m=u+u.charAt(0)}g.push(m),p[d++]=u+m.charAt(0),h--,u=m,0==h&&(h=Math.pow(2,v),v++)}}};return i}();`;
+    // [Inner Layer] RC4と分散Base64
+    function wrapDistributedCrypto(code) {
+        let payload = unescape(encodeURIComponent(code));
+        const rc4Key = "sys_" + Math.random().toString(36).substring(2);
+        let s=[], j=0, x, res='';
+        for(let i=0; i<256; i++) s[i]=i;
+        for(let i=0; i<256; i++) { j=(j+s[i]+rc4Key.charCodeAt(i%rc4Key.length))%256; x=s[i]; s[i]=s[j]; s[j]=x; }
+        let i=0; j=0;
+        for(let y=0; y<payload.length; y++) {
+            i=(i+1)%256; j=(j+s[i])%256; x=s[i]; s[i]=s[j]; s[j]=x;
+            res += String.fromCharCode(payload.charCodeAt(y)^s[(s[i]+s[j])%256]);
+        }
+        payload = btoa(res);
+
+        const chunks = [];
+        for (let i = 0; i < payload.length;) {
+            let size = 15 + Math.floor(Math.random() * 20);
+            chunks.push(payload.substring(i, i + size));
+            i += size;
+        }
+        const genDummy = (len) => JSON.stringify([...Array(len)].map(() => Math.random().toString(36).substring(2)));
+
+        return `;(function() {
+            var _d1 = ${genDummy(5)};
+            var _c = ${JSON.stringify(chunks)};
+            var _d2 = ${genDummy(3)};
+            var _k = "${rc4Key}";
+            function _rd(k, s) {
+                var a=[],j=0,x,r='';
+                for(var i=0;i<256;i++)a[i]=i;
+                for(var i=0;i<256;i++){j=(j+a[i]+k.charCodeAt(i%k.length))%256;x=a[i];a[i]=a[j];a[j]=x;}
+                var i=0;j=0;
+                for(var y=0;y<s.length;y++){
+                    i=(i+1)%256;j=(j+a[i])%256;x=a[i];a[i]=a[j];a[j]=x;
+                    r+=String.fromCharCode(s.charCodeAt(y)^a[(a[i]+a[j])%256]);
+                }
+                return r;
+            }
+            Function(decodeURIComponent(escape(_rd(_k, atob(_c.join(''))))))();
+        })();`;
+    }
+
+    // [Final Layer] 完全バグフリーの Chaotic Symbol Packer
+    function applySymbolPacker(code) {
+        const syms = "%&@#$*+?!<>~^|=-";
+        let safeCode = unescape(encodeURIComponent(code));
+        let payload = "";
+        
+        for (let i = 0; i < safeCode.length; i++) {
+            let hex = safeCode.charCodeAt(i).toString(16).padStart(2, '0');
+            payload += syms[parseInt(hex[0], 16)] + syms[parseInt(hex[1], 16)];
+        }
+
+        // バックスラッシュの消失を防ぐため、正確なエスケープシーケンスを生成
+        function hexEnc(str) {
+            return '"' + str.split('').map(c => '\\x' + c.charCodeAt(0).toString(16).padStart(2,'0')).join('') + '"';
+        }
+
+        const dictWords = [
+            "filter", // 0
+            "constructor", // 1
+            "match", // 2
+            "map", // 3
+            "return String", // 4
+            "fromCharCode", // 5
+            "indexOf", // 6
+            "join", // 7
+            "return decodeURIComponent(escape(x))", // 8
+            "x" // 9
+        ];
+        
+        const dict = dictWords.map(hexEnc);
+
+        const chunks = [];
+        for (let i = 0; i < payload.length;) {
+            let size = 100 + Math.floor(Math.random() * 200);
+            chunks.push('"' + payload.substring(i, i + size) + '"');
+            i += size;
+        }
+
+        const elements = [];
+        dict.forEach((str, i) => elements.push({ type: 'dict', id: i, val: str }));
+        elements.push({ type: 'syms', val: '"' + syms + '"' });
+        chunks.forEach((c, i) => elements.push({ type: 'chunk', id: i, val: c }));
+        
+        for(let i=0; i<150; i++) {
+            let d = ""; for(let j=0; j<20+Math.random()*80; j++) d += syms[Math.floor(Math.random()*syms.length)];
+            elements.push({ type: 'dummy', val: '"' + d + '"' });
+        }
+        elements.sort(() => 0.5 - Math.random());
+
+        let chunkIndices = [], symsIndex = 0, dictIndices = {};
+        elements.forEach((el, idx) => {
+            if (el.type === 'dict') dictIndices[el.id] = idx;
+            if (el.type === 'syms') symsIndex = idx;
+            if (el.type === 'chunk') chunkIndices[el.id] = idx;
+        });
+
+        let chunkArr = "[" + chunkIndices.map(i => `_[${i}]`).join(",") + "]";
+
+        // グローバル汚染を防ぐためのIIFEラップと、厳密な関数組み立て
+        let decoder = `[][_[${dictIndices[0]}]][_[${dictIndices[1]}]](
+            [][_[${dictIndices[0]}]][_[${dictIndices[1]}]](_[${dictIndices[9]}], _[${dictIndices[8]}])(
+                ${chunkArr}[_[${dictIndices[7]}]]("")[_[${dictIndices[2]}]](/.{2}/g)[_[${dictIndices[3]}]]($$=>
+                    [][_[${dictIndices[0]}]][_[${dictIndices[1]}]](_[${dictIndices[4]}])()[_[${dictIndices[5]}]](
+                        (_[${symsIndex}][_[${dictIndices[6]}]]($$[0])<<4)|_[${symsIndex}][_[${dictIndices[6]}]]($$[1])
+                    )
+                )[_[${dictIndices[7]}]]("")
+            )
+        )()`;
+
+        return `;(()=>{var _=[${elements.map(e => e.val).join(",")}];${decoder.replace(/\s+/g, '')}})();`;
+    }
 
     self.onmessage = async function(e) {
-        const { code, config } = e.data;
-        try {
-            postMessage({ type: 'status', text: 'Minifying...' });
+        const { code, options } = e.data;
+        let result = code;
 
-            let codeToProcess = code;
-            if (config.domainLock && config.domainName) {
-                codeToProcess = `if(location.hostname!=="${config.domainName}"){throw "Unauthorized";}\n` + codeToProcess;
+        try {
+            if (options.preMinify) {
+                self.postMessage({ type: 'status', msg: '[1/5] Pre-Minifying (Terser)...' });
+                const minified = await Terser.minify(result, { compress: { passes: 2 }, format: { comments: false } });
+                result = minified.code;
             }
 
-            // Minify
-            const minifiedResult = await Terser.minify(codeToProcess, {
-                mangle: true,
-                compress: { passes: 1, drop_console: config.disableConsole }
-            });
-            if (minifiedResult.error) throw minifiedResult.error;
-            
-            postMessage({ type: 'status', text: 'Obfuscating Logic...' });
+            self.postMessage({ type: 'status', msg: '[2/5] Core Obfuscation...' });
+            result = JavaScriptObfuscator.obfuscate(result, options.obfOptions).getObfuscatedCode();
 
-            // Core Obfuscation
-            // プリセットの値(config.potency)に基づき、詳細設定を動的に変更
-            const coreObfuscation = JavaScriptObfuscator.obfuscate(minifiedResult.code, {
-                compact: true,
-                controlFlowFlattening: true,
-                controlFlowFlatteningThreshold: config.potency, 
-                deadCodeInjection: config.deadCode,
-                deadCodeInjectionThreshold: config.deadCode ? (config.potency * 0.4) : 0,
-                numbersToExpressions: true,
-                simplify: true,
-                stringArray: true,
-                stringArrayEncoding: ['rc4'],
-                stringArrayThreshold: 0.75,
-                splitStrings: config.splitStrings,
-                splitStringsChunkLength: 10,
-                debugProtection: config.antiDebug,
-                debugProtectionInterval: config.antiDebug ? 4000 : 0,
-                disableConsoleOutput: config.disableConsole,
-                selfDefending: config.selfDefending
-            }).getObfuscatedCode();
+            if (options.rc4) {
+                self.postMessage({ type: 'status', msg: '[3/5] Applying Inner RC4...' });
+                result = wrapDistributedCrypto(result);
+                self.postMessage({ type: 'status', msg: '[4/5] Obfuscating Decoder...' });
+                result = JavaScriptObfuscator.obfuscate(result, options.obfOptions).getObfuscatedCode();
+            }
 
-            postMessage({ type: 'status', text: 'Compressing & Wrapping...' });
+            if (options.symbolPacker) {
+                self.postMessage({ type: 'status', msg: '[5/5] Chaotic Symbol Packing...' });
+                result = applySymbolPacker(result);
+            }
 
-            const compressedPayload = LZString.compressToBase64(coreObfuscation);
-
-            const wrapperCode = `
-/* javascript-obfuscator:disable */
-${LZSTRING_LIB_SOURCE}
-/* javascript-obfuscator:enable */
-var payload = "${compressedPayload}";
-var decompressed = ${LZ_LIB_VAR_NAME}.decompressFromBase64(payload);
-(0, eval)(decompressed);
-            `;
-
-            // Final Shell Obfuscation
-            const finalResult = JavaScriptObfuscator.obfuscate(wrapperCode, {
-                compact: true,
-                identifierNamesGenerator: 'mangled',
-                renameGlobals: false,
-                unicodeEscapeSequence: true,
-                stringArray: true,
-                stringArrayEncoding: ['rc4'],
-                stringArrayThreshold: 1,
-                splitStrings: true,
-                splitStringsChunkLength: 15
-            }).getObfuscatedCode();
-
-            postMessage({ type: 'success', result: finalResult });
-
+            self.postMessage({ type: 'done', result: result });
         } catch (err) {
-            postMessage({ type: 'error', message: err.message });
+            self.postMessage({ type: 'error', error: err.message });
         }
     };
 </script>
+<!-- ========================================================= -->
 
 <script>
-    // --- Presets Configuration ---
-    // 各プリセットの設定定義
-    const PRESETS = {
-        low: {
-            potency: 0,
-            antiDebug: false,
-            selfDefending: false,
-            deadCode: false,
-            splitStrings: false,
-            disableConsole: false,
-            desc: "Minimal protection. Fastest execution, smallest size."
-        },
-        medium: {
-            potency: 0.4,
-            antiDebug: true,
-            selfDefending: true,
-            deadCode: false,
-            splitStrings: false,
-            disableConsole: true,
-            desc: "Balanced protection. Good for general use."
-        },
-        high: {
-            potency: 0.75,
-            antiDebug: true,
-            selfDefending: true,
-            deadCode: true,
-            splitStrings: true,
-            disableConsole: true,
-            desc: "Strong protection. Larger file size, harder to reverse."
-        },
-        extreme: {
-            potency: 1.0,
-            antiDebug: true,
-            selfDefending: true,
-            deadCode: true,
-            splitStrings: true,
-            disableConsole: true,
-            desc: "Paranoid mode. Maximum complexity, may impact performance."
-        }
-    };
-
-    let currentPotency = PRESETS.medium.potency;
-
-    // Apply Preset Logic
-    function applyPreset(presetName) {
-        const p = PRESETS[presetName];
-        if (!p) return;
-
-        document.getElementById('optAntiDebug').checked = p.antiDebug;
-        document.getElementById('optSelfDefending').checked = p.selfDefending;
-        document.getElementById('optDeadCode').checked = p.deadCode;
-        document.getElementById('optSplitStrings').checked = p.splitStrings;
-        document.getElementById('optDisableConsole').checked = p.disableConsole;
-        document.getElementById('presetDesc').innerText = p.desc;
-        
-        currentPotency = p.potency;
-    }
-
-    // Event Listeners for Preset Buttons
-    document.querySelectorAll('input[name="preset"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            const presetKey = e.target.id.replace('preset', '').toLowerCase();
-            applyPreset(presetKey);
-        });
+    const inputEditor = CodeMirror.fromTextArea(document.getElementById("inputCode"), {
+        mode: "javascript", theme: "material-darker", lineNumbers: true, matchBrackets: true
+    });
+    const outputEditor = CodeMirror.fromTextArea(document.getElementById("outputCode"), {
+        mode: "javascript", theme: "material-darker", lineNumbers: true, readOnly: true, lineWrapping: true
     });
 
-    // Initialize with Medium
-    applyPreset('medium');
+    inputEditor.setValue(`// 完全動作確認済み / Stealth Payload
+function 秘密の計算() {
+    const key = "STEALTH_PAYLOAD_ACTIVATE_完了";
+    console.log("【システム初期化】 コアロジックをロードしました。");
+    let a = 10, b = 25;
+    if (a < b) { console.warn("計算結果: " + (a * b)); }
+    return key;
+}
+console.log("Token: " + 秘密の計算());`);
 
-    // UI Logic
-    document.getElementById('optDomainLock').addEventListener('change', function(e) {
-        document.getElementById('domainName').style.display = e.target.checked ? 'block' : 'none';
-    });
+    const statusEl = document.getElementById('status');
+    const btnObf = document.getElementById('btnObf');
+    const btnTest = document.getElementById('btnTest');
 
-    function formatBytes(bytes, decimals = 1) {
-        if (bytes === 0) return '0 B';
-        const k = 1024;
-        const dm = decimals < 0 ? 0 : decimals;
-        const sizes = ['B', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    function setStatus(msg, color = "var(--text)") {
+        statusEl.style.color = color;
+        statusEl.innerText = msg;
     }
 
-    function getByteSize(str) {
-        return new Blob([str]).size;
+    function toggleButtons(disabled) {
+        btnObf.disabled = disabled;
+        btnTest.disabled = disabled;
     }
 
-    let worker = null;
+    const workerBlob = new Blob([document.getElementById('workerCode').textContent], { type: "application/javascript" });
+    const workerUrl = URL.createObjectURL(workerBlob);
+    let worker;
 
-    function createWorker() {
-        const blob = new Blob([document.getElementById('worker-script').textContent], { type: "text/javascript" });
-        return new Worker(window.URL.createObjectURL(blob));
-    }
+    function processObfuscation() {
+        let code = inputEditor.getValue();
+        if (!code.trim()) return alert("コードを入力してください");
 
-    document.getElementById('obfuscateBtn').addEventListener('click', () => {
-        const input = document.getElementById('inputCode').value;
-        const outputArea = document.getElementById('outputCode');
-        const overlay = document.getElementById('processingOverlay');
-        const statusText = document.getElementById('statusText');
-        const statsBadge = document.getElementById('sizeStats');
-
-        // 設定値の収集（プリセットで切り替わったチェックボックスの状態を取得）
-        const config = {
-            antiDebug: document.getElementById('optAntiDebug').checked,
-            selfDefending: document.getElementById('optSelfDefending').checked,
-            domainLock: document.getElementById('optDomainLock').checked,
-            domainName: document.getElementById('domainName').value.trim(),
-            deadCode: document.getElementById('optDeadCode').checked,
-            splitStrings: document.getElementById('optSplitStrings').checked,
-            disableConsole: document.getElementById('optDisableConsole').checked,
-            potency: currentPotency // プリセットによる強度値
-        };
-
-        if (!input.trim()) {
-            alert("Please enter JavaScript code.");
-            return;
-        }
-
-        outputArea.value = "";
-        overlay.style.display = 'flex';
-        statusText.innerText = "Initializing...";
-        statsBadge.classList.remove('visible');
+        toggleButtons(true);
+        outputEditor.setValue("");
+        setStatus("Starting Worker...", "var(--accent)");
 
         if (worker) worker.terminate();
-        worker = createWorker();
+        worker = new Worker(workerUrl);
 
-        worker.postMessage({ code: input, config: config });
+        worker.onerror = function(err) {
+            setStatus("Worker Crashed (Check Console)", "var(--error)");
+            console.error("Worker Error:", err.message, err);
+            toggleButtons(false);
+        };
+
+        const options = {
+            preMinify: document.getElementById('preMinify').checked,
+            rc4: document.getElementById('rc4').checked,
+            symbolPacker: document.getElementById('symbolPacker').checked,
+            obfOptions: {
+                compact: document.getElementById('compact').checked,
+                controlFlowFlattening: document.getElementById('controlFlow').checked,
+                controlFlowFlatteningThreshold: parseFloat(document.getElementById('cfSlider').value),
+                deadCodeInjection: document.getElementById('deadCode').checked,
+                deadCodeInjectionThreshold: parseFloat(document.getElementById('dcSlider').value),
+                stringArray: document.getElementById('stringArray').checked,
+                stringArrayEncoding: ['rc4', 'base64'],
+                selfDefending: document.getElementById('selfDefending').checked,
+                identifierNamesGenerator: 'hexadecimal'
+            }
+        };
+
+        worker.postMessage({ code: code, options: options });
 
         worker.onmessage = function(e) {
             const data = e.data;
-
             if (data.type === 'status') {
-                statusText.innerText = data.text;
-            } else if (data.type === 'success') {
-                outputArea.value = data.result;
-                overlay.style.display = 'none';
-                
-                const originalSize = getByteSize(input);
-                const resultSize = getByteSize(data.result);
-                const diffPercent = ((resultSize - originalSize) / originalSize * 100).toFixed(0);
-                
-                document.getElementById('sizeOriginal').innerText = formatBytes(originalSize);
-                document.getElementById('sizeObfuscated').innerText = formatBytes(resultSize);
-                
-                const diffElem = document.getElementById('sizeDiff');
-                if (resultSize > originalSize) {
-                    diffElem.innerText = `(+${diffPercent}%)`;
-                    diffElem.style.color = '#ef4444';
-                } else {
-                    diffElem.innerText = `(${diffPercent}%)`;
-                    diffElem.style.color = '#22c55e';
-                }
-                statsBadge.classList.add('visible');
-
-                worker.terminate();
-                worker = null;
+                setStatus(data.msg, "var(--warning)");
+            } else if (data.type === 'done') {
+                outputEditor.setValue(data.result);
+                setStatus(`Success! Size: ${(data.result.length / 1024).toFixed(2)} KB`, "var(--success)");
+                toggleButtons(false);
             } else if (data.type === 'error') {
-                console.error(data.message);
-                outputArea.value = "Error: " + data.message;
-                overlay.style.display = 'none';
-                worker.terminate();
-                worker = null;
+                setStatus(`Error: ${data.error}`, "var(--error)");
+                console.error(data.error);
+                toggleButtons(false);
             }
         };
-    });
+    }
 
-    const toast = new bootstrap.Toast(document.getElementById('liveToast'));
-    document.getElementById('copyBtn').addEventListener('click', () => {
-        const val = document.getElementById('outputCode').value;
-        if(val) navigator.clipboard.writeText(val).then(() => toast.show());
-    });
+    function copyOutput() {
+        const code = outputEditor.getValue();
+        if (!code) return;
+        navigator.clipboard.writeText(code).then(() => {
+            const btn = document.getElementById('copyBtn');
+            const icon = btn.querySelector('i');
+            icon.className = 'bi bi-check2 text-success';
+            btn.style.color = 'var(--success)';
+            setTimeout(() => {
+                icon.className = 'bi bi-clipboard';
+                btn.style.color = '';
+            }, 1500);
+        });
+    }
 
-    document.getElementById('testBtn').addEventListener('click', () => {
-        const code = document.getElementById('outputCode').value;
-        if(!code) return;
-        if(confirm("Execute code in this browser tab?")) {
-            try { (0, eval)(code); } catch(e) { alert("Error: " + e); }
+    const logArea = document.getElementById('logContent');
+    function appendLog(msg, type = 'info') {
+        let cls = 'log-msg';
+        if (type === 'warn') cls += ' log-warn';
+        if (type === 'error') cls += ' log-error';
+        if (type === 'success') cls += ' log-success';
+        logArea.innerHTML += `<div class="${cls}">[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+        logArea.scrollTop = logArea.scrollHeight;
+    }
+    function clearLog() { logArea.innerHTML = ''; }
+
+    const originalLog = console.log, originalWarn = console.warn, originalError = console.error;
+    console.log = (...args) => { originalLog(...args); appendLog(args.join(' ')); };
+    console.warn = (...args) => { originalWarn(...args); appendLog(args.join(' '), 'warn'); };
+    console.error = (...args) => { originalError(...args); appendLog(args.join(' '), 'error'); };
+
+    function runTest() {
+        const code = outputEditor.getValue();
+        if (!code) return appendLog("先にコードを難読化してください。", "error");
+        appendLog("--- Executing Stealth Payload ---", "warn");
+        try {
+            const execute = new Function(code);
+            execute();
+            appendLog("--- Execution Completed ---", "success");
+        } catch (e) {
+            console.error("Execution Error:", e);
+            appendLog(`Execution Error: ${e.message}`, "error");
         }
-    });
+    }
 </script>
 
 </body>
