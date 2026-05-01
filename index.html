@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS Obfuscator Pro / Advanced Stealth</title>
+    <title>JS Obfuscator Pro / Advanced Stealth (Optimized)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,17 +35,14 @@
         .option-group:last-child { border-bottom: none; }
         .option-group h3 { margin: 0 0 10px 0; font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 6px; font-weight: 600; }
         
-        /* プリセットボタン */
         .preset-buttons { display: flex; gap: 6px; margin-bottom: 5px; }
         .preset-btn { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text-muted); padding: 6px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: 0.2s; font-weight: 600; font-family: 'Inter', sans-serif; }
         .preset-btn:hover { background: rgba(255,255,255,0.05); color: var(--text); }
         .preset-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-        /* セレクトボックス */
         select.custom-select { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 12px; outline: none; cursor: pointer; margin-bottom: 4px; }
         select.custom-select:focus { border-color: var(--accent); }
 
-        /* トグルスイッチ */
         .toggle-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .toggle-label { font-size: 12px; color: var(--text); cursor: pointer; }
         .toggle-switch { position: relative; width: 32px; height: 18px; display: inline-block; }
@@ -55,7 +52,6 @@
         input:checked + .slider { background-color: var(--accent); border-color: var(--accent); }
         input:checked + .slider:before { transform: translateX(14px); background-color: #fff; }
 
-        /* カスタムスライダー (Range) */
         .slider-container { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 10px 0; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
         .slider-header { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); font-weight: 500; }
         input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; margin: 4px 0; }
@@ -65,7 +61,6 @@
         input[type="range"]::-webkit-slider-thumb:hover { background: #fff; transform: scale(1.1); }
         input[type="range"]:active::-webkit-slider-thumb { background: var(--accent); box-shadow: 0 0 0 4px rgba(47, 129, 247, 0.2); }
 
-        /* ボタン類 */
         .btn-group { display: flex; gap: 8px; margin-top: auto; }
         button.action-btn { flex: 1; background: var(--accent); color: #fff; border: none; padding: 8px; border-radius: 4px; font-weight: 600; font-size: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Inter', sans-serif; }
         button.action-btn:hover:not(:disabled) { background: var(--accent-hover); }
@@ -75,7 +70,6 @@
         
         #status { font-size: 11px; text-align: center; margin-top: 8px; min-height: 16px; font-weight: 600; font-family: 'Fira Code', monospace; }
         
-        /* エディタ＆ログ */
         .editor-wrapper { flex: 1; min-width: 0; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: var(--panel); }
         .editor-header { background: var(--panel); padding: 6px 12px; font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; color: var(--text-muted); }
         .header-title { display: flex; align-items: center; gap: 6px; }
@@ -83,6 +77,21 @@
         .icon-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
         
         .CodeMirror { flex: 1; height: auto !important; font-family: 'Fira Code', monospace; font-size: 13px; line-height: 1.4; }
+
+        #outputCode {
+            flex: 1;
+            background-color: #0f1419;
+            color: var(--text);
+            border: none;
+            padding: 10px;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            resize: none;
+            outline: none;
+            white-space: pre-wrap; /* テキストを折り返す */
+            word-wrap: break-word; /* 長い単語を強制的に折り返す */
+        }
         
         .log-section { height: 130px; flex-shrink: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; margin-top: 15px; display: flex; flex-direction: column; }
         .log-header { padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
@@ -108,6 +117,7 @@
 
 <div class="main-container">
     <div class="settings-section">
+        <!-- ...(設定項目は変更なし)... -->
         <div class="option-group">
             <h3><i class="bi bi-sliders"></i> Global Presets</h3>
             <div class="preset-buttons">
@@ -186,7 +196,7 @@
             <div class="header-title"><i class="bi bi-file-earmark-lock"></i> Obfuscated Output</div>
             <button class="icon-btn" onclick="copyOutput()" id="copyBtn" title="Copy Code"><i class="bi bi-clipboard"></i></button>
         </div>
-        <textarea id="outputCode"></textarea>
+        <textarea id="outputCode" readonly spellcheck="false"></textarea>
     </div>
 </div>
 
@@ -222,7 +232,7 @@
         return `;(function(){var k="${rc4Key}",p="${payload}";function r(k,s){var a=[],j=0,x,r='';for(var i=0;i<256;i++)a[i]=i;for(var i=0;i<256;i++){j=(j+a[i]+k.charCodeAt(i%k.length))%256;x=a[i];a[i]=a[j];a[j]=x;}var i=0;j=0;for(var y=0;y<s.length;y++){i=(i+1)%256;j=(j+a[i])%256;x=a[i];a[i]=a[j];a[j]=x;r+=String.fromCharCode(s.charCodeAt(y)^a[(a[i]+a[j])%256]);}return r;}Function(decodeURIComponent(escape(r(k,atob(p)))))();})();`;
     }
 
-    // [Packer: Medium] Distributed Base64
+    // [Packer: Medium] Distributed Base64 (Lightweight)
     function wrapDistributedCrypto(code) {
         let payload = unescape(encodeURIComponent(code));
         const rc4Key = "sys_" + Math.random().toString(36).substring(2);
@@ -242,12 +252,13 @@
             chunks.push(payload.substring(i, i + size));
             i += size;
         }
+        // ▼ 軽量化: ダミーデータの量を削減
         const genDummy = (len) => JSON.stringify([...Array(len)].map(() => Math.random().toString(36).substring(2)));
 
         return `;(function() {
-            var _d1 = ${genDummy(5)};
+            var _d1 = ${genDummy(3)};
             var _c = ${JSON.stringify(chunks)};
-            var _d2 = ${genDummy(3)};
+            var _d2 = ${genDummy(2)};
             var _k = "${rc4Key}";
             function _rd(k, s) {
                 var a=[],j=0,x,r='';
@@ -264,7 +275,7 @@
         })();`;
     }
 
-    // [Packer: High] Chaotic Symbol Packer (分散配列インデックス実行)
+    // [Packer: High] Chaotic Symbol Packer (Lightweight)
     function applySymbolPacker(code) {
         const syms = "%&@#$*+?!<>~^|=-";
         let safeCode = unescape(encodeURIComponent(code));
@@ -292,8 +303,9 @@
         elements.push({ type: 'syms', val: '"' + syms + '"' });
         chunks.forEach((c, i) => elements.push({ type: 'chunk', id: i, val: c }));
         
-        for(let i=0; i<150; i++) {
-            let d = ""; for(let j=0; j<20+Math.random()*80; j++) d += syms[Math.floor(Math.random()*syms.length)];
+        // ▼ 軽量化: ダミーデータの数と長さを大幅に削減 (150 -> 40)
+        for(let i=0; i<40; i++) {
+            let d = ""; for(let j=0; j<15+Math.random()*40; j++) d += syms[Math.floor(Math.random()*syms.length)];
             elements.push({ type: 'dummy', val: '"' + d + '"' });
         }
 
@@ -323,33 +335,39 @@
     self.onmessage = async function(e) {
         const { code, options } = e.data;
         let result = code;
+        let currentStep = 1;
+        
+        // ▼ 進捗表示の細分化: 全体のステップ数を計算
+        let totalSteps = 1 + (options.preMinify ? 1 : 0);
+        if (options.packerLevel === 'low' || options.packerLevel === 'medium') totalSteps += 2;
+        if (options.packerLevel === 'high') totalSteps += 3;
 
         try {
             if (options.preMinify) {
-                self.postMessage({ type: 'status', msg: '[1/n] Pre-Minifying...' });
+                self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Pre-processing with Terser...` });
                 const minified = await Terser.minify(result, { compress: { passes: 2 }, format: { comments: false } });
                 result = minified.code;
             }
 
-            self.postMessage({ type: 'status', msg: '[2/n] Core Obfuscation...' });
+            self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Applying core obfuscation...` });
             result = JavaScriptObfuscator.obfuscate(result, options.obfOptions).getObfuscatedCode();
 
             if (options.packerLevel === 'low') {
-                self.postMessage({ type: 'status', msg: '[3/4] Basic Packer...' });
+                self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Applying Basic RC4 Packer...` });
                 result = wrapBasicCrypto(result);
-                self.postMessage({ type: 'status', msg: '[4/4] Obfuscating Wrapper...' });
+                self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Re-obfuscating packed code...` });
                 result = JavaScriptObfuscator.obfuscate(result, options.obfOptions).getObfuscatedCode();
             } else if (options.packerLevel === 'medium') {
-                self.postMessage({ type: 'status', msg: '[3/4] Dist. RC4 Packer...' });
+                self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Applying Distributed RC4 Packer...` });
                 result = wrapDistributedCrypto(result);
-                self.postMessage({ type: 'status', msg: '[4/4] Obfuscating Wrapper...' });
+                self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Re-obfuscating packed code...` });
                 result = JavaScriptObfuscator.obfuscate(result, options.obfOptions).getObfuscatedCode();
             } else if (options.packerLevel === 'high') {
-                self.postMessage({ type: 'status', msg: '[3/5] Dist. RC4 Packer...' });
+                self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Applying Distributed RC4 Packer...` });
                 result = wrapDistributedCrypto(result);
-                self.postMessage({ type: 'status', msg: '[4/5] Obfuscating Wrapper...' });
+                self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Re-obfuscating packed code...` });
                 result = JavaScriptObfuscator.obfuscate(result, options.obfOptions).getObfuscatedCode();
-                self.postMessage({ type: 'status', msg: '[5/5] Chaotic Packing...' });
+                self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Applying Chaotic Symbol Packer...` });
                 result = applySymbolPacker(result);
             }
 
@@ -362,11 +380,21 @@
 <!-- ========================================================= -->
 
 <script>
-    const inputEditor = CodeMirror.fromTextArea(document.getElementById("inputCode"), {
+    // --- DOM Element Caching ---
+    const inputCodeEl = document.getElementById("inputCode");
+    const outputCodeEl = document.getElementById("outputCode");
+    const statusEl = document.getElementById('status');
+    const btnObf = document.getElementById('btnObf');
+    const btnTest = document.getElementById('btnTest');
+    const logArea = document.getElementById('logContent');
+    const dcSlider = document.getElementById('dcSlider');
+    const cfSlider = document.getElementById('cfSlider');
+    const dcVal = document.getElementById('dcVal');
+    const cfVal = document.getElementById('cfVal');
+
+    // --- Editor Initialization ---
+    const inputEditor = CodeMirror.fromTextArea(inputCodeEl, {
         mode: "javascript", theme: "material-darker", lineNumbers: true, matchBrackets: true
-    });
-    const outputEditor = CodeMirror.fromTextArea(document.getElementById("outputCode"), {
-        mode: "javascript", theme: "material-darker", lineNumbers: true, readOnly: true, lineWrapping: true
     });
 
     inputEditor.setValue(`// Preset & Chaotic Packer Test
@@ -381,10 +409,7 @@ function generateToken() {
 }
 console.log("Token: " + generateToken());`);
 
-    const statusEl = document.getElementById('status');
-    const btnObf = document.getElementById('btnObf');
-    const btnTest = document.getElementById('btnTest');
-
+    // --- UI Functions ---
     function setStatus(msg, color = "var(--text)") {
         statusEl.style.color = color;
         statusEl.innerText = msg;
@@ -395,50 +420,49 @@ console.log("Token: " + generateToken());`);
         btnTest.disabled = disabled;
     }
 
-    // --- プリセット管理 ---
     function setPreset(level) {
         document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('preset-' + level).classList.add('active');
 
-        const slDead = document.getElementById('dcSlider');
-        const slFlow = document.getElementById('cfSlider');
-
         if (level === 'low') {
             document.getElementById('stringArray').checked = true;
-            document.getElementById('deadCode').checked = false; slDead.value = 0;
-            document.getElementById('controlFlow').checked = false; slFlow.value = 0;
+            document.getElementById('deadCode').checked = false; dcSlider.value = 0;
+            document.getElementById('controlFlow').checked = false; cfSlider.value = 0;
             document.getElementById('selfDefending').checked = false;
             document.getElementById('packerLevel').value = 'low';
         } else if (level === 'medium') {
             document.getElementById('stringArray').checked = true;
-            document.getElementById('deadCode').checked = true; slDead.value = 0.4;
-            document.getElementById('controlFlow').checked = true; slFlow.value = 0.75;
+            document.getElementById('deadCode').checked = true; dcSlider.value = 0.4;
+            document.getElementById('controlFlow').checked = true; cfSlider.value = 0.75;
             document.getElementById('selfDefending').checked = true;
             document.getElementById('packerLevel').value = 'medium';
         } else if (level === 'high') {
             document.getElementById('stringArray').checked = true;
-            document.getElementById('deadCode').checked = true; slDead.value = 0.8;
-            document.getElementById('controlFlow').checked = true; slFlow.value = 1.0;
+            document.getElementById('deadCode').checked = true; dcSlider.value = 0.8;
+            document.getElementById('controlFlow').checked = true; cfSlider.value = 1.0;
             document.getElementById('selfDefending').checked = true;
             document.getElementById('packerLevel').value = 'high';
         }
         
-        document.getElementById('dcVal').innerText = slDead.value;
-        document.getElementById('cfVal').innerText = slFlow.value;
+        dcVal.innerText = dcSlider.value;
+        cfVal.innerText = cfSlider.value;
     }
 
-    // Worker処理
+    // --- Web Worker Logic ---
     const workerBlob = new Blob([document.getElementById('workerCode').textContent], { type: "application/javascript" });
     const workerUrl = URL.createObjectURL(workerBlob);
     let worker;
 
     function processObfuscation() {
-        let code = inputEditor.getValue();
-        if (!code.trim()) return alert("コードを入力してください");
+        const code = inputEditor.getValue();
+        if (!code.trim()) {
+            alert("コードを入力してください");
+            return;
+        }
 
         toggleButtons(true);
-        outputEditor.setValue("");
-        setStatus("Starting Worker...", "var(--accent)");
+        outputCodeEl.value = "";
+        setStatus("Initializing Worker...", "var(--accent)");
 
         if (worker) worker.terminate();
         worker = new Worker(workerUrl);
@@ -455,9 +479,9 @@ console.log("Token: " + generateToken());`);
             obfOptions: {
                 compact: true,
                 controlFlowFlattening: document.getElementById('controlFlow').checked,
-                controlFlowFlatteningThreshold: parseFloat(document.getElementById('cfSlider').value),
+                controlFlowFlatteningThreshold: parseFloat(cfSlider.value),
                 deadCodeInjection: document.getElementById('deadCode').checked,
-                deadCodeInjectionThreshold: parseFloat(document.getElementById('dcSlider').value),
+                deadCodeInjectionThreshold: parseFloat(dcSlider.value),
                 stringArray: document.getElementById('stringArray').checked,
                 stringArrayEncoding: ['rc4', 'base64'],
                 selfDefending: document.getElementById('selfDefending').checked,
@@ -472,7 +496,7 @@ console.log("Token: " + generateToken());`);
             if (data.type === 'status') {
                 setStatus(data.msg, "var(--warning)");
             } else if (data.type === 'done') {
-                outputEditor.setValue(data.result);
+                outputCodeEl.value = data.result;
                 setStatus(`Success! Size: ${(data.result.length / 1024).toFixed(2)} KB`, "var(--success)");
                 toggleButtons(false);
             } else if (data.type === 'error') {
@@ -483,13 +507,14 @@ console.log("Token: " + generateToken());`);
         };
     }
 
+    // --- Utility and Logging Functions ---
     function copyOutput() {
-        const code = outputEditor.getValue();
+        const code = outputCodeEl.value;
         if (!code) return;
         navigator.clipboard.writeText(code).then(() => {
             const btn = document.getElementById('copyBtn');
             const icon = btn.querySelector('i');
-            icon.className = 'bi bi-check2 text-success';
+            icon.className = 'bi bi-check2';
             btn.style.color = 'var(--success)';
             setTimeout(() => {
                 icon.className = 'bi bi-clipboard';
@@ -498,29 +523,40 @@ console.log("Token: " + generateToken());`);
         });
     }
 
-    const logArea = document.getElementById('logContent');
     function appendLog(msg, type = 'info') {
         let cls = 'log-msg';
         if (type === 'warn') cls += ' log-warn';
         if (type === 'error') cls += ' log-error';
         if (type === 'success') cls += ' log-success';
-        logArea.innerHTML += `<div class="${cls}">[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+        
+        const div = document.createElement('div');
+        div.className = cls;
+        div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        logArea.appendChild(div);
+        
         logArea.scrollTop = logArea.scrollHeight;
     }
-    function clearLog() { logArea.innerHTML = ''; }
 
+    function clearLog() {
+        logArea.innerHTML = '';
+    }
+
+    // --- Console Interception ---
     const originalLog = console.log, originalWarn = console.warn, originalError = console.error;
-    console.log = (...args) => { originalLog(...args); appendLog(args.join(' ')); };
-    console.warn = (...args) => { originalWarn(...args); appendLog(args.join(' '), 'warn'); };
-    console.error = (...args) => { originalError(...args); appendLog(args.join(' '), 'error'); };
+    console.log = (...args) => { originalLog.apply(console, args); appendLog(args.join(' ')); };
+    console.warn = (...args) => { originalWarn.apply(console, args); appendLog(args.join(' '), 'warn'); };
+    console.error = (...args) => { originalError.apply(console, args); appendLog(args.join(' '), 'error'); };
 
+    // --- Test Execution ---
     function runTest() {
-        const code = outputEditor.getValue();
-        if (!code) return appendLog("先にコードを難読化してください。", "error");
+        const code = outputCodeEl.value;
+        if (!code) {
+            appendLog("先にコードを難読化してください。", "error");
+            return;
+        }
         appendLog("--- Executing Stealth Payload ---", "warn");
         try {
-            const execute = new Function(code);
-            execute();
+            (1, eval)(code);
             appendLog("--- Execution Completed ---", "success");
         } catch (e) {
             console.error("Execution Error:", e);
