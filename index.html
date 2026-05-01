@@ -30,11 +30,22 @@
         
         .main-container { display: flex; gap: 15px; flex: 1; min-height: 0; flex-direction: row; }
         
-        .settings-section { width: 280px; flex-shrink: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .settings-section { width: 290px; flex-shrink: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
         .option-group { border-bottom: 1px solid var(--border); padding-bottom: 12px; }
         .option-group:last-child { border-bottom: none; }
         .option-group h3 { margin: 0 0 10px 0; font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 6px; font-weight: 600; }
         
+        /* プリセットボタン */
+        .preset-buttons { display: flex; gap: 6px; margin-bottom: 5px; }
+        .preset-btn { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text-muted); padding: 6px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: 0.2s; font-weight: 600; font-family: 'Inter', sans-serif; }
+        .preset-btn:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+        .preset-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        /* セレクトボックス */
+        select.custom-select { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 12px; outline: none; cursor: pointer; margin-bottom: 4px; }
+        select.custom-select:focus { border-color: var(--accent); }
+
+        /* トグルスイッチ */
         .toggle-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .toggle-label { font-size: 12px; color: var(--text); cursor: pointer; }
         .toggle-switch { position: relative; width: 32px; height: 18px; display: inline-block; }
@@ -43,21 +54,28 @@
         .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 2px; bottom: 2px; background-color: var(--text-muted); transition: 0.2s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--accent); border-color: var(--accent); }
         input:checked + .slider:before { transform: translateX(14px); background-color: #fff; }
-        .warning-text { color: var(--warning); font-weight: 600; }
 
-        .slider-container { display: flex; flex-direction: column; gap: 4px; margin: 4px 0 10px 0; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; }
-        .slider-header { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
-        input[type="range"] { width: 100%; accent-color: var(--accent); height: 4px; outline: none; }
+        /* カスタムスライダー (Range) */
+        .slider-container { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 10px 0; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
+        .slider-header { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); font-weight: 500; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; margin: 4px 0; }
+        input[type="range"]:focus { outline: none; }
+        input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--border); border-radius: 2px; }
+        input[type="range"]::-webkit-slider-thumb { height: 14px; width: 14px; border-radius: 50%; background: var(--text); cursor: pointer; -webkit-appearance: none; margin-top: -5px; box-shadow: 0 1px 3px rgba(0,0,0,0.5); transition: 0.2s; }
+        input[type="range"]::-webkit-slider-thumb:hover { background: #fff; transform: scale(1.1); }
+        input[type="range"]:active::-webkit-slider-thumb { background: var(--accent); box-shadow: 0 0 0 4px rgba(47, 129, 247, 0.2); }
 
+        /* ボタン類 */
         .btn-group { display: flex; gap: 8px; margin-top: auto; }
-        button { flex: 1; background: var(--accent); color: #fff; border: none; padding: 8px; border-radius: 4px; font-weight: 600; font-size: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Inter', sans-serif; }
-        button:hover:not(:disabled) { background: var(--accent-hover); }
+        button.action-btn { flex: 1; background: var(--accent); color: #fff; border: none; padding: 8px; border-radius: 4px; font-weight: 600; font-size: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Inter', sans-serif; }
+        button.action-btn:hover:not(:disabled) { background: var(--accent-hover); }
         button.btn-test { background: var(--success); }
         button.btn-test:hover:not(:disabled) { background: var(--success-hover); }
-        button:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; opacity: 0.7; }
+        button.action-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; opacity: 0.7; }
         
         #status { font-size: 11px; text-align: center; margin-top: 8px; min-height: 16px; font-weight: 600; font-family: 'Fira Code', monospace; }
         
+        /* エディタ＆ログ */
         .editor-wrapper { flex: 1; min-width: 0; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: var(--panel); }
         .editor-header { background: var(--panel); padding: 6px 12px; font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; color: var(--text-muted); }
         .header-title { display: flex; align-items: center; gap: 6px; }
@@ -91,14 +109,19 @@
 <div class="main-container">
     <div class="settings-section">
         <div class="option-group">
+            <h3><i class="bi bi-sliders"></i> Global Presets</h3>
+            <div class="preset-buttons">
+                <button id="preset-low" class="preset-btn" onclick="setPreset('low')">Low</button>
+                <button id="preset-medium" class="preset-btn active" onclick="setPreset('medium')">Medium</button>
+                <button id="preset-high" class="preset-btn" onclick="setPreset('high')">High</button>
+            </div>
+        </div>
+
+        <div class="option-group">
             <h3><i class="bi bi-file-zip"></i> Pre-Processing</h3>
             <div class="toggle-row">
                 <label class="toggle-label" for="preMinify">Terser Minify</label>
                 <label class="toggle-switch"><input type="checkbox" id="preMinify" checked><span class="slider"></span></label>
-            </div>
-            <div class="toggle-row">
-                <label class="toggle-label" for="compact">Compact Output</label>
-                <label class="toggle-switch"><input type="checkbox" id="compact" checked><span class="slider"></span></label>
             </div>
         </div>
 
@@ -119,7 +142,7 @@
         </div>
 
         <div class="option-group">
-            <h3><i class="bi bi-shield-check"></i> VM Protection</h3>
+            <h3><i class="bi bi-shield-check"></i> Control Flow</h3>
             <div class="toggle-row">
                 <label class="toggle-label" for="controlFlow">Control Flow Flattening</label>
                 <label class="toggle-switch"><input type="checkbox" id="controlFlow" checked><span class="slider"></span></label>
@@ -129,26 +152,24 @@
                 <input type="range" id="cfSlider" min="0" max="1" step="0.05" value="0.75" oninput="document.getElementById('cfVal').innerText=this.value">
             </div>
             <div class="toggle-row">
-                <label class="toggle-label" for="selfDefending">Self Defending (改ざん防止)</label>
+                <label class="toggle-label" for="selfDefending">Self Defending (Anti-Tamper)</label>
                 <label class="toggle-switch"><input type="checkbox" id="selfDefending" checked><span class="slider"></span></label>
             </div>
         </div>
 
         <div class="option-group">
             <h3><i class="bi bi-mask"></i> Stealth Packers</h3>
-            <div class="toggle-row">
-                <label class="toggle-label" for="rc4">Inner RC4 + Dist. Base64</label>
-                <label class="toggle-switch"><input type="checkbox" id="rc4" checked><span class="slider"></span></label>
-            </div>
-            <div class="toggle-row">
-                <label class="toggle-label warning-text" for="symbolPacker">Chaotic Symbol Packer</label>
-                <label class="toggle-switch"><input type="checkbox" id="symbolPacker" checked><span class="slider"></span></label>
-            </div>
+            <select id="packerLevel" class="custom-select">
+                <option value="none">None (Obfuscation Only)</option>
+                <option value="low">Low (Basic RC4 Enc)</option>
+                <option value="medium" selected>Medium (Distributed Base64)</option>
+                <option value="high">High (Chaotic Symbol Array)</option>
+            </select>
         </div>
 
         <div class="btn-group">
-            <button id="btnObf" onclick="processObfuscation()"><i class="bi bi-shield-lock"></i> Obfuscate</button>
-            <button id="btnTest" class="btn-test" onclick="runTest()"><i class="bi bi-play-fill"></i> Test Run</button>
+            <button class="action-btn" id="btnObf" onclick="processObfuscation()"><i class="bi bi-shield-lock"></i> Obfuscate</button>
+            <button class="action-btn btn-test" id="btnTest" onclick="runTest()"><i class="bi bi-play-fill"></i> Test Run</button>
         </div>
         <div id="status">Ready.</div>
     </div>
@@ -184,7 +205,24 @@
         "https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"
     );
 
-    // [Inner Layer] RC4と分散Base64
+    // [Packer: Low] Basic RC4
+    function wrapBasicCrypto(code) {
+        let payload = unescape(encodeURIComponent(code));
+        const rc4Key = "sys_" + Math.random().toString(36).substring(2);
+        let s=[], j=0, x, res='';
+        for(let i=0; i<256; i++) s[i]=i;
+        for(let i=0; i<256; i++) { j=(j+s[i]+rc4Key.charCodeAt(i%rc4Key.length))%256; x=s[i]; s[i]=s[j]; s[j]=x; }
+        let i=0; j=0;
+        for(let y=0; y<payload.length; y++) {
+            i=(i+1)%256; j=(j+s[i])%256; x=s[i]; s[i]=s[j]; s[j]=x;
+            res += String.fromCharCode(payload.charCodeAt(y)^s[(s[i]+s[j])%256]);
+        }
+        payload = btoa(res);
+
+        return `;(function(){var k="${rc4Key}",p="${payload}";function r(k,s){var a=[],j=0,x,r='';for(var i=0;i<256;i++)a[i]=i;for(var i=0;i<256;i++){j=(j+a[i]+k.charCodeAt(i%k.length))%256;x=a[i];a[i]=a[j];a[j]=x;}var i=0;j=0;for(var y=0;y<s.length;y++){i=(i+1)%256;j=(j+a[i])%256;x=a[i];a[i]=a[j];a[j]=x;r+=String.fromCharCode(s.charCodeAt(y)^a[(a[i]+a[j])%256]);}return r;}Function(decodeURIComponent(escape(r(k,atob(p)))))();})();`;
+    }
+
+    // [Packer: Medium] Distributed Base64
     function wrapDistributedCrypto(code) {
         let payload = unescape(encodeURIComponent(code));
         const rc4Key = "sys_" + Math.random().toString(36).substring(2);
@@ -226,7 +264,7 @@
         })();`;
     }
 
-    // [Final Layer] 完全バグフリーの Chaotic Symbol Packer
+    // [Packer: High] Chaotic Symbol Packer (分散配列インデックス実行)
     function applySymbolPacker(code) {
         const syms = "%&@#$*+?!<>~^|=-";
         let safeCode = unescape(encodeURIComponent(code));
@@ -237,24 +275,9 @@
             payload += syms[parseInt(hex[0], 16)] + syms[parseInt(hex[1], 16)];
         }
 
-        // バックスラッシュの消失を防ぐため、正確なエスケープシーケンスを生成
-        function hexEnc(str) {
-            return '"' + str.split('').map(c => '\\x' + c.charCodeAt(0).toString(16).padStart(2,'0')).join('') + '"';
-        }
+        function hexEnc(str) { return '"' + str.split('').map(c => '\\x' + c.charCodeAt(0).toString(16).padStart(2,'0')).join('') + '"'; }
 
-        const dictWords = [
-            "filter", // 0
-            "constructor", // 1
-            "match", // 2
-            "map", // 3
-            "return String", // 4
-            "fromCharCode", // 5
-            "indexOf", // 6
-            "join", // 7
-            "return decodeURIComponent(escape(x))", // 8
-            "x" // 9
-        ];
-        
+        const dictWords = [ "filter", "constructor", "match", "map", "return String", "fromCharCode", "indexOf", "join", "return decodeURIComponent(escape(x))", "x" ];
         const dict = dictWords.map(hexEnc);
 
         const chunks = [];
@@ -273,29 +296,28 @@
             let d = ""; for(let j=0; j<20+Math.random()*80; j++) d += syms[Math.floor(Math.random()*syms.length)];
             elements.push({ type: 'dummy', val: '"' + d + '"' });
         }
+
+        const mapperObj = { type: 'mapper', val: '' };
+        const decoderObj = { type: 'decoder', val: '' };
+        elements.push(mapperObj, decoderObj);
+
         elements.sort(() => 0.5 - Math.random());
 
-        let chunkIndices = [], symsIndex = 0, dictIndices = {};
+        let chunkIndices = [], symsIndex = 0, dictIndices = {}, mapperIndex, decoderIndex;
         elements.forEach((el, idx) => {
             if (el.type === 'dict') dictIndices[el.id] = idx;
             if (el.type === 'syms') symsIndex = idx;
             if (el.type === 'chunk') chunkIndices[el.id] = idx;
+            if (el.type === 'mapper') mapperIndex = idx;
+            if (el.type === 'decoder') decoderIndex = idx;
         });
 
         let chunkArr = "[" + chunkIndices.map(i => `_[${i}]`).join(",") + "]";
 
-        // グローバル汚染を防ぐためのIIFEラップと、厳密な関数組み立て
-        let decoder = `[][_[${dictIndices[0]}]][_[${dictIndices[1]}]](
-            [][_[${dictIndices[0]}]][_[${dictIndices[1]}]](_[${dictIndices[9]}], _[${dictIndices[8]}])(
-                ${chunkArr}[_[${dictIndices[7]}]]("")[_[${dictIndices[2]}]](/.{2}/g)[_[${dictIndices[3]}]]($$=>
-                    [][_[${dictIndices[0]}]][_[${dictIndices[1]}]](_[${dictIndices[4]}])()[_[${dictIndices[5]}]](
-                        (_[${symsIndex}][_[${dictIndices[6]}]]($$[0])<<4)|_[${symsIndex}][_[${dictIndices[6]}]]($$[1])
-                    )
-                )[_[${dictIndices[7]}]]("")
-            )
-        )()`;
+        mapperObj.val = `$$=>[][_[${dictIndices[0]}]][_[${dictIndices[1]}]](_[${dictIndices[4]}])()[_[${dictIndices[5]}]]( (_[${symsIndex}][_[${dictIndices[6]}]]($$[0])<<4)|_[${symsIndex}][_[${dictIndices[6]}]]($$[1]) )`;
+        decoderObj.val = `()=>[][_[${dictIndices[0]}]][_[${dictIndices[1]}]]( [][_[${dictIndices[0]}]][_[${dictIndices[1]}]](_[${dictIndices[9]}],_[${dictIndices[8]}])( ${chunkArr}[_[${dictIndices[7]}]]("")[_[${dictIndices[2]}]](/.{2}/g)[_[${dictIndices[3]}]](_[${mapperIndex}])[_[${dictIndices[7]}]]("") ) )()`;
 
-        return `;(()=>{var _=[${elements.map(e => e.val).join(",")}];${decoder.replace(/\s+/g, '')}})();`;
+        return `;(()=>{var _=[${elements.map(e => e.val).join(",")}];_[${decoderIndex}]();})();`;
     }
 
     self.onmessage = async function(e) {
@@ -304,23 +326,30 @@
 
         try {
             if (options.preMinify) {
-                self.postMessage({ type: 'status', msg: '[1/5] Pre-Minifying (Terser)...' });
+                self.postMessage({ type: 'status', msg: '[1/n] Pre-Minifying...' });
                 const minified = await Terser.minify(result, { compress: { passes: 2 }, format: { comments: false } });
                 result = minified.code;
             }
 
-            self.postMessage({ type: 'status', msg: '[2/5] Core Obfuscation...' });
+            self.postMessage({ type: 'status', msg: '[2/n] Core Obfuscation...' });
             result = JavaScriptObfuscator.obfuscate(result, options.obfOptions).getObfuscatedCode();
 
-            if (options.rc4) {
-                self.postMessage({ type: 'status', msg: '[3/5] Applying Inner RC4...' });
-                result = wrapDistributedCrypto(result);
-                self.postMessage({ type: 'status', msg: '[4/5] Obfuscating Decoder...' });
+            if (options.packerLevel === 'low') {
+                self.postMessage({ type: 'status', msg: '[3/4] Basic Packer...' });
+                result = wrapBasicCrypto(result);
+                self.postMessage({ type: 'status', msg: '[4/4] Obfuscating Wrapper...' });
                 result = JavaScriptObfuscator.obfuscate(result, options.obfOptions).getObfuscatedCode();
-            }
-
-            if (options.symbolPacker) {
-                self.postMessage({ type: 'status', msg: '[5/5] Chaotic Symbol Packing...' });
+            } else if (options.packerLevel === 'medium') {
+                self.postMessage({ type: 'status', msg: '[3/4] Dist. RC4 Packer...' });
+                result = wrapDistributedCrypto(result);
+                self.postMessage({ type: 'status', msg: '[4/4] Obfuscating Wrapper...' });
+                result = JavaScriptObfuscator.obfuscate(result, options.obfOptions).getObfuscatedCode();
+            } else if (options.packerLevel === 'high') {
+                self.postMessage({ type: 'status', msg: '[3/5] Dist. RC4 Packer...' });
+                result = wrapDistributedCrypto(result);
+                self.postMessage({ type: 'status', msg: '[4/5] Obfuscating Wrapper...' });
+                result = JavaScriptObfuscator.obfuscate(result, options.obfOptions).getObfuscatedCode();
+                self.postMessage({ type: 'status', msg: '[5/5] Chaotic Packing...' });
                 result = applySymbolPacker(result);
             }
 
@@ -340,15 +369,17 @@
         mode: "javascript", theme: "material-darker", lineNumbers: true, readOnly: true, lineWrapping: true
     });
 
-    inputEditor.setValue(`// 完全動作確認済み / Stealth Payload
-function 秘密の計算() {
-    const key = "STEALTH_PAYLOAD_ACTIVATE_完了";
-    console.log("【システム初期化】 コアロジックをロードしました。");
-    let a = 10, b = 25;
-    if (a < b) { console.warn("計算結果: " + (a * b)); }
-    return key;
+    inputEditor.setValue(`// Preset & Chaotic Packer Test
+function generateToken() {
+    console.log("【Init】 Generating secure payload...");
+    const secret = "SUPER_SECRET_PAYLOAD_999";
+    let x = 40, y = 12;
+    if (x > y) {
+        console.warn("Calculated Hash: " + (x * y));
+    }
+    return secret;
 }
-console.log("Token: " + 秘密の計算());`);
+console.log("Token: " + generateToken());`);
 
     const statusEl = document.getElementById('status');
     const btnObf = document.getElementById('btnObf');
@@ -364,6 +395,39 @@ console.log("Token: " + 秘密の計算());`);
         btnTest.disabled = disabled;
     }
 
+    // --- プリセット管理 ---
+    function setPreset(level) {
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('preset-' + level).classList.add('active');
+
+        const slDead = document.getElementById('dcSlider');
+        const slFlow = document.getElementById('cfSlider');
+
+        if (level === 'low') {
+            document.getElementById('stringArray').checked = true;
+            document.getElementById('deadCode').checked = false; slDead.value = 0;
+            document.getElementById('controlFlow').checked = false; slFlow.value = 0;
+            document.getElementById('selfDefending').checked = false;
+            document.getElementById('packerLevel').value = 'low';
+        } else if (level === 'medium') {
+            document.getElementById('stringArray').checked = true;
+            document.getElementById('deadCode').checked = true; slDead.value = 0.4;
+            document.getElementById('controlFlow').checked = true; slFlow.value = 0.75;
+            document.getElementById('selfDefending').checked = true;
+            document.getElementById('packerLevel').value = 'medium';
+        } else if (level === 'high') {
+            document.getElementById('stringArray').checked = true;
+            document.getElementById('deadCode').checked = true; slDead.value = 0.8;
+            document.getElementById('controlFlow').checked = true; slFlow.value = 1.0;
+            document.getElementById('selfDefending').checked = true;
+            document.getElementById('packerLevel').value = 'high';
+        }
+        
+        document.getElementById('dcVal').innerText = slDead.value;
+        document.getElementById('cfVal').innerText = slFlow.value;
+    }
+
+    // Worker処理
     const workerBlob = new Blob([document.getElementById('workerCode').textContent], { type: "application/javascript" });
     const workerUrl = URL.createObjectURL(workerBlob);
     let worker;
@@ -387,10 +451,9 @@ console.log("Token: " + 秘密の計算());`);
 
         const options = {
             preMinify: document.getElementById('preMinify').checked,
-            rc4: document.getElementById('rc4').checked,
-            symbolPacker: document.getElementById('symbolPacker').checked,
+            packerLevel: document.getElementById('packerLevel').value,
             obfOptions: {
-                compact: document.getElementById('compact').checked,
+                compact: true,
                 controlFlowFlattening: document.getElementById('controlFlow').checked,
                 controlFlowFlatteningThreshold: parseFloat(document.getElementById('cfSlider').value),
                 deadCodeInjection: document.getElementById('deadCode').checked,
