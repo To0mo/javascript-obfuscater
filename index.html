@@ -2,16 +2,12 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS Obfuscator Pro / Advanced Stealth (Optimized)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JS Obfuscator Pro / Ultimate Stealth</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/material-darker.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
     <style>
@@ -23,80 +19,74 @@
             --error: #f85149; --warning: #d29922;
         }
         * { box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; height: 100vh; display: flex; flex-direction: column; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 12px; height: 100vh; display: flex; flex-direction: column; }
         
-        header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 10px; flex-shrink: 0; }
         h1 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
         
-        .main-container { display: flex; gap: 15px; flex: 1; min-height: 0; flex-direction: row; }
+        .main-container { display: flex; gap: 12px; flex: 1; min-height: 0; flex-direction: row; }
         
-        .settings-section { width: 290px; flex-shrink: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        /* --- Settings Panel --- */
+        .settings-section { width: 320px; flex-shrink: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
         .option-group { border-bottom: 1px solid var(--border); padding-bottom: 12px; }
         .option-group:last-child { border-bottom: none; }
         .option-group h3 { margin: 0 0 10px 0; font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 6px; font-weight: 600; }
         
-        .preset-buttons { display: flex; gap: 6px; margin-bottom: 5px; }
+        .preset-buttons { display: flex; gap: 6px; margin-bottom: 8px; }
         .preset-btn { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text-muted); padding: 6px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: 0.2s; font-weight: 600; font-family: 'Inter', sans-serif; }
         .preset-btn:hover { background: rgba(255,255,255,0.05); color: var(--text); }
         .preset-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-        select.custom-select { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 12px; outline: none; cursor: pointer; margin-bottom: 4px; }
+        select.custom-select { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 11px; outline: none; cursor: pointer; margin-bottom: 4px; }
         select.custom-select:focus { border-color: var(--accent); }
 
         .toggle-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .toggle-label { font-size: 12px; color: var(--text); cursor: pointer; }
-        .toggle-switch { position: relative; width: 32px; height: 18px; display: inline-block; }
+        .toggle-switch { position: relative; width: 32px; height: 18px; display: inline-block; flex-shrink: 0; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #21262d; border: 1px solid var(--border); transition: 0.2s; border-radius: 18px; }
-        .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 2px; bottom: 2px; background-color: var(--text-muted); transition: 0.2s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--accent); border-color: var(--accent); }
-        input:checked + .slider:before { transform: translateX(14px); background-color: #fff; }
+        .slider-bg { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #21262d; border: 1px solid var(--border); transition: 0.2s; border-radius: 18px; }
+        .slider-bg:before { position: absolute; content: ""; height: 12px; width: 12px; left: 2px; bottom: 2px; background-color: var(--text-muted); transition: 0.2s; border-radius: 50%; }
+        input:checked + .slider-bg { background-color: var(--accent); border-color: var(--accent); }
+        input:checked + .slider-bg:before { transform: translateX(14px); background-color: #fff; }
 
-        .slider-container { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 10px 0; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
-        .slider-header { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); font-weight: 500; }
+        .range-container { display: flex; flex-direction: column; gap: 6px; margin: 6px 0; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
+        .range-header { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); font-weight: 500; }
         input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; margin: 4px 0; }
         input[type="range"]:focus { outline: none; }
         input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--border); border-radius: 2px; }
-        input[type="range"]::-webkit-slider-thumb { height: 14px; width: 14px; border-radius: 50%; background: var(--text); cursor: pointer; -webkit-appearance: none; margin-top: -5px; box-shadow: 0 1px 3px rgba(0,0,0,0.5); transition: 0.2s; }
-        input[type="range"]::-webkit-slider-thumb:hover { background: #fff; transform: scale(1.1); }
-        input[type="range"]:active::-webkit-slider-thumb { background: var(--accent); box-shadow: 0 0 0 4px rgba(47, 129, 247, 0.2); }
+        input[type="range"]::-webkit-slider-thumb { height: 14px; width: 14px; border-radius: 50%; background: var(--text); cursor: pointer; -webkit-appearance: none; margin-top: -5px; box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+        input[type="range"]:active::-webkit-slider-thumb { background: var(--accent); }
 
-        .btn-group { display: flex; gap: 8px; margin-top: auto; }
+        .mt-2 { margin-top: 8px; }
+
+        .btn-group { display: flex; gap: 8px; margin-top: auto; flex-shrink: 0; }
         button.action-btn { flex: 1; background: var(--accent); color: #fff; border: none; padding: 8px; border-radius: 4px; font-weight: 600; font-size: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Inter', sans-serif; }
         button.action-btn:hover:not(:disabled) { background: var(--accent-hover); }
         button.btn-test { background: var(--success); }
         button.btn-test:hover:not(:disabled) { background: var(--success-hover); }
         button.action-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; opacity: 0.7; }
         
-        #status { font-size: 11px; text-align: center; margin-top: 8px; min-height: 16px; font-weight: 600; font-family: 'Fira Code', monospace; }
+        #status { font-size: 11px; text-align: center; margin-top: 8px; min-height: 16px; font-weight: 600; font-family: 'Fira Code', monospace; flex-shrink: 0; }
         
-        .editor-wrapper { flex: 1; min-width: 0; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: var(--panel); }
-        .editor-header { background: var(--panel); padding: 6px 12px; font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; color: var(--text-muted); }
+        /* --- Editors --- */
+        .editors-column { flex: 1; display: flex; flex-direction: row; gap: 12px; min-width: 0; }
+        .editor-wrapper { flex: 1; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: #0f1419; min-height: 0; }
+        .editor-header { background: var(--panel); padding: 6px 10px; font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; color: var(--text-muted); flex-shrink: 0; }
         .header-title { display: flex; align-items: center; gap: 6px; }
-        .icon-btn { background: transparent; color: var(--text-muted); border: none; padding: 4px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex: none; width: 24px; height: 24px; }
+        .icon-btn { background: transparent; color: var(--text-muted); border: none; padding: 4px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; width: 24px; height: 24px; }
         .icon-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
         
-        .CodeMirror { flex: 1; height: auto !important; font-family: 'Fira Code', monospace; font-size: 13px; line-height: 1.4; }
-
-        #outputCode {
-            flex: 1;
-            background-color: #0f1419;
-            color: var(--text);
-            border: none;
-            padding: 10px;
-            font-family: 'Fira Code', monospace;
-            font-size: 13px;
-            line-height: 1.4;
-            resize: none;
-            outline: none;
-            white-space: pre-wrap; /* テキストを折り返す */
-            word-wrap: break-word; /* 長い単語を強制的に折り返す */
+        .code-textarea {
+            flex: 1; width: 100%; margin: 0; border: none; outline: none; background: transparent; color: #c9d1d9;
+            padding: 12px; font-family: 'Fira Code', monospace; font-size: 13px; line-height: 1.5;
+            resize: none; white-space: pre-wrap; word-break: break-all; overflow-y: auto;
         }
-        
-        .log-section { height: 130px; flex-shrink: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; margin-top: 15px; display: flex; flex-direction: column; }
-        .log-header { padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+
+        /* --- Log Section --- */
+        .log-section { height: 120px; flex-shrink: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; margin-top: 12px; display: flex; flex-direction: column; }
+        .log-header { padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .log-content { flex: 1; padding: 8px 12px; overflow-y: auto; font-family: 'Fira Code', monospace; font-size: 12px; margin: 0; color: var(--text); }
-        .log-msg { border-bottom: 1px dashed rgba(48, 54, 61, 0.5); padding: 3px 0; }
+        .log-msg { border-bottom: 1px dashed rgba(48, 54, 61, 0.5); padding: 3px 0; word-break: break-all; }
         .log-warn { color: var(--warning); }
         .log-error { color: var(--error); }
         .log-success { color: var(--success); }
@@ -106,18 +96,27 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        /* --- スマホ向けレイアウト --- */
+        @media (max-width: 768px) {
+            body { height: auto; display: block; overflow-y: auto; padding: 8px; }
+            .main-container { flex-direction: column; display: flex; height: auto; }
+            .settings-section { width: 100%; max-height: none; flex-shrink: 0; }
+            .editors-column { flex-direction: column; flex-shrink: 0; }
+            .editor-wrapper { min-height: 280px; flex: none; }
+            .log-section { flex-shrink: 0; height: 180px; margin-bottom: 20px; margin-top: 12px; }
+        }
     </style>
 </head>
 <body>
 
 <header>
-    <i class="bi bi-incognito" style="font-size: 22px; color: var(--accent);"></i>
-    <h1>Advanced Stealth JS Obfuscator</h1>
+    <i class="bi bi-shield-lock" style="font-size: 22px; color: var(--accent);"></i>
+    <h1>Advanced JS Obfuscator <small style="color:var(--text-muted); font-size:12px;">Pro Engine</small></h1>
 </header>
 
 <div class="main-container">
     <div class="settings-section">
-        <!-- ...(設定項目は変更なし)... -->
         <div class="option-group">
             <h3><i class="bi bi-sliders"></i> Global Presets</h3>
             <div class="preset-buttons">
@@ -128,75 +127,106 @@
         </div>
 
         <div class="option-group">
-            <h3><i class="bi bi-file-zip"></i> Pre-Processing</h3>
+            <h3><i class="bi bi-gear"></i> Pre-processing</h3>
             <div class="toggle-row">
-                <label class="toggle-label" for="preMinify">Terser Minify</label>
-                <label class="toggle-switch"><input type="checkbox" id="preMinify" checked><span class="slider"></span></label>
+                <label class="toggle-label" for="preMinify">Terser Minify (Compress)</label>
+                <label class="toggle-switch"><input type="checkbox" id="preMinify" checked><span class="slider-bg"></span></label>
             </div>
         </div>
 
         <div class="option-group">
-            <h3><i class="bi bi-cpu"></i> Core Obfuscation</h3>
+            <h3><i class="bi bi-cpu"></i> Core AST Obfuscation</h3>
             <div class="toggle-row">
-                <label class="toggle-label" for="stringArray">String Array Encoding</label>
-                <label class="toggle-switch"><input type="checkbox" id="stringArray" checked><span class="slider"></span></label>
+                <label class="toggle-label" for="stringArray">String Array Extraction</label>
+                <label class="toggle-switch"><input type="checkbox" id="stringArray" checked><span class="slider-bg"></span></label>
+            </div>
+            <select id="saEncoding" class="custom-select">
+                <option value="none">String Array Encoding: None</option>
+                <option value="base64">String Array Encoding: Base64</option>
+                <option value="rc4" selected>String Array Encoding: RC4</option>
+            </select>
+            <div class="toggle-row mt-2">
+                <label class="toggle-label" for="splitStrings">Split Strings (Chunks)</label>
+                <label class="toggle-switch"><input type="checkbox" id="splitStrings" checked><span class="slider-bg"></span></label>
             </div>
             <div class="toggle-row">
-                <label class="toggle-label" for="deadCode">Dead Code Injection</label>
-                <label class="toggle-switch"><input type="checkbox" id="deadCode" checked><span class="slider"></span></label>
+                <label class="toggle-label" for="numExpr">Numbers to Expressions</label>
+                <label class="toggle-switch"><input type="checkbox" id="numExpr" checked><span class="slider-bg"></span></label>
             </div>
-            <div class="slider-container">
-                <div class="slider-header"><span>Injection Threshold</span><span id="dcVal">0.4</span></div>
+            <div class="toggle-row">
+                <label class="toggle-label" for="objKeys">Transform Object Keys</label>
+                <label class="toggle-switch"><input type="checkbox" id="objKeys"><span class="slider-bg"></span></label>
+            </div>
+            <div class="toggle-row">
+                <label class="toggle-label" for="renameGlobals" title="May break global variables">Rename Globals</label>
+                <label class="toggle-switch"><input type="checkbox" id="renameGlobals"><span class="slider-bg"></span></label>
+            </div>
+            <div class="range-container">
+                <div class="range-header"><span>Control Flow Flattening</span><span id="cfVal">0.5</span></div>
+                <input type="range" id="cfSlider" min="0" max="1" step="0.05" value="0.5" oninput="document.getElementById('cfVal').innerText=this.value">
+            </div>
+            <div class="range-container">
+                <div class="range-header"><span>Dead Code Injection</span><span id="dcVal">0.4</span></div>
                 <input type="range" id="dcSlider" min="0" max="1" step="0.1" value="0.4" oninput="document.getElementById('dcVal').innerText=this.value">
             </div>
         </div>
 
         <div class="option-group">
-            <h3><i class="bi bi-shield-check"></i> Control Flow</h3>
-            <div class="toggle-row">
-                <label class="toggle-label" for="controlFlow">Control Flow Flattening</label>
-                <label class="toggle-switch"><input type="checkbox" id="controlFlow" checked><span class="slider"></span></label>
-            </div>
-            <div class="slider-container">
-                <div class="slider-header"><span>Flattening Threshold</span><span id="cfVal">0.75</span></div>
-                <input type="range" id="cfSlider" min="0" max="1" step="0.05" value="0.75" oninput="document.getElementById('cfVal').innerText=this.value">
-            </div>
+            <h3><i class="bi bi-shield-check"></i> Security Protections</h3>
             <div class="toggle-row">
                 <label class="toggle-label" for="selfDefending">Self Defending (Anti-Tamper)</label>
-                <label class="toggle-switch"><input type="checkbox" id="selfDefending" checked><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" id="selfDefending" checked><span class="slider-bg"></span></label>
+            </div>
+            <div class="toggle-row">
+                <label class="toggle-label" for="antiDebug">Anti-Debug (Debugger Trap)</label>
+                <label class="toggle-switch"><input type="checkbox" id="antiDebug"><span class="slider-bg"></span></label>
+            </div>
+            <div class="toggle-row">
+                <label class="toggle-label" for="disableConsole">Disable Console Output</label>
+                <label class="toggle-switch"><input type="checkbox" id="disableConsole"><span class="slider-bg"></span></label>
             </div>
         </div>
 
         <div class="option-group">
-            <h3><i class="bi bi-mask"></i> Stealth Packers</h3>
-            <select id="packerLevel" class="custom-select">
-                <option value="none">None (Obfuscation Only)</option>
-                <option value="low">Low (Basic RC4 Enc)</option>
-                <option value="medium" selected>Medium (Distributed Base64)</option>
-                <option value="high">High (Chaotic Symbol Array)</option>
+            <h3><i class="bi bi-layers"></i> Advanced Engines</h3>
+            <div class="toggle-row">
+                <label class="toggle-label" for="vmObf" style="color: var(--warning);">VM Virtualization</label>
+                <label class="toggle-switch"><input type="checkbox" id="vmObf" checked><span class="slider-bg"></span></label>
+            </div>
+            <div class="toggle-row">
+                <label class="toggle-label" for="hybridCore">Hybrid Core Optimization</label>
+                <label class="toggle-switch"><input type="checkbox" id="hybridCore" checked><span class="slider-bg"></span></label>
+            </div>
+            <select id="packerLevel" class="custom-select mt-2">
+                <option value="none">Stealth Packer: None</option>
+                <option value="low">Stealth Packer: Low (Basic RC4)</option>
+                <option value="medium" selected>Stealth Packer: Medium (Distributed Base64)</option>
+                <option value="high">Stealth Packer: High (Chaotic Symbols)</option>
             </select>
         </div>
 
         <div class="btn-group">
-            <button class="action-btn" id="btnObf" onclick="processObfuscation()"><i class="bi bi-shield-lock"></i> Obfuscate</button>
+            <button class="action-btn" id="btnObf" onclick="processObfuscation()"><i class="bi bi-lightning-charge"></i> Obfuscate</button>
             <button class="action-btn btn-test" id="btnTest" onclick="runTest()"><i class="bi bi-play-fill"></i> Test Run</button>
         </div>
         <div id="status">Ready.</div>
     </div>
 
-    <div class="editor-wrapper">
-        <div class="editor-header">
-            <div class="header-title"><i class="bi bi-code-square"></i> Input Source</div>
+    <div class="editors-column">
+        <div class="editor-wrapper">
+            <div class="editor-header">
+                <div class="header-title"><i class="bi bi-code-square"></i> Input Source</div>
+            </div>
+            <textarea id="inputCode" class="code-textarea" spellcheck="false" placeholder="// Insert your JavaScript code here..."></textarea>
         </div>
-        <textarea id="inputCode"></textarea>
-    </div>
 
-    <div class="editor-wrapper">
-        <div class="editor-header">
-            <div class="header-title"><i class="bi bi-file-earmark-lock"></i> Obfuscated Output</div>
-            <button class="icon-btn" onclick="copyOutput()" id="copyBtn" title="Copy Code"><i class="bi bi-clipboard"></i></button>
+        <div class="editor-wrapper">
+            <div class="editor-header">
+                <div class="header-title"><i class="bi bi-file-earmark-lock"></i> Obfuscated Output</div>
+                <button class="icon-btn" onclick="copyOutput()" id="copyBtn" title="Copy Code"><i class="bi bi-clipboard"></i></button>
+            </div>
+            <textarea id="outputCode" class="code-textarea" spellcheck="false" readonly placeholder="// Obfuscated output will appear here..."></textarea>
         </div>
-        <textarea id="outputCode" readonly spellcheck="false"></textarea>
     </div>
 </div>
 
@@ -208,14 +238,41 @@
     <pre class="log-content" id="logContent"></pre>
 </div>
 
-<!-- ================= Web Worker のソースコード ================= -->
+<!-- ================= Web Worker ソースコード ================= -->
 <script id="workerCode" type="javascript/worker">
     importScripts(
         "https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js",
         "https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"
     );
 
-    // [Packer: Low] Basic RC4
+    // --- Virtual Machine Engine ---
+    function applyVMVirtualization(code) {
+        const payload = unescape(encodeURIComponent(code));
+        let bytecode =[];
+        const xorKey = Math.floor(Math.random() * 200) + 10;
+        
+        bytecode.push(1); // OPCODE: INIT
+        bytecode.push(xorKey); 
+        
+        for (let i = 0; i < payload.length; i++) {
+            bytecode.push(2); // OPCODE: PUSH_CHAR
+            bytecode.push(payload.charCodeAt(i) ^ xorKey);
+        }
+        bytecode.push(3); // OPCODE: EXEC
+        
+        return `
+        (function(b){
+            var pc = 0, k = 0, s = '';
+            while(pc < b.length) {
+                var op = b[pc++];
+                if(op === 1) { k = b[pc++]; }
+                else if(op === 2) { s += String.fromCharCode(b[pc++] ^ k); }
+                else if(op === 3) { Function(decodeURIComponent(escape(s)))(); }
+            }
+        })([${bytecode.join(',')}]);`;
+    }
+
+    // --- Stealth Packers ---
     function wrapBasicCrypto(code) {
         let payload = unescape(encodeURIComponent(code));
         const rc4Key = "sys_" + Math.random().toString(36).substring(2);
@@ -227,12 +284,9 @@
             i=(i+1)%256; j=(j+s[i])%256; x=s[i]; s[i]=s[j]; s[j]=x;
             res += String.fromCharCode(payload.charCodeAt(y)^s[(s[i]+s[j])%256]);
         }
-        payload = btoa(res);
-
-        return `;(function(){var k="${rc4Key}",p="${payload}";function r(k,s){var a=[],j=0,x,r='';for(var i=0;i<256;i++)a[i]=i;for(var i=0;i<256;i++){j=(j+a[i]+k.charCodeAt(i%k.length))%256;x=a[i];a[i]=a[j];a[j]=x;}var i=0;j=0;for(var y=0;y<s.length;y++){i=(i+1)%256;j=(j+a[i])%256;x=a[i];a[i]=a[j];a[j]=x;r+=String.fromCharCode(s.charCodeAt(y)^a[(a[i]+a[j])%256]);}return r;}Function(decodeURIComponent(escape(r(k,atob(p)))))();})();`;
+        return `;(function(){var k="${rc4Key}",p="${btoa(res)}";function r(k,s){var a=[],j=0,x,r='';for(var i=0;i<256;i++)a[i]=i;for(var i=0;i<256;i++){j=(j+a[i]+k.charCodeAt(i%k.length))%256;x=a[i];a[i]=a[j];a[j]=x;}var i=0;j=0;for(var y=0;y<s.length;y++){i=(i+1)%256;j=(j+a[i])%256;x=a[i];a[i]=a[j];a[j]=x;r+=String.fromCharCode(s.charCodeAt(y)^a[(a[i]+a[j])%256]);}return r;}Function(decodeURIComponent(escape(r(k,atob(p)))))();})();`;
     }
 
-    // [Packer: Medium] Distributed Base64 (Lightweight)
     function wrapDistributedCrypto(code) {
         let payload = unescape(encodeURIComponent(code));
         const rc4Key = "sys_" + Math.random().toString(36).substring(2);
@@ -245,20 +299,14 @@
             res += String.fromCharCode(payload.charCodeAt(y)^s[(s[i]+s[j])%256]);
         }
         payload = btoa(res);
-
-        const chunks = [];
+        const chunks =[];
         for (let i = 0; i < payload.length;) {
             let size = 15 + Math.floor(Math.random() * 20);
             chunks.push(payload.substring(i, i + size));
             i += size;
         }
-        // ▼ 軽量化: ダミーデータの量を削減
-        const genDummy = (len) => JSON.stringify([...Array(len)].map(() => Math.random().toString(36).substring(2)));
-
         return `;(function() {
-            var _d1 = ${genDummy(3)};
             var _c = ${JSON.stringify(chunks)};
-            var _d2 = ${genDummy(2)};
             var _k = "${rc4Key}";
             function _rd(k, s) {
                 var a=[],j=0,x,r='';
@@ -275,47 +323,35 @@
         })();`;
     }
 
-    // [Packer: High] Chaotic Symbol Packer (Lightweight)
     function applySymbolPacker(code) {
         const syms = "%&@#$*+?!<>~^|=-";
         let safeCode = unescape(encodeURIComponent(code));
         let payload = "";
-        
         for (let i = 0; i < safeCode.length; i++) {
             let hex = safeCode.charCodeAt(i).toString(16).padStart(2, '0');
             payload += syms[parseInt(hex[0], 16)] + syms[parseInt(hex[1], 16)];
         }
-
-        function hexEnc(str) { return '"' + str.split('').map(c => '\\x' + c.charCodeAt(0).toString(16).padStart(2,'0')).join('') + '"'; }
-
-        const dictWords = [ "filter", "constructor", "match", "map", "return String", "fromCharCode", "indexOf", "join", "return decodeURIComponent(escape(x))", "x" ];
-        const dict = dictWords.map(hexEnc);
-
-        const chunks = [];
+        const dict =[ "filter", "constructor", "match", "map", "return String", "fromCharCode", "indexOf", "join", "return decodeURIComponent(escape(x))", "x" ].map(str => '"' + str.split('').map(c => '\\x' + c.charCodeAt(0).toString(16).padStart(2,'0')).join('') + '"');
+        const chunks =[];
         for (let i = 0; i < payload.length;) {
             let size = 100 + Math.floor(Math.random() * 200);
             chunks.push('"' + payload.substring(i, i + size) + '"');
             i += size;
         }
-
-        const elements = [];
+        const elements =[];
         dict.forEach((str, i) => elements.push({ type: 'dict', id: i, val: str }));
         elements.push({ type: 'syms', val: '"' + syms + '"' });
         chunks.forEach((c, i) => elements.push({ type: 'chunk', id: i, val: c }));
         
-        // ▼ 軽量化: ダミーデータの数と長さを大幅に削減 (150 -> 40)
-        for(let i=0; i<40; i++) {
-            let d = ""; for(let j=0; j<15+Math.random()*40; j++) d += syms[Math.floor(Math.random()*syms.length)];
+        for(let i=0; i<30; i++) {
+            let d = ""; for(let j=0; j<20; j++) d += syms[Math.floor(Math.random()*syms.length)];
             elements.push({ type: 'dummy', val: '"' + d + '"' });
         }
-
-        const mapperObj = { type: 'mapper', val: '' };
-        const decoderObj = { type: 'decoder', val: '' };
+        const mapperObj = { type: 'mapper', val: '' }, decoderObj = { type: 'decoder', val: '' };
         elements.push(mapperObj, decoderObj);
-
         elements.sort(() => 0.5 - Math.random());
 
-        let chunkIndices = [], symsIndex = 0, dictIndices = {}, mapperIndex, decoderIndex;
+        let chunkIndices =[], symsIndex = 0, dictIndices = {}, mapperIndex, decoderIndex;
         elements.forEach((el, idx) => {
             if (el.type === 'dict') dictIndices[el.id] = idx;
             if (el.type === 'syms') symsIndex = idx;
@@ -325,7 +361,6 @@
         });
 
         let chunkArr = "[" + chunkIndices.map(i => `_[${i}]`).join(",") + "]";
-
         mapperObj.val = `$$=>[][_[${dictIndices[0]}]][_[${dictIndices[1]}]](_[${dictIndices[4]}])()[_[${dictIndices[5]}]]( (_[${symsIndex}][_[${dictIndices[6]}]]($$[0])<<4)|_[${symsIndex}][_[${dictIndices[6]}]]($$[1]) )`;
         decoderObj.val = `()=>[][_[${dictIndices[0]}]][_[${dictIndices[1]}]]( [][_[${dictIndices[0]}]][_[${dictIndices[1]}]](_[${dictIndices[9]}],_[${dictIndices[8]}])( ${chunkArr}[_[${dictIndices[7]}]]("")[_[${dictIndices[2]}]](/.{2}/g)[_[${dictIndices[3]}]](_[${mapperIndex}])[_[${dictIndices[7]}]]("") ) )()`;
 
@@ -335,81 +370,99 @@
     self.onmessage = async function(e) {
         const { code, options } = e.data;
         let result = code;
-        let currentStep = 1;
-        
-        // ▼ 進捗表示の細分化: 全体のステップ数を計算
-        let totalSteps = 1 + (options.preMinify ? 1 : 0);
-        if (options.packerLevel === 'low' || options.packerLevel === 'medium') totalSteps += 2;
-        if (options.packerLevel === 'high') totalSteps += 3;
 
         try {
             if (options.preMinify) {
-                self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Pre-processing with Terser...` });
-                const minified = await Terser.minify(result, { compress: { passes: 2 }, format: { comments: false } });
-                result = minified.code;
+                self.postMessage({ type: 'status', msg: `[1] Pre-Minifying (Terser)...` });
+                result = (await Terser.minify(result, { compress: { passes: 2 }, format: { comments: false } })).code;
             }
 
-            self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Applying core obfuscation...` });
-            result = JavaScriptObfuscator.obfuscate(result, options.obfOptions).getObfuscatedCode();
-
-            if (options.packerLevel === 'low') {
-                self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Applying Basic RC4 Packer...` });
-                result = wrapBasicCrypto(result);
-                self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Re-obfuscating packed code...` });
-                result = JavaScriptObfuscator.obfuscate(result, options.obfOptions).getObfuscatedCode();
-            } else if (options.packerLevel === 'medium') {
-                self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Applying Distributed RC4 Packer...` });
-                result = wrapDistributedCrypto(result);
-                self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Re-obfuscating packed code...` });
-                result = JavaScriptObfuscator.obfuscate(result, options.obfOptions).getObfuscatedCode();
-            } else if (options.packerLevel === 'high') {
-                self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Applying Distributed RC4 Packer...` });
-                result = wrapDistributedCrypto(result);
-                self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Re-obfuscating packed code...` });
-                result = JavaScriptObfuscator.obfuscate(result, options.obfOptions).getObfuscatedCode();
-                self.postMessage({ type: 'status', msg: `[${currentStep++}/${totalSteps}] Applying Chaotic Symbol Packer...` });
-                result = applySymbolPacker(result);
+            if (options.vmObf) {
+                self.postMessage({ type: 'status', msg: `[2] Compiling to VM Bytecode...` });
+                result = applyVMVirtualization(result);
             }
 
+            const obfOptions = {
+                compact: true,
+                stringArray: options.stringArray,
+                stringArrayEncoding: options.stringArrayEncoding !== 'none' ? [options.stringArrayEncoding] :[],
+                splitStrings: options.splitStrings,
+                numbersToExpressions: options.numbersToExpressions,
+                transformObjectKeys: options.transformObjectKeys,
+                renameGlobals: options.renameGlobals,
+                selfDefending: options.selfDefending,
+                debugProtection: options.debugProtection, // 修正：UIから正しく受け取る
+                disableConsoleOutput: options.disableConsoleOutput,
+                controlFlowFlattening: options.cfThreshold > 0,
+                controlFlowFlatteningThreshold: options.cfThreshold,
+                deadCodeInjection: options.dcThreshold > 0,
+                deadCodeInjectionThreshold: options.dcThreshold,
+                identifierNamesGenerator: 'hexadecimal'
+            };
+
+            if (options.hybridCore) {
+                self.postMessage({ type: 'status', msg: `[3] Applying Hybrid Core AST...` });
+                let payload = unescape(encodeURIComponent(result));
+                const rc4Key = "s_" + Math.random().toString(36).substring(2, 10);
+                let s=[], j=0, x, res='';
+                for(let i=0; i<256; i++) s[i]=i;
+                for(let i=0; i<256; i++) { j=(j+s[i]+rc4Key.charCodeAt(i%rc4Key.length))%256; x=s[i]; s[i]=s[j]; s[j]=x; }
+                let i=0; j=0;
+                for(let y=0; y<payload.length; y++) {
+                    i=(i+1)%256; j=(j+s[i])%256; x=s[i]; s[i]=s[j]; s[j]=x;
+                    res += String.fromCharCode(payload.charCodeAt(y)^s[(s[i]+s[j])%256]);
+                }
+                payload = btoa(res);
+                let decoderStr = `(function(k, p) { var a=[], j=0, x, r='', s=atob(p); for(var i=0; i<256; i++) a[i]=i; for(var i=0; i<256; i++) { j=(j+a[i]+k.charCodeAt(i%k.length))%256; x=a[i]; a[i]=a[j]; a[j]=x; } var i=0; j=0; for(var y=0; y<s.length; y++) { i=(i+1)%256; j=(j+a[i])%256; x=a[i]; a[i]=a[j]; a[j]=x; r+=String.fromCharCode(s.charCodeAt(y)^a[(a[i]+a[j])%256]); } Function(decodeURIComponent(escape(r)))(); })("${rc4Key}", "${payload}");`;
+                result = JavaScriptObfuscator.obfuscate(decoderStr, obfOptions).getObfuscatedCode();
+            } else {
+                self.postMessage({ type: 'status', msg: `[3] Applying Standard AST...` });
+                result = JavaScriptObfuscator.obfuscate(result, obfOptions).getObfuscatedCode();
+            }
+
+            if (options.packer !== 'none') {
+                self.postMessage({ type: 'status', msg: `[4] Applying Stealth Packer (${options.packer})...` });
+                
+                if (options.packer === 'low') {
+                    result = wrapBasicCrypto(result);
+                    result = JavaScriptObfuscator.obfuscate(result, { compact: true }).getObfuscatedCode();
+                } else if (options.packer === 'medium') {
+                    result = wrapDistributedCrypto(result);
+                    result = JavaScriptObfuscator.obfuscate(result, { compact: true }).getObfuscatedCode();
+                } else if (options.packer === 'high') {
+                    result = applySymbolPacker(result); // 記号パッカーの場合は追加のAST難読化を行わずそのまま出力
+                }
+            }
+
+            self.postMessage({ type: 'status', msg: `Finalizing...` });
             self.postMessage({ type: 'done', result: result });
         } catch (err) {
             self.postMessage({ type: 'error', error: err.message });
         }
     };
 </script>
-<!-- ========================================================= -->
 
 <script>
-    // --- DOM Element Caching ---
-    const inputCodeEl = document.getElementById("inputCode");
-    const outputCodeEl = document.getElementById("outputCode");
-    const statusEl = document.getElementById('status');
-    const btnObf = document.getElementById('btnObf');
-    const btnTest = document.getElementById('btnTest');
-    const logArea = document.getElementById('logContent');
-    const dcSlider = document.getElementById('dcSlider');
-    const cfSlider = document.getElementById('cfSlider');
-    const dcVal = document.getElementById('dcVal');
-    const cfVal = document.getElementById('cfVal');
-
-    // --- Editor Initialization ---
-    const inputEditor = CodeMirror.fromTextArea(inputCodeEl, {
-        mode: "javascript", theme: "material-darker", lineNumbers: true, matchBrackets: true
-    });
-
-    inputEditor.setValue(`// Preset & Chaotic Packer Test
-function generateToken() {
-    console.log("【Init】 Generating secure payload...");
-    const secret = "SUPER_SECRET_PAYLOAD_999";
+    // Initial Test Code
+    document.getElementById('inputCode').value = `// Welcome to JS Obfuscator Pro
+function generateSecureToken() {
+    console.log("【Init】 Generating payload in VM...");
+    const secret = "ULTRA_SECURE_TOKEN_999";
     let x = 40, y = 12;
     if (x > y) {
         console.warn("Calculated Hash: " + (x * y));
     }
     return secret;
 }
-console.log("Token: " + generateToken());`);
+console.log("Token: " + generateSecureToken());`;
 
-    // --- UI Functions ---
+    // --- DOM & UI ---
+    const statusEl = document.getElementById('status');
+    const btnObf = document.getElementById('btnObf');
+    const btnTest = document.getElementById('btnTest');
+    const logArea = document.getElementById('logContent');
+    const outCodeEl = document.getElementById('outputCode');
+
     function setStatus(msg, color = "var(--text)") {
         statusEl.style.color = color;
         statusEl.innerText = msg;
@@ -424,144 +477,145 @@ console.log("Token: " + generateToken());`);
         document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('preset-' + level).classList.add('active');
 
+        const e = {
+            preMinify: document.getElementById('preMinify'),
+            stringArray: document.getElementById('stringArray'),
+            saEncoding: document.getElementById('saEncoding'),
+            splitStrings: document.getElementById('splitStrings'),
+            numExpr: document.getElementById('numExpr'),
+            objKeys: document.getElementById('objKeys'),
+            renameGlobals: document.getElementById('renameGlobals'),
+            cfSlider: document.getElementById('cfSlider'),
+            dcSlider: document.getElementById('dcSlider'),
+            selfDefending: document.getElementById('selfDefending'),
+            antiDebug: document.getElementById('antiDebug'),
+            disableConsole: document.getElementById('disableConsole'),
+            vmObf: document.getElementById('vmObf'),
+            hybridCore: document.getElementById('hybridCore'),
+            packer: document.getElementById('packerLevel')
+        };
+
         if (level === 'low') {
-            document.getElementById('stringArray').checked = true;
-            document.getElementById('deadCode').checked = false; dcSlider.value = 0;
-            document.getElementById('controlFlow').checked = false; cfSlider.value = 0;
-            document.getElementById('selfDefending').checked = false;
-            document.getElementById('packerLevel').value = 'low';
+            e.preMinify.checked = true;
+            e.stringArray.checked = true; e.saEncoding.value = 'none';
+            e.splitStrings.checked = false; e.numExpr.checked = false; 
+            e.objKeys.checked = false; e.renameGlobals.checked = false;
+            e.cfSlider.value = 0; e.dcSlider.value = 0;
+            e.selfDefending.checked = false; e.antiDebug.checked = false; e.disableConsole.checked = false;
+            e.vmObf.checked = false; e.hybridCore.checked = false; e.packer.value = 'none';
         } else if (level === 'medium') {
-            document.getElementById('stringArray').checked = true;
-            document.getElementById('deadCode').checked = true; dcSlider.value = 0.4;
-            document.getElementById('controlFlow').checked = true; cfSlider.value = 0.75;
-            document.getElementById('selfDefending').checked = true;
-            document.getElementById('packerLevel').value = 'medium';
+            e.preMinify.checked = true;
+            e.stringArray.checked = true; e.saEncoding.value = 'base64';
+            e.splitStrings.checked = true; e.numExpr.checked = true; 
+            e.objKeys.checked = false; e.renameGlobals.checked = false;
+            e.cfSlider.value = 0.5; e.dcSlider.value = 0.4;
+            e.selfDefending.checked = true; e.antiDebug.checked = false; e.disableConsole.checked = false;
+            e.vmObf.checked = true; e.hybridCore.checked = true; e.packer.value = 'medium';
         } else if (level === 'high') {
-            document.getElementById('stringArray').checked = true;
-            document.getElementById('deadCode').checked = true; dcSlider.value = 0.8;
-            document.getElementById('controlFlow').checked = true; cfSlider.value = 1.0;
-            document.getElementById('selfDefending').checked = true;
-            document.getElementById('packerLevel').value = 'high';
+            e.preMinify.checked = true;
+            e.stringArray.checked = true; e.saEncoding.value = 'rc4';
+            e.splitStrings.checked = true; e.numExpr.checked = true; 
+            e.objKeys.checked = true; e.renameGlobals.checked = false;
+            e.cfSlider.value = 1.0; e.dcSlider.value = 0.8;
+            e.selfDefending.checked = true; e.antiDebug.checked = true; e.disableConsole.checked = false; // テスト実行のためにConsoleは残す
+            e.vmObf.checked = true; e.hybridCore.checked = true; e.packer.value = 'high';
         }
         
-        dcVal.innerText = dcSlider.value;
-        cfVal.innerText = cfSlider.value;
+        document.getElementById('cfVal').innerText = e.cfSlider.value;
+        document.getElementById('dcVal').innerText = e.dcSlider.value;
     }
 
-    // --- Web Worker Logic ---
+    // --- Worker Logic ---
     const workerBlob = new Blob([document.getElementById('workerCode').textContent], { type: "application/javascript" });
     const workerUrl = URL.createObjectURL(workerBlob);
     let worker;
 
     function processObfuscation() {
-        const code = inputEditor.getValue();
-        if (!code.trim()) {
-            alert("コードを入力してください");
-            return;
-        }
+        const code = document.getElementById('inputCode').value;
+        if (!code.trim()) return alert("Please enter JavaScript code first.");
 
         toggleButtons(true);
-        outputCodeEl.value = "";
-        setStatus("Initializing Worker...", "var(--accent)");
+        outCodeEl.value = "";
+        setStatus("Initializing Engine...", "var(--accent)");
 
         if (worker) worker.terminate();
         worker = new Worker(workerUrl);
 
         worker.onerror = function(err) {
-            setStatus("Worker Crashed (Check Console)", "var(--error)");
-            console.error("Worker Error:", err.message, err);
-            toggleButtons(false);
+            setStatus("Engine Crashed", "var(--error)");
+            console.error(err); toggleButtons(false);
         };
 
-        const options = {
-            preMinify: document.getElementById('preMinify').checked,
-            packerLevel: document.getElementById('packerLevel').value,
-            obfOptions: {
-                compact: true,
-                controlFlowFlattening: document.getElementById('controlFlow').checked,
-                controlFlowFlatteningThreshold: parseFloat(cfSlider.value),
-                deadCodeInjection: document.getElementById('deadCode').checked,
-                deadCodeInjectionThreshold: parseFloat(dcSlider.value),
+        worker.postMessage({ 
+            code: code, 
+            options: {
+                preMinify: document.getElementById('preMinify').checked,
                 stringArray: document.getElementById('stringArray').checked,
-                stringArrayEncoding: ['rc4', 'base64'],
+                stringArrayEncoding: document.getElementById('saEncoding').value,
+                splitStrings: document.getElementById('splitStrings').checked,
+                numbersToExpressions: document.getElementById('numExpr').checked,
+                transformObjectKeys: document.getElementById('objKeys').checked,
+                renameGlobals: document.getElementById('renameGlobals').checked,
+                cfThreshold: parseFloat(document.getElementById('cfSlider').value),
+                dcThreshold: parseFloat(document.getElementById('dcSlider').value),
                 selfDefending: document.getElementById('selfDefending').checked,
-                identifierNamesGenerator: 'hexadecimal'
-            }
-        };
-
-        worker.postMessage({ code: code, options: options });
+                debugProtection: document.getElementById('antiDebug').checked, // 修正箇所：変数を直結
+                disableConsoleOutput: document.getElementById('disableConsole').checked,
+                vmObf: document.getElementById('vmObf').checked,
+                hybridCore: document.getElementById('hybridCore').checked,
+                packer: document.getElementById('packerLevel').value
+            } 
+        });
 
         worker.onmessage = function(e) {
-            const data = e.data;
-            if (data.type === 'status') {
-                setStatus(data.msg, "var(--warning)");
-            } else if (data.type === 'done') {
-                outputCodeEl.value = data.result;
-                setStatus(`Success! Size: ${(data.result.length / 1024).toFixed(2)} KB`, "var(--success)");
+            if (e.data.type === 'status') {
+                setStatus(e.data.msg, "var(--warning)");
+            } else if (e.data.type === 'done') {
+                outCodeEl.value = e.data.result; 
+                setStatus(`Success! Size: ${(e.data.result.length / 1024).toFixed(2)} KB`, "var(--success)");
                 toggleButtons(false);
-            } else if (data.type === 'error') {
-                setStatus(`Error: ${data.error}`, "var(--error)");
-                console.error(data.error);
-                toggleButtons(false);
+            } else if (e.data.type === 'error') {
+                setStatus(`Error: ${e.data.error}`, "var(--error)"); toggleButtons(false);
             }
         };
     }
 
-    // --- Utility and Logging Functions ---
+    // --- Utilities ---
     function copyOutput() {
-        const code = outputCodeEl.value;
-        if (!code) return;
-        navigator.clipboard.writeText(code).then(() => {
-            const btn = document.getElementById('copyBtn');
-            const icon = btn.querySelector('i');
-            icon.className = 'bi bi-check2';
-            btn.style.color = 'var(--success)';
-            setTimeout(() => {
-                icon.className = 'bi bi-clipboard';
-                btn.style.color = '';
-            }, 1500);
+        if (!outCodeEl.value) return;
+        navigator.clipboard.writeText(outCodeEl.value).then(() => {
+            const btn = document.getElementById('copyBtn'), icon = btn.querySelector('i');
+            icon.className = 'bi bi-check2'; btn.style.color = 'var(--success)';
+            setTimeout(() => { icon.className = 'bi bi-clipboard'; btn.style.color = ''; }, 1500);
         });
     }
 
     function appendLog(msg, type = 'info') {
-        let cls = 'log-msg';
-        if (type === 'warn') cls += ' log-warn';
-        if (type === 'error') cls += ' log-error';
-        if (type === 'success') cls += ' log-success';
-        
+        let cls = 'log-msg' + (type==='warn'?' log-warn':type==='error'?' log-error':type==='success'?' log-success':'');
         const div = document.createElement('div');
-        div.className = cls;
-        div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-        logArea.appendChild(div);
-        
-        logArea.scrollTop = logArea.scrollHeight;
+        div.className = cls; div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        logArea.appendChild(div); logArea.scrollTop = logArea.scrollHeight;
     }
+    function clearLog() { logArea.innerHTML = ''; }
 
-    function clearLog() {
-        logArea.innerHTML = '';
-    }
-
-    // --- Console Interception ---
     const originalLog = console.log, originalWarn = console.warn, originalError = console.error;
     console.log = (...args) => { originalLog.apply(console, args); appendLog(args.join(' ')); };
     console.warn = (...args) => { originalWarn.apply(console, args); appendLog(args.join(' '), 'warn'); };
     console.error = (...args) => { originalError.apply(console, args); appendLog(args.join(' '), 'error'); };
 
-    // --- Test Execution ---
     function runTest() {
-        const code = outputCodeEl.value;
-        if (!code) {
-            appendLog("先にコードを難読化してください。", "error");
-            return;
+        if (!outCodeEl.value) return appendLog("Please obfuscate code first.", "error");
+        
+        if (document.getElementById('disableConsole').checked) {
+            appendLog("Warning: 'Disable Console' is enabled. Output logs may be suppressed.", "warn");
         }
-        appendLog("--- Executing Stealth Payload ---", "warn");
-        try {
-            (1, eval)(code);
-            appendLog("--- Execution Completed ---", "success");
-        } catch (e) {
-            console.error("Execution Error:", e);
-            appendLog(`Execution Error: ${e.message}`, "error");
-        }
+
+        appendLog("--- Executing Payload ---", "info");
+        try { 
+            (1, eval)(outCodeEl.value); 
+            appendLog("--- Execution Completed ---", "success"); 
+        } 
+        catch (e) { appendLog(`Execution Error: ${e.message}`, "error"); }
     }
 </script>
 
