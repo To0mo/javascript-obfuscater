@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JS Obfuscator Pro / Ultimate Stealth</title>
+    <title>JS Obfuscator Pro / Emoji Stealth (Optimized)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -111,7 +111,7 @@
 
 <header>
     <i class="bi bi-shield-lock" style="font-size: 22px; color: var(--accent);"></i>
-    <h1>Advanced JS Obfuscator <small style="color:var(--text-muted); font-size:12px;">Dynamic Polymorphism</small></h1>
+    <h1>Advanced JS Obfuscator <small style="color:var(--text-muted); font-size:12px;">Optimized & Lightweight Edition</small></h1>
 </header>
 
 <div class="main-container">
@@ -160,12 +160,22 @@
                 <label class="toggle-label" for="renameGlobals" title="May break global variables">Rename Globals</label>
                 <label class="toggle-switch"><input type="checkbox" id="renameGlobals"><span class="slider-bg"></span></label>
             </div>
-            <div class="range-container">
-                <div class="range-header"><span>Control Flow Flattening</span><span id="cfVal">0.5</span></div>
-                <input type="range" id="cfSlider" min="0" max="1" step="0.05" value="0.5" oninput="document.getElementById('cfVal').innerText=this.value">
+            
+            <div class="toggle-row mt-2">
+                <label class="toggle-label" for="controlFlow">Control Flow Flattening</label>
+                <label class="toggle-switch"><input type="checkbox" id="controlFlow" checked><span class="slider-bg"></span></label>
             </div>
             <div class="range-container">
-                <div class="range-header"><span>Dead Code Injection</span><span id="dcVal">0.4</span></div>
+                <div class="range-header"><span>CFF Threshold</span><span id="cfVal">0.5</span></div>
+                <input type="range" id="cfSlider" min="0" max="1" step="0.05" value="0.5" oninput="document.getElementById('cfVal').innerText=this.value">
+            </div>
+
+            <div class="toggle-row mt-2">
+                <label class="toggle-label" for="deadCode">Dead Code Injection</label>
+                <label class="toggle-switch"><input type="checkbox" id="deadCode" checked><span class="slider-bg"></span></label>
+            </div>
+            <div class="range-container">
+                <div class="range-header"><span>Dead Code Threshold</span><span id="dcVal">0.4</span></div>
                 <input type="range" id="dcSlider" min="0" max="1" step="0.1" value="0.4" oninput="document.getElementById('dcVal').innerText=this.value">
             </div>
         </div>
@@ -200,7 +210,7 @@
                 <option value="none">Stealth Packer: None</option>
                 <option value="low">Stealth Packer: Low (Basic RC4)</option>
                 <option value="medium" selected>Stealth Packer: Medium (Distributed Base64)</option>
-                <option value="high">Stealth Packer: High (Chaotic Symbols)</option>
+                <option value="high">Stealth Packer: High (Emoji Array 絵文字化)</option>
             </select>
         </div>
 
@@ -237,176 +247,175 @@
     <pre class="log-content" id="logContent"></pre>
 </div>
 
-<!-- ================= Web Worker ソースコード ================= -->
+<!-- ================= Web Worker ソースコード (Optimized) ================= -->
 <script id="workerCode" type="javascript/worker">
     importScripts(
         "https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js",
         "https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"
     );
 
-    // --- Virtual Machine Engine (Anti-Static + Function Concealment) ---
-    function applyVMVirtualization(code) {
-        const payload = unescape(encodeURIComponent(code));
-        let bytecode =[];
-        const xorKey = Math.floor(Math.random() * 200) + 10;
-        
-        bytecode.push(1);
-        bytecode.push(xorKey); 
-        for (let i = 0; i < payload.length; i++) {
-            bytecode.push(2);
-            bytecode.push(payload.charCodeAt(i) ^ xorKey);
+    // ★ 共通RC4暗号化ヘルパー（全パッカー・Hybrid Coreで共有）
+    function rc4Encrypt(text, key) {
+        let s=[], j=0, x, res="";
+        for(let i=0;i<256;i++) s[i]=i;
+        for(let i=0;i<256;i++){j=(j+s[i]+key.charCodeAt(i%key.length))%256;x=s[i];s[i]=s[j];s[j]=x;}
+        let ii=0; j=0;
+        for(let y=0;y<text.length;y++){
+            ii=(ii+1)%256;j=(j+s[ii])%256;x=s[ii];s[ii]=s[j];s[j]=x;
+            res+=String.fromCharCode(text.charCodeAt(y)^s[(s[ii]+s[j])%256]);
         }
-        bytecode.push(3);
-        
-        return `
-        (function(b){
-            var pc = 0, k = 0, s = '';
-            var _t = (Date.now() > 0 && Math.random() >= 0) ? 0 : 1; // Anti-Static Eval Trap
-            if (_t !== 0) while(1){}
-            while(pc < b.length) {
-                var op = b[pc++];
-                if(op === 1) { k = b[pc++] + _t; }
-                else if(op === 2) { s += String.fromCharCode(b[pc++] ^ k); }
-                else if(op === 3) { []["f"+"ilter"]["c"+"onstructor"](decodeURIComponent(escape(s)))(); } // Function Hidden
-            }
-        })([${bytecode.join(',')}]);`;
+        return res;
     }
 
-    // --- Stealth Packers ---
-    function wrapBasicCrypto(code) {
-        let payload = unescape(encodeURIComponent(code));
-        const rc4Key = "sys_" + Math.random().toString(36).substring(2);
-        let s=[], j=0, x, res='';
-        for(let i=0; i<256; i++) s[i]=i;
-        for(let i=0; i<256; i++) { j=(j+s[i]+rc4Key.charCodeAt(i%rc4Key.length))%256; x=s[i]; s[i]=s[j]; s[j]=x; }
-        let i=0; j=0;
-        for(let y=0; y<payload.length; y++) {
-            i=(i+1)%256; j=(j+s[i])%256; x=s[i]; s[i]=s[j]; s[j]=x;
-            res += String.fromCharCode(payload.charCodeAt(y)^s[(s[i]+s[j])%256]);
+    function applyVMVirtualization(code) {
+        const payload = unescape(encodeURIComponent(code));
+        const xorKey = Math.floor(Math.random() * 200) + 10;
+        let binStr = String.fromCharCode(1, xorKey);
+        for (let i = 0; i < payload.length; i++) {
+            binStr += String.fromCharCode(payload.charCodeAt(i) ^ xorKey);
         }
-        return `;(function(){
-            var k="${rc4Key}",p="${btoa(res)}";
-            function r(k,s){
-                var a=[],j=0,x,r='';
-                var _t = (Date.now() > 0 && Math.random() >= 0) ? 0 : 1; // Anti-Static Eval Trap
-                for(var i=0;i<256;i++)a[i]=i;
-                for(var i=0;i<256;i++){j=(j+a[i]+k.charCodeAt(i%k.length)+_t)%256;x=a[i];a[i]=a[j];a[j]=x;}
-                var i=0;j=0;
-                for(var y=0;y<s.length;y++){
-                    i=(i+1)%256;j=(j+a[i])%256;x=a[i];a[i]=a[j];a[j]=x;
-                    r+=String.fromCharCode(s.charCodeAt(y)^a[(a[i]+a[j])%256]);
-                }
-                return r;
+        binStr += String.fromCharCode(3);
+        const b64 = btoa(binStr);
+        
+        return `
+        (b=>{
+            var c=atob(b),k=0,s="",t=Date.now()>0?0:1;if(t)for(;;);
+            for(var i=0;i<c.length;i++){
+                var v=c.charCodeAt(i);
+                if(i===0&&v===1)k=c.charCodeAt(++i)+t;
+                else if(i===c.length-1&&v===3)[]["f"+"ilter"]["c"+"onstructor"](decodeURIComponent(escape(s)))();
+                else s+=String.fromCharCode(v^k);
             }
-            []["f"+"ilter"]["c"+"onstructor"](decodeURIComponent(escape(r(k,atob(p)))))();
-        })();`;
+        })("${b64}");`;
+    }
+
+    function wrapBasicCrypto(code) {
+        const rc4Key = "sys_" + Math.random().toString(36).substring(2);
+        const res = rc4Encrypt(unescape(encodeURIComponent(code)), rc4Key);
+        return `;(function(k,p){
+            var a=[],j=0,x,r="",t=Date.now()>0?0:1,s=atob(p);
+            for(var i=0;i<256;i++)a[i]=i;
+            for(var i=0;i<256;i++){j=(j+a[i]+k.charCodeAt(i%k.length)+t)%256;x=a[i];a[i]=a[j];a[j]=x;}
+            j=0;for(var i=0,y=0;y<s.length;y++){
+                i=(i+1)%256;j=(j+a[i])%256;x=a[i];a[i]=a[j];a[j]=x;
+                r+=String.fromCharCode(s.charCodeAt(y)^a[(a[i]+a[j])%256]);
+            }
+            []["f"+"ilter"]["c"+"onstructor"](decodeURIComponent(escape(r)))();
+        })("${rc4Key}","${btoa(res)}");`;
     }
 
     function wrapDistributedCrypto(code) {
-        let payload = unescape(encodeURIComponent(code));
         const rc4Key = "sys_" + Math.random().toString(36).substring(2);
-        let s=[], j=0, x, res='';
-        for(let i=0; i<256; i++) s[i]=i;
-        for(let i=0; i<256; i++) { j=(j+s[i]+rc4Key.charCodeAt(i%rc4Key.length))%256; x=s[i]; s[i]=s[j]; s[j]=x; }
-        let i=0; j=0;
-        for(let y=0; y<payload.length; y++) {
-            i=(i+1)%256; j=(j+s[i])%256; x=s[i]; s[i]=s[j]; s[j]=x;
-            res += String.fromCharCode(payload.charCodeAt(y)^s[(s[i]+s[j])%256]);
-        }
-        payload = btoa(res);
+        const encrypted = btoa(rc4Encrypt(unescape(encodeURIComponent(code)), rc4Key));
         const chunks =[];
-        for (let i = 0; i < payload.length;) {
-            let size = 15 + Math.floor(Math.random() * 20);
-            chunks.push(payload.substring(i, i + size));
+        for (let i = 0; i < encrypted.length;) {
+            let size = 50 + Math.floor(Math.random() * 50);
+            chunks.push(encrypted.substring(i, i + size));
             i += size;
         }
-        return `;(function() {
-            var _c = ${JSON.stringify(chunks)};
-            var _k = "${rc4Key}";
-            function _rd(k, s) {
-                var a=[],j=0,x,r='';
-                var _t = (Date.now() > 0 && Math.random() >= 0) ? 0 : 1;
-                for(var i=0;i<256;i++)a[i]=i;
-                for(var i=0;i<256;i++){j=(j+a[i]+k.charCodeAt(i%k.length)+_t)%256;x=a[i];a[i]=a[j];a[j]=x;}
-                var i=0;j=0;
-                for(var y=0;y<s.length;y++){
-                    i=(i+1)%256;j=(j+a[i])%256;x=a[i];a[i]=a[j];a[j]=x;
-                    r+=String.fromCharCode(s.charCodeAt(y)^a[(a[i]+a[j])%256]);
-                }
-                return r;
+        return `;(function(c,k){
+            var a=[],j=0,x,r="",t=Date.now()>0?0:1,s=atob(c.join(''));
+            for(var i=0;i<256;i++)a[i]=i;
+            for(var i=0;i<256;i++){j=(j+a[i]+k.charCodeAt(i%k.length)+t)%256;x=a[i];a[i]=a[j];a[j]=x;}
+            j=0;for(var i=0,y=0;y<s.length;y++){
+                i=(i+1)%256;j=(j+a[i])%256;x=a[i];a[i]=a[j];a[j]=x;
+                r+=String.fromCharCode(s.charCodeAt(y)^a[(a[i]+a[j])%256]);
             }
-            []["f"+"ilter"]["c"+"onstructor"](decodeURIComponent(escape(_rd(_k, atob(_c.join(''))))))();
-        })();`;
+            []["f"+"ilter"]["c"+"onstructor"](decodeURIComponent(escape(r)))();
+        })(${JSON.stringify(chunks)},"${rc4Key}");`;
     }
 
-    function applySymbolPacker(code) {
-        const syms = "%&@#$*+?!<>~^|=-";
-        let safeCode = unescape(encodeURIComponent(code));
-        let payload = "";
+    // ★ 超軽量絵文字パッカー（Mapベースで高速復号、最小限のダミー）
+    function applyEmojiPacker(code) {
+        let syms =[];
+        [[0x1F600, 0x1F64F], [0x1F910, 0x1F93A], [0x1F9D0, 0x1F9E6],[0x1F466, 0x1F487],[0x1F470, 0x1F47F], [0x1F32D, 0x1F368]].forEach(r => {
+            for (let i = r[0]; i <= r[1]; i++) syms.push(String.fromCodePoint(i));
+        });
+        syms = syms.slice(0, 256);
+        
+        const safeCode = unescape(encodeURIComponent(code));
+        const payloadArr = new Array(safeCode.length);
         for (let i = 0; i < safeCode.length; i++) {
-            let hex = safeCode.charCodeAt(i).toString(16).padStart(2, '0');
-            payload += syms[parseInt(hex[0], 16)] + syms[parseInt(hex[1], 16)];
+            payloadArr[i] = syms[safeCode.charCodeAt(i)];
         }
-        const dict =[ "filter", "constructor", "match", "map", "return String", "fromCharCode", "indexOf", "join", "return decodeURIComponent(escape(x))", "x" ].map(str => '"' + str.split('').map(c => '\\x' + c.charCodeAt(0).toString(16).padStart(2,'0')).join('') + '"');
+        const payload = payloadArr.join('');
+        
+        const codePoints = [...payload];
         const chunks =[];
-        for (let i = 0; i < payload.length;) {
-            let size = 100 + Math.floor(Math.random() * 200);
-            chunks.push('"' + payload.substring(i, i + size) + '"');
+        for (let i = 0; i < codePoints.length;) {
+            let size = 200 + Math.floor(Math.random() * 100);
+            chunks.push('"' + codePoints.slice(i, i + size).join('') + '"');
             i += size;
         }
+
         const elements =[];
-        dict.forEach((str, i) => elements.push({ type: 'dict', id: i, val: str }));
-        elements.push({ type: 'syms', val: '"' + syms + '"' });
         chunks.forEach((c, i) => elements.push({ type: 'chunk', id: i, val: c }));
         
-        for(let i=0; i<30; i++) {
-            let d = ""; for(let j=0; j<20; j++) d += syms[Math.floor(Math.random()*syms.length)];
+        for(let i=0; i<3; i++) {
+            let d = ""; for(let j=0; j<15; j++) d += syms[Math.floor(Math.random()*256)];
             elements.push({ type: 'dummy', val: '"' + d + '"' });
         }
-        const mapperObj = { type: 'mapper', val: '' }, decoderObj = { type: 'decoder', val: '' };
-        elements.push(mapperObj, decoderObj);
         elements.sort(() => 0.5 - Math.random());
 
-        let chunkIndices =[], symsIndex = 0, dictIndices = {}, mapperIndex, decoderIndex;
+        let chunkIndices =[];
         elements.forEach((el, idx) => {
-            if (el.type === 'dict') dictIndices[el.id] = idx;
-            if (el.type === 'syms') symsIndex = idx;
             if (el.type === 'chunk') chunkIndices[el.id] = idx;
-            if (el.type === 'mapper') mapperIndex = idx;
-            if (el.type === 'decoder') decoderIndex = idx;
         });
 
         let chunkArr = "[" + chunkIndices.map(i => `_[${i}]`).join(",") + "]";
-        mapperObj.val = `$$=>[][_[${dictIndices[0]}]][_[${dictIndices[1]}]](_[${dictIndices[4]}])()[_[${dictIndices[5]}]]( (_[${symsIndex}][_[${dictIndices[6]}]]($$[0])<<4)|_[${symsIndex}][_[${dictIndices[6]}]]($$[1]) )`;
-        decoderObj.val = `()=>[][_[${dictIndices[0]}]][_[${dictIndices[1]}]]( [][_[${dictIndices[0]}]][_[${dictIndices[1]}]](_[${dictIndices[9]}],_[${dictIndices[8]}])( ${chunkArr}[_[${dictIndices[7]}]]("")[_[${dictIndices[2]}]](/.{2}/g)[_[${dictIndices[3]}]](_[${mapperIndex}])[_[${dictIndices[7]}]]("") ) )()`;
-
-        return `;(()=>{var _=[${elements.map(e => e.val).join(",")}];_[${decoderIndex}]();})();`;
+        let emojiDictStr = syms.join('');
+        
+        return `;(()=>{var _=[${elements.map(e => e.val).join(",")}];var d="${emojiDictStr}",m=new Map(),r="";for(var e of d)m.set(e,m.size);var p=${chunkArr}.join("");for(var e of p)r+=String.fromCharCode(m.get(e));[]["\\x66\\x69\\x6c\\x74\\x65\\x72"]["\\x63\\x6f\\x6e\\x73\\x74\\x72\\x75\\x63\\x74\\x6f\\x72"](decodeURIComponent(escape(r)))();})();`;
     }
 
     self.onmessage = async function(e) {
         const { code, options } = e.data;
         let result = code;
 
-        // ★ 動的に毎回のランダムな変数を生成するオプション作成関数
-        const getObfOptions = () => ({
+        const getObfOptions = (enableSelfDefending = false) => ({
             compact: true,
-            seed: Math.floor(Math.random() * 10000000), // ★ 完全ランダム化
-            identifiersPrefix: '_' + Math.random().toString(36).substring(2, 7), // ★ 毎回異なる接頭辞
-            stringArray: options.stringArray || options.dcThreshold > 0, // DeadCodeInjectionにはStringArrayが必要
-            stringArrayEncoding: options.stringArrayEncoding !== 'none' ? [options.stringArrayEncoding] :[],
+            seed: Math.floor(Math.random() * 10000000), 
+            identifiersPrefix: '_' + Math.random().toString(36).substring(2, 7), 
+            stringArray: options.stringArray || options.deadCodeInjection, 
+            stringArrayThreshold: 0.8, 
+            stringArrayEncoding: options.stringArrayEncoding !== 'none' ?[options.stringArrayEncoding] :[],
             splitStrings: options.splitStrings,
             numbersToExpressions: options.numbersToExpressions,
             transformObjectKeys: options.transformObjectKeys,
             renameGlobals: options.renameGlobals,
-            selfDefending: options.selfDefending,
+            selfDefending: enableSelfDefending ? options.selfDefending : false,
             debugProtection: options.debugProtection,
             disableConsoleOutput: options.disableConsoleOutput,
-            controlFlowFlattening: options.cfThreshold > 0,
-            controlFlowFlatteningThreshold: options.cfThreshold,
-            deadCodeInjection: options.dcThreshold > 0,
-            deadCodeInjectionThreshold: options.dcThreshold,
+            controlFlowFlattening: options.controlFlowFlattening,
+            controlFlowFlatteningThreshold: options.controlFlowFlattening ? options.cfThreshold : 0,
+            deadCodeInjection: options.deadCodeInjection,
+            deadCodeInjectionThreshold: options.deadCodeInjection ? options.dcThreshold : 0,
             identifierNamesGenerator: 'hexadecimal'
         });
+
+        const getLightObfOptions = (enableSelfDefending = false) => ({
+            compact: true,
+            seed: Math.floor(Math.random() * 10000000),
+            identifiersPrefix: '_' + Math.random().toString(36).substring(2, 5),
+            stringArray: true,
+            stringArrayThreshold: 0.75,
+            stringArrayEncoding: [],
+            splitStrings: false,
+            numbersToExpressions: false,
+            transformObjectKeys: false,
+            renameGlobals: false,
+            selfDefending: enableSelfDefending ? options.selfDefending : false,
+            debugProtection: false,
+            disableConsoleOutput: false,
+            controlFlowFlattening: false,
+            controlFlowFlatteningThreshold: 0,
+            deadCodeInjection: false,
+            deadCodeInjectionThreshold: 0,
+            identifierNamesGenerator: 'hexadecimal'
+        });
+
+        // ★ 高速Terserコンパクト（工程間に挟んでペイロードを圧縮）
+        const terserCompact = async (c) => (await Terser.minify(c, { compress: { passes: 1 }, format: { comments: false } })).code;
 
         try {
             if (options.preMinify) {
@@ -415,43 +424,35 @@
             }
 
             if (options.vmObf) {
-                self.postMessage({ type: 'status', msg: `[2] Compiling to VM Bytecode...` });
+                self.postMessage({ type: 'status', msg: `[2] Compiling to Lightweight VM Bytecode...` });
                 result = applyVMVirtualization(result);
+                // ★ VM出力をコンパクト化
+                result = await terserCompact(result);
             }
 
             if (options.hybridCore) {
                 self.postMessage({ type: 'status', msg: `[3] Applying Hybrid Core AST...` });
-                let payload = unescape(encodeURIComponent(result));
                 const rc4Key = "s_" + Math.random().toString(36).substring(2, 10);
-                let s=[], j=0, x, res='';
-                for(let i=0; i<256; i++) s[i]=i;
-                for(let i=0; i<256; i++) { j=(j+s[i]+rc4Key.charCodeAt(i%rc4Key.length))%256; x=s[i]; s[i]=s[j]; s[j]=x; }
-                let i=0; j=0;
-                for(let y=0; y<payload.length; y++) {
-                    i=(i+1)%256; j=(j+s[i])%256; x=s[i]; s[i]=s[j]; s[j]=x;
-                    res += String.fromCharCode(payload.charCodeAt(y)^s[(s[i]+s[j])%256]);
-                }
-                payload = btoa(res);
+                const encrypted = btoa(rc4Encrypt(unescape(encodeURIComponent(result)), rc4Key));
                 
-                // ハイブリッドデコーダ内の Function も隠蔽
                 let decoderStr = `
                 (function(k, p) { 
-                    var a=[], j=0, x, r='', s=atob(p); 
-                    var _t = (Date.now() > 0 && Math.random() >= 0) ? 0 : 1; 
+                    var a=[], j=0, x, r="", t=Date.now()>0?0:1, s=atob(p); 
                     for(var i=0; i<256; i++) a[i]=i; 
-                    for(var i=0; i<256; i++) { j=(j+a[i]+k.charCodeAt(i%k.length)+_t)%256; x=a[i]; a[i]=a[j]; a[j]=x; } 
-                    var i=0; j=0; 
-                    for(var y=0; y<s.length; y++) { 
+                    for(var i=0; i<256; i++) { j=(j+a[i]+k.charCodeAt(i%k.length)+t)%256; x=a[i]; a[i]=a[j]; a[j]=x; } 
+                    j=0;for(var i=0,y=0; y<s.length; y++) { 
                         i=(i+1)%256; j=(j+a[i])%256; x=a[i]; a[i]=a[j]; a[j]=x; 
                         r+=String.fromCharCode(s.charCodeAt(y)^a[(a[i]+a[j])%256]); 
                     } 
                     []["f"+"ilter"]["c"+"onstructor"](decodeURIComponent(escape(r)))(); 
-                })("${rc4Key}", "${payload}");`;
+                })("${rc4Key}", "${encrypted}");`;
                 
-                result = JavaScriptObfuscator.obfuscate(decoderStr, getObfOptions()).getObfuscatedCode();
+                let isFinalLayer = (options.packer === 'none');
+                result = JavaScriptObfuscator.obfuscate(decoderStr, getObfOptions(isFinalLayer)).getObfuscatedCode();
             } else {
                 self.postMessage({ type: 'status', msg: `[3] Applying Standard AST...` });
-                result = JavaScriptObfuscator.obfuscate(result, getObfOptions()).getObfuscatedCode();
+                let isFinalLayer = (options.packer === 'none');
+                result = JavaScriptObfuscator.obfuscate(result, getObfOptions(isFinalLayer)).getObfuscatedCode();
             }
 
             if (options.packer !== 'none') {
@@ -459,15 +460,13 @@
                 
                 if (options.packer === 'low') {
                     result = wrapBasicCrypto(result);
-                    // ★ パッカーの外側に再度強力なASTをかけることでCFFやSelfDefendingを復活！
-                    result = JavaScriptObfuscator.obfuscate(result, getObfOptions()).getObfuscatedCode();
+                    result = JavaScriptObfuscator.obfuscate(result, getLightObfOptions(true)).getObfuscatedCode();
                 } else if (options.packer === 'medium') {
                     result = wrapDistributedCrypto(result);
-                    result = JavaScriptObfuscator.obfuscate(result, getObfOptions()).getObfuscatedCode();
+                    result = JavaScriptObfuscator.obfuscate(result, getLightObfOptions(true)).getObfuscatedCode();
                 } else if (options.packer === 'high') {
-                    // ★ 記号パッカーの前に難読化を挟むことで、内部辞書などをより複雑にする
-                    result = JavaScriptObfuscator.obfuscate(result, getObfOptions()).getObfuscatedCode();
-                    result = applySymbolPacker(result);
+                    // ★ 絵文字パッカー: AST再処理を完全廃止（Step3で十分、Terserコンパクト済み）
+                    result = applyEmojiPacker(result);
                 }
             }
 
@@ -480,7 +479,6 @@
 </script>
 
 <script>
-    // Initial Test Code
     document.getElementById('inputCode').value = `// Welcome to JS Obfuscator Pro
 function generateSecureToken() {
     console.log("【Init】 Generating payload in VM...");
@@ -493,7 +491,6 @@ function generateSecureToken() {
 }
 console.log("Token: " + generateSecureToken());`;
 
-    // --- DOM & UI ---
     const statusEl = document.getElementById('status');
     const btnObf = document.getElementById('btnObf');
     const btnTest = document.getElementById('btnTest');
@@ -522,7 +519,9 @@ console.log("Token: " + generateSecureToken());`;
             numExpr: document.getElementById('numExpr'),
             objKeys: document.getElementById('objKeys'),
             renameGlobals: document.getElementById('renameGlobals'),
+            controlFlow: document.getElementById('controlFlow'),
             cfSlider: document.getElementById('cfSlider'),
+            deadCode: document.getElementById('deadCode'),
             dcSlider: document.getElementById('dcSlider'),
             selfDefending: document.getElementById('selfDefending'),
             antiDebug: document.getElementById('antiDebug'),
@@ -537,7 +536,8 @@ console.log("Token: " + generateSecureToken());`;
             e.stringArray.checked = true; e.saEncoding.value = 'none';
             e.splitStrings.checked = false; e.numExpr.checked = false; 
             e.objKeys.checked = false; e.renameGlobals.checked = false;
-            e.cfSlider.value = 0; e.dcSlider.value = 0;
+            e.controlFlow.checked = false; e.cfSlider.value = 0; 
+            e.deadCode.checked = false; e.dcSlider.value = 0;
             e.selfDefending.checked = false; e.antiDebug.checked = false; e.disableConsole.checked = false;
             e.vmObf.checked = false; e.hybridCore.checked = false; e.packer.value = 'none';
         } else if (level === 'medium') {
@@ -545,7 +545,8 @@ console.log("Token: " + generateSecureToken());`;
             e.stringArray.checked = true; e.saEncoding.value = 'base64';
             e.splitStrings.checked = true; e.numExpr.checked = true; 
             e.objKeys.checked = false; e.renameGlobals.checked = false;
-            e.cfSlider.value = 0.5; e.dcSlider.value = 0.4;
+            e.controlFlow.checked = true; e.cfSlider.value = 0.5; 
+            e.deadCode.checked = true; e.dcSlider.value = 0.4;
             e.selfDefending.checked = true; e.antiDebug.checked = false; e.disableConsole.checked = false;
             e.vmObf.checked = true; e.hybridCore.checked = true; e.packer.value = 'medium';
         } else if (level === 'high') {
@@ -553,7 +554,8 @@ console.log("Token: " + generateSecureToken());`;
             e.stringArray.checked = true; e.saEncoding.value = 'rc4';
             e.splitStrings.checked = true; e.numExpr.checked = true; 
             e.objKeys.checked = true; e.renameGlobals.checked = false;
-            e.cfSlider.value = 1.0; e.dcSlider.value = 0.8;
+            e.controlFlow.checked = true; e.cfSlider.value = 1.0; 
+            e.deadCode.checked = true; e.dcSlider.value = 0.8;
             e.selfDefending.checked = true; e.antiDebug.checked = true; e.disableConsole.checked = false;
             e.vmObf.checked = true; e.hybridCore.checked = true; e.packer.value = 'high';
         }
@@ -562,7 +564,6 @@ console.log("Token: " + generateSecureToken());`;
         document.getElementById('dcVal').innerText = e.dcSlider.value;
     }
 
-    // --- Worker Logic ---
     const workerBlob = new Blob([document.getElementById('workerCode').textContent], { type: "application/javascript" });
     const workerUrl = URL.createObjectURL(workerBlob);
     let worker;
@@ -593,7 +594,9 @@ console.log("Token: " + generateSecureToken());`;
                 numbersToExpressions: document.getElementById('numExpr').checked,
                 transformObjectKeys: document.getElementById('objKeys').checked,
                 renameGlobals: document.getElementById('renameGlobals').checked,
+                controlFlowFlattening: document.getElementById('controlFlow').checked,
                 cfThreshold: parseFloat(document.getElementById('cfSlider').value),
+                deadCodeInjection: document.getElementById('deadCode').checked,
                 dcThreshold: parseFloat(document.getElementById('dcSlider').value),
                 selfDefending: document.getElementById('selfDefending').checked,
                 debugProtection: document.getElementById('antiDebug').checked,
@@ -617,7 +620,6 @@ console.log("Token: " + generateSecureToken());`;
         };
     }
 
-    // --- Utilities ---
     function copyOutput() {
         if (!outCodeEl.value) return;
         navigator.clipboard.writeText(outCodeEl.value).then(() => {
